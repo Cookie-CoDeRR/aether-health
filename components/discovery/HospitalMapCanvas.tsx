@@ -25,6 +25,7 @@ function MapRecenter({ center }: { center: { lat: number; lng: number } }) {
 
 // Custom Leaflet DivIcon Generators matching dark monitor aesthetic
 function createUserIcon() {
+  if (typeof window === "undefined" || !L || !L.divIcon) return undefined as any;
   return L.divIcon({
     className: "custom-user-pin",
     html: `
@@ -42,6 +43,7 @@ function createUserIcon() {
 }
 
 function createHospitalIcon(isEmergency: boolean, isSelected: boolean) {
+  if (typeof window === "undefined" || !L || !L.divIcon) return undefined as any;
   const bgClass = isEmergency ? "bg-[#E8674A]" : "bg-[#4F9D8C]";
   const borderClass = isSelected ? "border-2 border-white scale-125 shadow-xl z-50" : "border border-[#0A1620]";
 
@@ -57,6 +59,7 @@ function createHospitalIcon(isEmergency: boolean, isSelected: boolean) {
     popupAnchor: [0, -14],
   });
 }
+
 
 export default function HospitalMapCanvas({
   userLocation,
