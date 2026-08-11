@@ -1,6 +1,9 @@
 import React from "react";
 import ActionsGrid from "@/components/actions/ActionsGrid";
 
+export const dynamic = "force-dynamic";
+
+
 export const metadata = {
   title: "Action Modules | AETHER Healthcare",
   description:

@@ -1,6 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState } from "react";
+
 import { analyzeReport } from "@/services/domain/ocrService";
 import { SafetyWrappedResponse } from "@/types/disclaimers";
 import { ReportParseOutput, ReportMetric } from "@/types/ai";

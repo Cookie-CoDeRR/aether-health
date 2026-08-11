@@ -1,6 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, Suspense } from "react";
+
 import { useSearchParams } from "next/navigation";
 import { getDoctorsList, createBooking } from "@/services/domain/bookingService";
 import { Doctor } from "@/types/doctor";

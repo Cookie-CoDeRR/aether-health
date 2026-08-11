@@ -1,6 +1,9 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
+
 import { searchMedicines, MedicineWithPrices } from "@/services/domain/medicineService";
 
 interface PrescribedMedication {

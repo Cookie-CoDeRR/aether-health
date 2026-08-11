@@ -1,7 +1,10 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useTransition, useCallback } from "react";
-import dynamic from "next/dynamic";
+
+import nextDynamic from "next/dynamic";
 import Link from "next/link";
 import { Hospital } from "@/types/hospital";
 import { fetchNearbyHospitals } from "@/services/overpassService";
@@ -9,7 +12,7 @@ import HospitalCard from "@/components/discovery/HospitalCard";
 import DoctorListDrawer from "@/components/discovery/DoctorListDrawer";
 
 // Dynamically import HospitalMapCanvas with SSR disabled for Leaflet
-const HospitalMapCanvas = dynamic(
+const HospitalMapCanvas = nextDynamic(
   () => import("@/components/discovery/HospitalMapCanvas"),
   {
     ssr: false,
@@ -23,6 +26,7 @@ const HospitalMapCanvas = dynamic(
     ),
   }
 );
+
 
 // Default center (Bangalore Central: 12.9716, 77.5946 or GPS position)
 const DEFAULT_LAT = 12.9716;
@@ -230,7 +234,8 @@ export default function DiscoveryPage() {
             userLocation={userLocation}
             hospitals={filteredHospitals}
             selectedHospital={selectedHospital}
-            onSelectHospital={(hosp) => setSelectedHospital(hosp)}
+            onSelectHospital={(hosp: Hospital) => setSelectedHospital(hosp)}
+
             onExploreDoctors={handleOpenDoctorDrawer}
           />
         </div>

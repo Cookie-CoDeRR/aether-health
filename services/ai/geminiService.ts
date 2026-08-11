@@ -9,10 +9,11 @@ import {
   ReportParseOutput,
 } from "../../types/ai";
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.VERTEX_AI_API_KEY || "";
+const rawApiKey = process.env.GEMINI_API_KEY || process.env.VERTEX_AI_API_KEY || "";
 
-// Initialize Google AI Studio SDK (Gemini 1.5 Flash)
-const ai = new GoogleGenAI({ apiKey });
+// Initialize Google AI Studio SDK safely (pass dummy key for build time if absent)
+const ai = new GoogleGenAI({ apiKey: rawApiKey || "AIzaSyDummyKeyForVercelBuildBuild12345" });
+
 
 /**
  * Fallback generator for Triage Chat when API key is missing or offline
@@ -56,7 +57,7 @@ export async function runGeminiTriageChat(
     // Fetch relevant patient vector history context
     const vectorContext = await queryVectorMedicalContext(input.userId, input.symptoms);
 
-    if (apiKey && !apiKey.includes("your")) {
+    if (rawApiKey && !rawApiKey.includes("your") && !rawApiKey.includes("Dummy")) {
       try {
         const preprompt = `System: You are AETHER Health Triage AI, an intelligent clinical assistant.
 Patient ID: ${input.userId}
