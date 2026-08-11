@@ -1,0 +1,163 @@
+// Prisma Schema for AETHER Healthcare Navigation Prototype
+// Source of truth: PostgreSQL via Prisma. Firebase is auth only.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  firebaseUid String   @unique
+  email       String   @unique
+  displayName String?
+  photoUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  symptomLogs   SymptomLog[]
+  reports       Report[]
+  appointments  Appointment[]
+  prescriptions PatientPrescription[]
+  vectorMemories VectorMemory[]
+}
+
+model PatientPrescription {
+  id                 String   @id @default(cuid())
+  userId             String
+  brandName          String
+  genericName        String
+  dosage             String
+  frequency          String
+  totalDoses         Int      @default(30)
+  dosesRemaining     Int      @default(30)
+  takenToday         Boolean  @default(false)
+  takenAt            String?
+  hospitalName       String   @default("Personal Entry")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model VectorMemory {
+  id         String   @id @default(cuid())
+  userId     String
+  category   String
+  content    String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+
+model SymptomLog {
+  id            String   @id @default(cuid())
+  userId        String
+  symptoms      String   // JSON string of symptom descriptions
+  urgencyLevel  String   // 'low' | 'moderate' | 'high_critical'
+  aiResponse    String?  // AI triage response text
+  specialties   String?  // JSON string of suggested specialties
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  userId          String
+  fileName        String
+  fileUrl         String
+  fileType        String   // 'pdf' | 'image'
+  parseStatus     String   // 'pending' | 'ok' | 'low_confidence' | 'failed'
+  parsedMetrics   String?  // JSON string of parsed health metrics
+  plainSummary    String?  // Plain-language summary of report
+  rawOcrText      String?  // Raw OCR output
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Doctor {
+  id          String   @id @default(cuid())
+  name        String
+  specialty   String
+  rating      Float
+  distance    Float    // in km
+  address     String
+  phoneNumber String?
+  photoUrl    String?
+  available   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  appointments Appointment[]
+}
+
+model Appointment {
+  id        String   @id @default(cuid())
+  userId    String
+  doctorId  String
+  slotTime  DateTime
+  status    String   // 'requested' | 'confirmed' | 'cancelled' | 'completed'
+  mocked    Boolean  @default(true) // Internal flag — not user-facing
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id])
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+}
+
+model Medicine {
+  id               String   @id @default(cuid())
+  brandName        String
+  genericName      String
+  activeIngredient String
+  drugClass        String
+  description      String?
+  createdAt        DateTime @default(now())
+
+  priceEntries PriceEntry[]
+}
+
+model PriceEntry {
+  id           String   @id @default(cuid())
+  medicineId   String
+  pharmacyName String
+  price        Float
+  currency     String   @default("INR")
+  url          String?
+  updatedAt    DateTime @updatedAt
+
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+}
+
+model HospitalRecord {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  osmId       String   @unique @map("osm_id") @db.VarChar(255)
+  name        String   @db.VarChar(255)
+  address     String?  @db.Text
+  phone       String?  @db.VarChar(50)
+  isEmergency Boolean? @default(true) @map("is_emergency")
+
+  @@map("hospitals")
+}
+
+model DoctorRecord {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  hospitalName    String   @map("hospital_name") @db.VarChar(255)
+  name            String   @db.VarChar(255)
+  specialty       String   @db.VarChar(100)
+  qualification   String?  @db.VarChar(100)
+  experienceYears Int?     @map("experience_years")
+  consultationFee Int?     @map("consultation_fee")
+  availableSlots  Json?    @map("available_slots")
+
+  @@map("doctors")
+}
+

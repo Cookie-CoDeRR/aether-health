@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&display=swap');
+
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* AETHER Triage v3 — Dark Clinical Monitor Theme */
+    --ink-0: #0A1620;
+    --ink-1: #0F2130;
+    --panel: #132A38;
+    
+    --paper: #F6F1E9;
+    --paper-dim: #EAE4D6;
+    
+    --coral: #E8674A;
+    --coral-dim: #7E3419;
+    
+    --teal: #4F9D8C;
+    
+    --line: rgba(246, 241, 233, 0.09);
+    --line-strong: rgba(246, 241, 233, 0.16);
+    
+    --text-hi: #F6F1E9;
+    --text-mid: #B9C4CC;
+    --text-lo: #7C8A93;
+
+    /* Tailwind Mappings */
+    --background: 206 52% 8%;           /* #0A1620 */
+    --foreground: 36 33% 94%;            /* #F6F1E9 */
+    
+    --card: 204 49% 15%;                 /* #132A38 */
+    --card-foreground: 36 33% 94%;
+    
+    --popover: 206 52% 12%;              /* #0F2130 */
+    --popover-foreground: 36 33% 94%;
+    
+    --primary: 11 76% 60%;               /* #E8674A (Vital Coral) */
+    --primary-foreground: 206 52% 8%;
+    
+    --secondary: 167 33% 46%;            /* #4F9D8C (Trace Teal) */
+    --secondary-foreground: 36 33% 94%;
+    
+    --muted: 206 52% 12%;
+    --muted-foreground: 204 10% 53%;     /* #7C8A93 */
+    
+    --border: rgba(246, 241, 233, 0.09);
+    --input: rgba(246, 241, 233, 0.16);
+    --ring: 11 76% 60%;
+    
+    --destructive: 0 65% 54%;            /* Critical #D14343 */
+    --destructive-foreground: 36 33% 94%;
+  }
+
+  .light {
+    /* Sleek Paper Light Clinical Theme */
+    --ink-0: #F6F1E9;
+    --ink-1: #EAE4D6;
+    --panel: #FFFFFF;
+    
+    --paper: #0A1620;
+    --paper-dim: #132A38;
+    
+    --coral: #D25235;
+    --coral-dim: #E8674A;
+    
+    --teal: #367A6C;
+    
+    --line: rgba(10, 22, 32, 0.1);
+    --line-strong: rgba(10, 22, 32, 0.2);
+    
+    --text-hi: #0A1620;
+    --text-mid: #3B4B57;
+    --text-lo: #647481;
+
+    --background: 36 33% 94%;
+    --foreground: 206 52% 8%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 206 52% 8%;
+    
+    --popover: 36 33% 94%;
+    --popover-foreground: 206 52% 8%;
+    
+    --primary: 11 76% 50%;
+    --primary-foreground: 36 33% 94%;
+    
+    --secondary: 167 33% 35%;
+    --secondary-foreground: 36 33% 94%;
+    
+    --border: rgba(10, 22, 32, 0.1);
+    --input: rgba(10, 22, 32, 0.18);
+  }
+
+
+  body {
+    background-color: var(--ink-0);
+    color: var(--text-hi);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Faint ECG grid texture on the base */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  h1, h2, h3, .font-serif-heading {
+    font-family: 'Newsreader', Georgia, serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ink-0);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-lo);
+}

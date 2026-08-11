@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # AETHER Next.js 14 Application
+  aether-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aether-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://aether:aetherpass@postgres:5432/aether?schema=public
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-AQ.Ab8RN6L451KfERifzMsVxYneImBbQhmNKgufLlV7SXex8WNctg}
+      - NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY:-AIzaSyBkFFQjYkYHlIcFL_WU6MzIadhMl8DMtj4}
+      - NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-aeather-cce5d.firebaseapp.com}
+      - NEXT_PUBLIC_FIREBASE_PROJECT_ID=${NEXT_PUBLIC_FIREBASE_PROJECT_ID:-aeather-cce5d}
+      - NEXT_PUBLIC_ORS_KEY=${NEXT_PUBLIC_ORS_KEY:-eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjY0NDY2NTVmYmE4NzQ2ZjY5ZmM4YWQ0ZTE5MmZkMTEzIiwiaCI6Im11cm11cjY0In0=}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL:-https://aeather-cce5d.supabase.co}
+    depends_on:
+      - postgres
+    restart: always
+
+  # PostgreSQL 16 Database with pgvector extension
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: aether-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: aether
+      POSTGRES_PASSWORD: aetherpass
+      POSTGRES_DB: aether
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres_data:
