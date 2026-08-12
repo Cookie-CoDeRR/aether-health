@@ -9,12 +9,26 @@ import { SafetyWrappedResponse } from "@/types/disclaimers";
 import { ReportParseOutput, ReportMetric } from "@/types/ai";
 import { ParseStatus } from "@/types/report";
 
+import { issueClearanceCertificate } from "@/services/domain/timelineService";
+
 export default function ReportsPage() {
   const [file, setFile] = useState<File | null>(null);
   const [parseState, setParseState] = useState<ParseStatus | null>(null);
   const [analysisResult, setAnalysisResult] = useState<SafetyWrappedResponse<ReportParseOutput> | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [certificateIssued, setCertificateIssued] = useState(false);
+
+  const handleIssueCertificate = async () => {
+    await issueClearanceCertificate({
+      userId: "aether_usr_8f92a170b4c2",
+      title: `Clearance: ${file?.name || "CBC Lab Report"}`,
+      subtitle: "Lab report metrics reviewed. Clearance certificate issued.",
+      doctorName: "Dr. Sarah Jenkins (Pathology)",
+      certificateNote: "WBC count and inflammatory markers verified within normal recovery limits.",
+    });
+    setCertificateIssued(true);
+  };
 
   const handleFileSelect = (selectedFile: File) => {
     const validTypes = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
@@ -189,7 +203,7 @@ export default function ReportsPage() {
       {/* 3. OK or Low Confidence States */}
       {(parseState === "ok" || parseState === "low_confidence") && analysisResult?.data && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 border-b border-[rgba(246,241,233,0.09)] pb-3">
             <div className="flex items-center gap-2">
               <span
                 className={`rounded px-2.5 py-1 font-mono text-xs font-bold uppercase tracking-wider ${
@@ -202,6 +216,19 @@ export default function ReportsPage() {
               </span>
               <span className="font-mono text-xs text-[#7C8A93]">Gemini 1.5 Pro</span>
             </div>
+
+            {certificateIssued ? (
+              <span className="rounded-lg bg-[#4F9D8C]/20 border border-[#4F9D8C] px-3 py-1 text-xs font-mono text-[#4F9D8C] font-bold">
+                ✓ Clearance Certificate Issued to Timeline
+              </span>
+            ) : (
+              <button
+                onClick={handleIssueCertificate}
+                className="rounded-lg bg-[#4F9D8C] hover:bg-[#4F9D8C]/90 text-white px-3.5 py-1.5 text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 font-mono"
+              >
+                <span>📜 Issue Clearance Certificate & Update Timeline</span>
+              </button>
+            )}
           </div>
 
           {parseState === "low_confidence" && (

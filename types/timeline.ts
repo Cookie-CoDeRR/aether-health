@@ -1,4 +1,4 @@
-export type TimelineEntryType = "symptom_log" | "report" | "appointment";
+export type TimelineEntryType = "symptom_log" | "report" | "appointment" | "cured_certificate";
 
 export type BadgeVariant = "default" | "amber" | "emerald" | "slate" | "rose";
 
@@ -10,6 +10,10 @@ export interface TimelineEntry {
   subtitle: string;
   badgeText?: string;
   badgeVariant?: BadgeVariant;
+  isCuredCleared?: boolean;
+  curedCertificateNote?: string;
+  curedDoctorName?: string;
+  curedIssuedAt?: Date;
   details?: Record<string, any>;
   rawRecord?: any;
 }

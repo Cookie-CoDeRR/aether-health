@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&display=swap');
 
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -54,6 +53,7 @@
     --destructive-foreground: 36 33% 94%;
   }
 
+  html.light,
   .light {
     /* Sleek Paper Light Clinical Theme */
     --ink-0: #F6F1E9;
@@ -68,38 +68,94 @@
     
     --teal: #367A6C;
     
-    --line: rgba(10, 22, 32, 0.1);
-    --line-strong: rgba(10, 22, 32, 0.2);
+    --line: rgba(10, 22, 32, 0.12);
+    --line-strong: rgba(10, 22, 32, 0.22);
     
     --text-hi: #0A1620;
-    --text-mid: #3B4B57;
-    --text-lo: #647481;
+    --text-mid: #2C3E4C;
+    --text-lo: #556675;
 
-    --background: 36 33% 94%;
-    --foreground: 206 52% 8%;
-    
-    --card: 0 0% 100%;
-    --card-foreground: 206 52% 8%;
-    
-    --popover: 36 33% 94%;
-    --popover-foreground: 206 52% 8%;
-    
-    --primary: 11 76% 50%;
-    --primary-foreground: 36 33% 94%;
-    
-    --secondary: 167 33% 35%;
-    --secondary-foreground: 36 33% 94%;
-    
-    --border: rgba(10, 22, 32, 0.1);
-    --input: rgba(10, 22, 32, 0.18);
+    color-scheme: light;
   }
 
+  /* Comprehensive Light Mode Global Overrides */
+  html.light body,
+  .light body {
+    background-color: #F6F1E9 !important;
+    color: #0A1620 !important;
+  }
+
+  html.light .bg-\[\#0A1620\],
+  .light .bg-\[\#0A1620\] {
+    background-color: #F6F1E9 !important;
+  }
+
+  html.light .bg-\[\#0F2130\],
+  .light .bg-\[\#0F2130\],
+  html.light .bg-\[\#0F2130\]\/50,
+  .light .bg-\[\#0F2130\]\/50 {
+    background-color: #EAE4D6 !important;
+    color: #0A1620 !important;
+  }
+
+  html.light .bg-\[\#132A38\],
+  .light .bg-\[\#132A38\],
+  html.light .bg-\[\#132A38\]\/80,
+  .light .bg-\[\#132A38\]\/80,
+  html.light .bg-\[\#132A38\]\/60,
+  .light .bg-\[\#132A38\]\/60,
+  html.light .bg-\[\#132A38\]\/50,
+  .light .bg-\[\#132A38\]\/50 {
+    background-color: #FFFFFF !important;
+    color: #0A1620 !important;
+  }
+
+  html.light input,
+  .light input,
+  html.light select,
+  .light select,
+  html.light textarea,
+  .light textarea {
+    background-color: #FFFFFF !important;
+    color: #0A1620 !important;
+    border-color: rgba(10, 22, 32, 0.2) !important;
+  }
+
+  html.light input::placeholder,
+  .light input::placeholder,
+  html.light textarea::placeholder,
+  .light textarea::placeholder {
+    color: #647481 !important;
+  }
+
+  html.light .text-\[\#F6F1E9\],
+  .light .text-\[\#F6F1E9\] {
+    color: #0A1620 !important;
+  }
+
+  html.light .text-\[\#B9C4CC\],
+  .light .text-\[\#B9C4CC\] {
+    color: #2C3E4C !important;
+  }
+
+  html.light .text-\[\#7C8A93\],
+  .light .text-\[\#7C8A93\] {
+    color: #4A5B69 !important;
+  }
+
+  html.light .border-\[rgba\(246\,241\,233\,0\.09\)\],
+  .light .border-\[rgba\(246\,241\,233\,0\.09\)\],
+  html.light .border-\[rgba\(246\,241\,233\,0\.16\)\],
+  .light .border-\[rgba\(246\,241\,233\,0\.16\)\] {
+    border-color: rgba(10, 22, 32, 0.15) !important;
+  }
 
   body {
     background-color: var(--ink-0);
     color: var(--text-hi);
     font-family: 'IBM Plex Sans', system-ui, sans-serif;
     min-height: 100vh;
+    transition: background-color 0.25s ease, color 0.25s ease;
   }
 
   /* Faint ECG grid texture on the base */

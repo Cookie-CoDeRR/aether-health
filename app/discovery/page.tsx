@@ -27,7 +27,6 @@ const HospitalMapCanvas = nextDynamic(
   }
 );
 
-
 // Default center (Bangalore Central: 12.9716, 77.5946 or GPS position)
 const DEFAULT_LAT = 12.9716;
 const DEFAULT_LNG = 77.5946;
@@ -101,7 +100,6 @@ export default function DiscoveryPage() {
     loadHospitals(userLocation.lat, userLocation.lng, radiusKm * 1000);
   }, [userLocation, radiusKm, loadHospitals]);
 
-
   const handleOpenDoctorDrawer = (hospital: Hospital) => {
     setDrawerHospital(hospital);
     setIsDrawerOpen(true);
@@ -140,7 +138,7 @@ export default function DiscoveryPage() {
       </div>
 
       {/* AI Context Triage Banner */}
-      <div className="rounded-xl border border-[#E8674A]/30 bg-gradient-to-r from-[#132A38] via-[#0F2130] to-[#132A38] p-4 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="rounded-xl border border-[#E8674A]/30 bg-[#0F2130] p-4 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-start gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#E8674A]/20 text-[#E8674A] text-lg font-bold border border-[#E8674A]/30">
             🤖
@@ -157,7 +155,7 @@ export default function DiscoveryPage() {
 
         <Link
           href="/triage"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#0F2130] px-3 py-1.5 text-xs font-mono text-[#B9C4CC] hover:text-[#F6F1E9] hover:border-[#E8674A] transition-all shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-3.5 py-2 text-xs font-mono text-[#F6F1E9] hover:border-[#E8674A] transition-all shrink-0"
         >
           <span>💬</span>
           <span>Run Symptom Read →</span>
@@ -235,7 +233,6 @@ export default function DiscoveryPage() {
             hospitals={filteredHospitals}
             selectedHospital={selectedHospital}
             onSelectHospital={(hosp: Hospital) => setSelectedHospital(hosp)}
-
             onExploreDoctors={handleOpenDoctorDrawer}
           />
         </div>

@@ -111,7 +111,8 @@ export async function searchMedicines(query: string): Promise<MedicineWithPrices
           const brand = item.openfda?.brand_name?.[0] || q;
           const generic = item.openfda?.generic_name?.[0] || item.openfda?.substance_name?.[0] || brand;
           const active = item.openfda?.substance_name?.join(", ") || generic;
-          const drugClass = item.openfda?.pharm_class_epc?.[0] || item.openfda?.pharm_class_cs?.[0] || "Pharmaceutical Agent";
+          const rawClass = item.openfda?.pharm_class_epc?.[0] || item.openfda?.pharm_class_cs?.[0];
+          const drugClass = rawClass || (item.purpose?.[0] ? item.purpose[0] : "Pharmaceutical Agent");
           const desc = item.purpose?.[0] || item.indications_and_usage?.[0]?.substring(0, 160) + "..." || item.description?.[0]?.substring(0, 160) + "..." || "Official FDA labeling reference entry.";
 
           const basePrice = 45 + ((idx * 37) % 180);

@@ -24,6 +24,8 @@ export interface TriageOutput {
   urgencyLevel: UrgencyLevel;
   summary: string;
   specialties?: SpecialtySuggestion[];
+  patientRecordContext?: string[];
+  suggestedFollowUps?: string[];
 }
 
 export interface ReportMetric {

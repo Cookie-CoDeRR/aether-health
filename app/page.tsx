@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import LandingHeader from "@/components/landing/LandingHeader";
 import AuthModal from "@/components/landing/AuthModal";
 import AnalyticsSection from "@/components/landing/AnalyticsSection";
 import CustomCursor from "@/components/landing/CustomCursor";
+import { useSettings } from "@/context/SettingsContext";
 
 // Dynamically import WebGL Three.js ambient background canvas with SSR disabled
 const ThreeMedicalCanvas = dynamic(
@@ -32,6 +34,20 @@ const staggerContainer = {
 export default function StartPage() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"signin" | "signup">("signin");
+  const { isGmailAuthenticated } = useSettings();
+  const router = useRouter();
+
+  // Automatic Persistent Session Check & Auto-Redirect
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isAuthActive = localStorage.getItem("aether_auth_active") === "true";
+      const userProfile = localStorage.getItem("aether_user_profile");
+
+      if (isGmailAuthenticated || isAuthActive || userProfile) {
+        router.replace("/triage");
+      }
+    }
+  }, [isGmailAuthenticated, router]);
 
   const openAuth = (tab: "signin" | "signup") => {
     setAuthTab(tab);
@@ -39,14 +55,14 @@ export default function StartPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0A1620] text-[#F6F1E9] overflow-x-hidden selection:bg-[#E8674A] selection:text-[#0A1620]">
-      {/* Zero-Lag Fast Mouse Cursor Follower */}
+    <div className="relative min-h-screen bg-[#0A1620] text-[#F6F1E9] overflow-x-hidden selection:bg-[#E8674A] selection:text-[#0A1620] transition-colors">
+      {/* Fast Mouse Cursor Follower */}
       <CustomCursor />
 
-      {/* Static Subtle Ambient WebGL Background */}
+      {/* 3D WebGL Ambient Fluid Background Canvas */}
       <ThreeMedicalCanvas />
 
-      {/* Standalone Landing Top Header Bar */}
+      {/* Landing Top Header Bar */}
       <LandingHeader onOpenAuth={openAuth} />
 
       {/* Hero Section */}
@@ -58,11 +74,11 @@ export default function StartPage() {
           className="max-w-5xl mx-auto space-y-8"
         >
           {/* Tagline Badge */}
-          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-[#E8674A]/30 bg-[#132A38]/90 backdrop-blur-md px-4.5 py-1.5 text-xs font-mono text-[#E8674A] shadow-xl">
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-[#E8674A]/40 bg-[#132A38] backdrop-blur-md px-4.5 py-1.5 text-xs font-mono text-[#E8674A] shadow-xl">
             <span className="h-2 w-2 rounded-full bg-[#E8674A] animate-pulse" />
             <span>AETHER Healthcare Platform • Signal v3</span>
             <span className="text-[#7C8A93]">•</span>
-            <span className="text-[#00F0FF]">Google AI Studio Gemini 1.5 Flash</span>
+            <span className="text-[#4F9D8C]">Google AI Studio Gemini 1.5 Flash</span>
           </motion.div>
 
           {/* Large Hero Title */}
@@ -87,7 +103,7 @@ export default function StartPage() {
 
             <button
               onClick={() => openAuth("signin")}
-              className="interactive-hover inline-flex items-center gap-2 rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#132A38]/80 backdrop-blur-md px-7 py-4 text-base font-medium text-[#F6F1E9] hover:bg-[#0F2130] hover:border-[#E8674A]/40 transition-all duration-200"
+              className="interactive-hover inline-flex items-center gap-2 rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] backdrop-blur-md px-7 py-4 text-base font-medium text-[#F6F1E9] hover:bg-[#0F2130] hover:border-[#E8674A]/40 transition-all duration-200"
             >
               <span>Sign In to Platform</span>
             </button>
@@ -102,7 +118,7 @@ export default function StartPage() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="rounded-3xl border-2 border-[#E8674A]/60 bg-gradient-to-r from-[#132A38] via-[#0F2130] to-[#132A38] p-8 sm:p-10 shadow-2xl space-y-4"
+          className="rounded-3xl border-2 border-[#E8674A]/60 bg-[#0F2130] p-8 sm:p-10 shadow-2xl space-y-4"
         >
           <div className="flex items-center gap-3.5">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#E8674A]/20 text-[#E8674A] text-2xl font-bold border border-[#E8674A]/40">
@@ -205,7 +221,7 @@ export default function StartPage() {
               variants={fadeInUp}
               whileHover={{ y: -8, scale: 1.02 }}
               onClick={() => openAuth("signup")}
-              className={`interactive-hover cursor-pointer group flex flex-col justify-between rounded-3xl border ${item.accent} bg-[#132A38]/80 backdrop-blur-xl p-7 shadow-2xl transition-all duration-300 hover:bg-[#0F2130] hover:shadow-2xl`}
+              className={`interactive-hover cursor-pointer group flex flex-col justify-between rounded-3xl border ${item.accent} bg-[#132A38] p-7 shadow-2xl transition-all duration-300 hover:bg-[#0F2130] hover:shadow-2xl`}
             >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">

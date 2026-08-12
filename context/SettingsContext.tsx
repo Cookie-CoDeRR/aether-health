@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { SupportedLanguage, TRANSLATIONS } from "@/lib/i18n";
+import { signInWithGoogle, signOutUser, subscribeToAuthState, UserProfile } from "@/services/authService";
 
 interface SettingsContextType {
   theme: "dark" | "light";
@@ -10,7 +11,12 @@ interface SettingsContextType {
   setLanguage: (lang: SupportedLanguage) => void;
   userId: string;
   userName: string;
+  userEmail: string | null;
+  userPhoto: string | null;
+  isGmailAuthenticated: boolean;
   setUserName: (name: string) => void;
+  signInWithGmail: () => Promise<UserProfile>;
+  signOutGmail: () => Promise<void>;
   medicalHistory: string;
   setMedicalHistory: (history: string) => void;
   hospitalApiKey: string;
@@ -23,8 +29,13 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<"dark" | "light">("dark");
   const [language, setLanguageState] = useState<SupportedLanguage>("en");
-  const [userId] = useState<string>("aether_usr_8f92a170b4c2");
+
+  const [userId, setUserId] = useState<string>("aether_usr_8f92a170b4c2");
   const [userName, setUserNameState] = useState<string>("Alex Rivers");
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userPhoto, setUserPhoto] = useState<string | null>(null);
+  const [isGmailAuthenticated, setIsGmailAuthenticated] = useState<boolean>(false);
+
   const [medicalHistory, setMedicalHistoryState] = useState<string>(
     "34-year-old patient with history of mild seasonal asthma, penicillin allergy, and previous high blood pressure episodes during stress."
   );
@@ -40,6 +51,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     if (savedTheme) {
       setThemeState(savedTheme);
       document.documentElement.classList.toggle("light", savedTheme === "light");
+      document.body.classList.toggle("light", savedTheme === "light");
     }
     if (savedLang) {
       setLanguageState(savedLang);
@@ -50,12 +62,32 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     if (savedHistory) {
       setMedicalHistoryState(savedHistory);
     }
+
+    // Subscribe to Firebase Auth (Gmail OAuth) state changes
+    const unsubscribe = subscribeToAuthState((profile) => {
+      if (profile) {
+        setIsGmailAuthenticated(true);
+        setUserEmail(profile.email);
+        setUserPhoto(profile.photoURL);
+        if (profile.displayName) {
+          setUserNameState(profile.displayName);
+        }
+        setUserId(`aether_usr_${profile.uid.substring(0, 12)}`);
+      } else {
+        setIsGmailAuthenticated(false);
+        setUserEmail(null);
+        setUserPhoto(null);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const setTheme = (newTheme: "dark" | "light") => {
     setThemeState(newTheme);
     localStorage.setItem("aether_theme", newTheme);
     document.documentElement.classList.toggle("light", newTheme === "light");
+    document.body.classList.toggle("light", newTheme === "light");
   };
 
   const setLanguage = (newLang: SupportedLanguage) => {
@@ -66,6 +98,27 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const setUserName = (name: string) => {
     setUserNameState(name);
     localStorage.setItem("aether_user_name", name);
+  };
+
+  const signInWithGmail = async (): Promise<UserProfile> => {
+    const profile = await signInWithGoogle();
+    setIsGmailAuthenticated(true);
+    setUserEmail(profile.email);
+    setUserPhoto(profile.photoURL);
+    if (profile.displayName) {
+      setUserNameState(profile.displayName);
+    }
+    setUserId(`aether_usr_${profile.uid.substring(0, 12)}`);
+    return profile;
+  };
+
+  const signOutGmail = async (): Promise<void> => {
+    await signOutUser();
+    setIsGmailAuthenticated(false);
+    setUserEmail(null);
+    setUserPhoto(null);
+    setUserNameState("Alex Rivers");
+    setUserId("aether_usr_8f92a170b4c2");
   };
 
   const setMedicalHistory = (history: string) => {
@@ -92,7 +145,12 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         setLanguage,
         userId,
         userName,
+        userEmail,
+        userPhoto,
+        isGmailAuthenticated,
         setUserName,
+        signInWithGmail,
+        signOutGmail,
         medicalHistory,
         setMedicalHistory,
         hospitalApiKey,
@@ -104,7 +162,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     </SettingsContext.Provider>
   );
 }
-
 
 export function useSettings() {
   const context = useContext(SettingsContext);

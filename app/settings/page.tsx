@@ -3,9 +3,8 @@
 export const dynamic = "force-dynamic";
 
 import { useState } from "react";
-
 import { useSettings } from "@/context/SettingsContext";
-import { SUPPORTED_LANGUAGES, SupportedLanguage } from "@/lib/i18n";
+import { SUPPORTED_LANGUAGES } from "@/lib/i18n";
 
 export default function SettingsPage() {
   const {
@@ -15,6 +14,11 @@ export default function SettingsPage() {
     setLanguage,
     userId,
     userName,
+    userEmail,
+    userPhoto,
+    isGmailAuthenticated,
+    signInWithGmail,
+    signOutGmail,
     setUserName,
     medicalHistory,
     setMedicalHistory,
@@ -27,6 +31,7 @@ export default function SettingsPage() {
   const [copiedKey, setCopiedKey] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +51,19 @@ export default function SettingsPage() {
     setTimeout(() => setCopiedKey(false), 2000);
   };
 
+  const handleGmailConnect = async () => {
+    setIsSigningIn(true);
+    try {
+      await signInWithGmail();
+    } catch (err: any) {
+      alert(`Gmail Sign-In Error: ${err.message || "Failed to sign in with Google."}`);
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
   return (
-    <div className="space-y-8 animate-fade-in p-6 lg:p-12 max-w-4xl mx-auto">
+    <div className="space-y-8 animate-fade-in p-6 lg:p-12 max-w-4xl mx-auto text-[#F6F1E9]">
       {/* Page Header */}
       <div className="border-b border-[rgba(246,241,233,0.09)] pb-4">
         <div className="text-[11px] uppercase tracking-[0.14em] text-[#E8674A] font-mono font-semibold mb-1">
@@ -59,6 +75,61 @@ export default function SettingsPage() {
         <p className="text-xs text-[#7C8A93] mt-1 leading-relaxed">
           {t("settingsSub")}
         </p>
+      </div>
+
+      {/* Gmail Authentication & SSO Governance Card */}
+      <div className="rounded-2xl border border-[#4F9D8C]/30 bg-[#0F2130] p-6 space-y-4 shadow-xl">
+        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[rgba(246,241,233,0.09)] pb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[10px] uppercase font-bold text-[#4F9D8C] bg-[#4F9D8C]/10 px-2 py-0.5 rounded border border-[#4F9D8C]/30">
+                Firebase OAuth 2.0 Active
+              </span>
+            </div>
+            <h3 className="font-serif text-lg font-medium text-[#F6F1E9] mt-1">
+              Gmail & Google SSO Authentication
+            </h3>
+            <p className="text-xs text-[#B9C4CC] mt-0.5">
+              Connect your official Google account to sync health records across sessions securely.
+            </p>
+          </div>
+
+          {!isGmailAuthenticated ? (
+            <button
+              onClick={handleGmailConnect}
+              disabled={isSigningIn}
+              className="rounded-xl bg-[#4F9D8C] hover:bg-[#4F9D8C]/90 text-white font-mono px-5 py-2.5 text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z" />
+                <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z" />
+                <path fill="#FBBC05" d="M5.3 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.6 7.4C.6 9.4 0 11.6 0 14s.6 4.6 1.6 6.6l3.7-2.9z" />
+                <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z" />
+              </svg>
+              <span>{isSigningIn ? "Connecting Gmail..." : "Sign in with Gmail"}</span>
+            </button>
+          ) : (
+            <button
+              onClick={signOutGmail}
+              className="rounded-xl border border-[#D14343]/50 bg-[#D14343]/10 hover:bg-[#D14343] hover:text-white font-mono px-4 py-2 text-xs font-bold text-[#D14343] transition-all"
+            >
+              Sign Out of Gmail
+            </button>
+          )}
+        </div>
+
+        {isGmailAuthenticated && (
+          <div className="flex items-center gap-4 rounded-xl bg-[#132A38] p-4 border border-[rgba(246,241,233,0.09)] font-mono text-xs">
+            {userPhoto && (
+              <img src={userPhoto} alt={userName} className="h-12 w-12 rounded-full border-2 border-[#4F9D8C] object-cover" />
+            )}
+            <div className="space-y-0.5">
+              <div className="font-bold text-[#F6F1E9] text-sm">{userName}</div>
+              <div className="text-[#4F9D8C]">📧 {userEmail}</div>
+              <div className="text-[10px] text-[#7C8A93]">Firebase UID: {userId}</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Patient Profile & Preprompt Background History Card */}
@@ -137,7 +208,6 @@ export default function SettingsPage() {
       </form>
 
       {/* Language Selector Grid */}
-
       <div className="rounded-2xl border border-[rgba(246,241,233,0.09)] bg-[#0F2130] p-6 space-y-4 shadow-lg">
         <div>
           <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">
@@ -201,7 +271,7 @@ export default function SettingsPage() {
             onClick={() => setTheme("light")}
             className={`p-5 rounded-2xl border text-left transition-all ${
               theme === "light"
-                ? "border-[#E8674A] bg-[#EAE4D6] text-[#0A1620] ring-2 ring-[#E8674A]"
+                ? "border-[#EAE4D6] bg-[#EAE4D6] text-[#0A1620] ring-2 ring-[#E8674A]"
                 : "border-[rgba(246,241,233,0.09)] bg-[#132A38]/50 hover:bg-[#132A38]"
             }`}
           >
