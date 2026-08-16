@@ -93,12 +93,13 @@ export default function AmbientNatureOverlay() {
         ? -30
         : Math.random() * (height * 0.6);
 
+      const isMobile = window.innerWidth < 640;
       leavesRef.current.push({
         x: startX,
         y: startY,
         vx: 1.2 + Math.random() * 1.8,
         vy: 0.8 + Math.random() * 1.2,
-        scale: 0.75 + Math.random() * 0.45,
+        scale: (0.75 + Math.random() * 0.45) * (isMobile ? 0.65 : 1.0),
         rotation: Math.random() * Math.PI * 2,
         angularVelocity: (Math.random() - 0.5) * 0.06,
         swaySpeed: 1.4 + Math.random() * 1.6,

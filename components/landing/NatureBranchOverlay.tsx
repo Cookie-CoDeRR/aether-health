@@ -177,9 +177,12 @@ export const NatureBranchOverlay: React.FC = () => {
     window.addEventListener("resize", handleResize);
 
     const initInteractiveElements = () => {
+      const isMobile = window.innerWidth < 640;
+      const isTablet = window.innerWidth < 1024;
       const leaves: Leaf[] = [];
-      const topOffset = window.innerWidth < 640 ? 44 : 64;
-      const branchHeight = Math.min(height * 0.95, 720);
+      const topOffset = isMobile ? 36 : 64;
+      const branchHeight = Math.min(height * 0.95, isMobile ? 380 : 720);
+      const mobileScaleFactor = isMobile ? 0.68 : isTablet ? 0.85 : 1.0;
 
       // Rebalanced foliage: Increased along TOP CANOPY above title, reduced on side wings
       const branchTwigNodes = [
@@ -210,12 +213,12 @@ export const NatureBranchOverlay: React.FC = () => {
 
       let id = 0;
       branchTwigNodes.forEach((node) => {
-        const count = node.sprouts || 2;
-        const scaleBase = node.scaleMod || 1.2;
+        const count = isMobile ? Math.max(1, (node.sprouts || 2) - 1) : node.sprouts || 2;
+        const scaleBase = (node.scaleMod || 1.2) * mobileScaleFactor;
         for (let i = 0; i < count; i++) {
           const stemX = node.nx * width;
           const stemY = topOffset + node.ny * branchHeight;
-          const stemLen = 20 + Math.random() * 14;
+          const stemLen = (isMobile ? 12 : 20) + Math.random() * (isMobile ? 8 : 14);
           const spread =
             (i === 0 ? 0 : 0.42 * (i % 2 === 0 ? 1 : -1) * Math.ceil(i / 2));
           const baseAngle = node.angle + spread;
@@ -251,7 +254,7 @@ export const NatureBranchOverlay: React.FC = () => {
         stemX: appleStemX,
         stemY: appleStemY,
         x: appleStemX,
-        y: appleStemY + 24,
+        y: appleStemY + (isMobile ? 14 : 24),
         scale: 0,
         isGrown: false,
         isFallen: false,

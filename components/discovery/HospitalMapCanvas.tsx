@@ -48,6 +48,23 @@ function MapRecenter({
   return null;
 }
 
+// Invalidate size on resize for seamless mobile rendering
+function MapAutoResize() {
+  const map = useMap();
+  useEffect(() => {
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+    window.addEventListener("resize", handleResize);
+    const timer = setTimeout(() => map.invalidateSize(), 300);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+    };
+  }, [map]);
+  return null;
+}
+
 // Map Click-to-Zoom Controller
 function MapInteractionController({
   isInteractive,
@@ -154,6 +171,7 @@ export default function HospitalMapCanvas({
         style={{ height: "100%", width: "100%", minHeight: "420px", zIndex: 1 }}
       >
         <MapRecenter center={mapCenter} />
+        <MapAutoResize />
         <MapInteractionController
           isInteractive={isMapZoomActive}
           setIsInteractive={setIsMapZoomActive}

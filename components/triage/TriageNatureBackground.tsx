@@ -130,12 +130,13 @@ export default function TriageNatureBackground() {
       }
 
       // 2. Stray falling leaf from anywhere top/left
+      const isMobile = window.innerWidth < 640;
       leavesRef.current.push({
         x: Math.random() * (width * 0.65),
         y: -20,
         vx: 1.1 + Math.random() * 1.5,
         vy: 0.75 + Math.random() * 1.0,
-        scale: 0.8 + Math.random() * 0.4,
+        scale: (0.8 + Math.random() * 0.4) * (isMobile ? 0.65 : 1.0),
         rotation: Math.random() * Math.PI * 2,
         angularVelocity: (Math.random() - 0.5) * 0.05,
         swaySpeed: 1.3 + Math.random() * 1.4,
@@ -153,11 +154,12 @@ export default function TriageNatureBackground() {
     // Random Fish Jump Routine (Every 8-12 seconds)
     const triggerFishJump = () => {
       if (fishRef.current.active || document.hidden) return;
+      const isMobile = window.innerWidth < 640;
       const startX = width * (0.15 + Math.random() * 0.7);
       const jumpDistance =
-        (Math.random() - 0.5) * 130 + (Math.random() > 0.5 ? 70 : -70);
-      const targetX = Math.max(30, Math.min(width - 30, startX + jumpDistance));
-      const peak = 60 + Math.random() * 55;
+        (Math.random() - 0.5) * (isMobile ? 80 : 130) + (Math.random() > 0.5 ? 50 : -50);
+      const targetX = Math.max(20, Math.min(width - 20, startX + jumpDistance));
+      const peak = (60 + Math.random() * 55) * (isMobile ? 0.65 : 1.0);
 
       fishRef.current = {
         active: true,
@@ -167,7 +169,7 @@ export default function TriageNatureBackground() {
         y: height - 4,
         progress: 0,
         peakHeight: peak,
-        scale: 0.75 + Math.random() * 0.3,
+        scale: (0.75 + Math.random() * 0.3) * (isMobile ? 0.75 : 1.0),
       };
 
       ripplesRef.current.push({

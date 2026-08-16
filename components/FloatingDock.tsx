@@ -249,7 +249,7 @@ function FloatingDockContent({
 
   return (
     <div
-      className={`fixed bottom-6 z-50 max-w-[94vw] sm:max-w-2xl w-full px-2 pointer-events-none transition-all duration-500 ease-out ${
+      className={`fixed bottom-3 sm:bottom-6 z-50 max-w-[96vw] sm:max-w-2xl w-full px-1 sm:px-2 pointer-events-none transition-all duration-500 ease-out ${
         isTriage
           ? "left-1/2 -translate-x-1/2 lg:left-[calc((100vw-380px)/2)] xl:left-[calc((100vw-410px)/2)]"
           : "left-1/2 -translate-x-1/2"
@@ -259,10 +259,10 @@ function FloatingDockContent({
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="pointer-events-auto flex items-center justify-between gap-2.5 rounded-full bg-white/95 backdrop-blur-2xl border border-[#064E3B]/25 px-3 py-2 shadow-2xl ring-1 ring-[#064E3B]/10 text-[#064E3B]"
+        className="pointer-events-auto flex items-center justify-between gap-1.5 sm:gap-2.5 rounded-full bg-white/95 backdrop-blur-2xl border border-[#064E3B]/25 px-2 py-1.5 sm:px-3 sm:py-2 shadow-2xl ring-1 ring-[#064E3B]/10 text-[#064E3B]"
       >
         {/* Navigation Action Icons (Left side) */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
           {navItems.map((item) => {
             // Strictly check distinct active state for discovery vs doctors tab
             let isActive = false;
@@ -280,13 +280,13 @@ function FloatingDockContent({
               <div
                 onMouseEnter={() => setHoveredItem(item.id)}
                 onMouseLeave={() => setHoveredItem(null)}
-                className={`relative flex h-10 w-10 items-center justify-center rounded-full transition-all duration-150 ${
+                className={`relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all duration-150 ${
                   isActive
                     ? "bg-[#064E3B]/10 text-[#064E3B] ring-1 ring-[#064E3B]/30 font-bold shadow-2xs"
                     : "text-[#064E3B]/70 hover:bg-[#064E3B]/5 hover:text-[#064E3B] hover:scale-105 active:scale-95"
                 }`}
               >
-                {item.icon}
+                <span className="scale-85 sm:scale-100">{item.icon}</span>
 
                 {/* Animated Tooltip on Hover */}
                 <AnimatePresence>
@@ -327,16 +327,16 @@ function FloatingDockContent({
         </div>
 
         {/* Vertical Divider */}
-        <div className="h-6 w-[1px] bg-[#064E3B]/20 shrink-0" />
+        <div className="h-5 sm:h-6 w-[1px] bg-[#064E3B]/20 shrink-0" />
 
         {/* Integrated Search / Prompt Capsule Bar (Right side) */}
         <form
           onSubmit={handleSubmit}
-          className="flex-1 flex items-center gap-2 min-w-0"
+          className="flex-1 flex items-center gap-1.5 sm:gap-2 min-w-0"
         >
           <div className="relative flex-1 flex items-center min-w-0 group">
-            <span className="absolute left-3 flex items-center justify-center pointer-events-none text-[#064E3B]/70">
-              <Sparkles className="w-3.5 h-3.5" />
+            <span className="absolute left-2.5 sm:left-3 flex items-center justify-center pointer-events-none text-[#064E3B]/70">
+              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
             </span>
 
             <input
@@ -344,12 +344,12 @@ function FloatingDockContent({
               value={inputValue}
               onClick={handleInputClick}
               onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask symptoms or navigate (e.g. 'find medicines')..."
-              className="w-full h-10 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 pl-9 pr-16 text-xs text-[#064E3B] placeholder-[#064E3B]/50 focus:bg-white focus:outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]/20 transition-all truncate"
+              placeholder="Ask symptoms or navigate..."
+              className="w-full h-8 sm:h-10 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 pl-7 sm:pl-9 pr-10 sm:pr-16 text-[11.5px] sm:text-xs text-[#064E3B] placeholder-[#064E3B]/50 focus:bg-white focus:outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B]/20 transition-all truncate"
             />
 
             {/* Voice microphone button & shortcut tag */}
-            <div className="absolute right-2 flex items-center gap-1">
+            <div className="absolute right-1.5 sm:right-2 flex items-center gap-1">
               <button
                 type="button"
                 onClick={toggleVoiceInput}
@@ -361,12 +361,12 @@ function FloatingDockContent({
                 title={isListening ? "Listening..." : "Voice input"}
               >
                 {isListening ? (
-                  <MicOff className="w-3.5 h-3.5" />
+                  <MicOff className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 ) : (
-                  <Mic className="w-3.5 h-3.5" />
+                  <Mic className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 )}
               </button>
-              <kbd className="hidden sm:inline-flex items-center rounded-md border border-[#064E3B]/20 bg-white px-1.5 py-0.5 text-[10px] font-mono text-[#064E3B]/60 shadow-2xs">
+              <kbd className="hidden md:inline-flex items-center rounded-md border border-[#064E3B]/20 bg-white px-1.5 py-0.5 text-[10px] font-mono text-[#064E3B]/60 shadow-2xs">
                 ⌘K
               </kbd>
             </div>
@@ -375,9 +375,9 @@ function FloatingDockContent({
           <button
             type="submit"
             aria-label="Send symptom assessment or navigate"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#064E3B] hover:bg-[#043327] text-white font-bold transition-all shadow-md hover:scale-105 active:scale-95 min-tap-target"
+            className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#064E3B] hover:bg-[#043327] text-white font-bold transition-all shadow-md hover:scale-105 active:scale-95 min-tap-target"
           >
-            <ArrowRight className="w-4 h-4 text-white stroke-[2.5]" />
+            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white stroke-[2.5]" />
           </button>
         </form>
       </motion.div>

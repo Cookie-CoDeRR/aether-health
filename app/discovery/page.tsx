@@ -345,9 +345,20 @@ function DiscoveryContent() {
 
       {/* VIEW 1: HOSPITALS MAP & LIST DUAL VIEW */}
       {activeTab === "hospitals" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Hospital Cards List */}
-          <div className="lg:col-span-5 space-y-3 max-h-[640px] overflow-y-auto no-scrollbar pr-0.5">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
+          {/* Mobile First / Desktop Right: Interactive Map Canvas */}
+          <div className="lg:col-span-7 h-[290px] sm:h-[380px] lg:h-[640px] w-full lg:sticky lg:top-4 order-first lg:order-last">
+            <HospitalMapCanvas
+              userLocation={userLocation}
+              hospitals={filteredHospitals}
+              selectedHospital={selectedHospital}
+              onSelectHospital={(h) => setSelectedHospital(h)}
+              onExploreDoctors={handleOpenDoctorDrawer}
+            />
+          </div>
+
+          {/* Mobile Second / Desktop Left: Hospital Cards List */}
+          <div className="lg:col-span-5 space-y-3 max-h-[520px] lg:max-h-[640px] overflow-y-auto no-scrollbar pr-0.5 order-last lg:order-first">
             <div className="flex items-center justify-between text-xs font-bold text-[#064E3B] px-1 sticky top-0 bg-white/90 backdrop-blur-xs py-1 z-10">
               <span>Nearby Facilities ({filteredHospitals.length})</span>
               <span className="text-[11px] text-[#064E3B]/70">Sorted by distance</span>
@@ -374,17 +385,6 @@ function DiscoveryContent() {
                 />
               ))
             )}
-          </div>
-
-          {/* Right Column: Interactive Map Canvas (Sticky) */}
-          <div className="lg:col-span-7 h-[640px] w-full sticky top-4">
-            <HospitalMapCanvas
-              userLocation={userLocation}
-              hospitals={filteredHospitals}
-              selectedHospital={selectedHospital}
-              onSelectHospital={(h) => setSelectedHospital(h)}
-              onExploreDoctors={handleOpenDoctorDrawer}
-            />
           </div>
         </div>
       )}
