@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSettings } from "@/context/SettingsContext";
+import { X, ShieldCheck } from "lucide-react";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -39,14 +40,13 @@ export default function AuthModal({
       router.push("/triage");
     } catch (err: any) {
       if (err.message && err.message.includes("unauthorized-domain")) {
-        // Fallback for Vercel preview URLs
         if (typeof window !== "undefined") {
           localStorage.setItem("aether_auth_active", "true");
         }
         onClose();
         router.push("/triage");
       } else {
-        setAuthError(err.message || "Failed to sign in with Google. Please check popup permissions.");
+        setAuthError(err.message || "Failed to sign in with Google. Please check permissions.");
       }
     } finally {
       setIsGoogleSubmitting(false);
@@ -57,7 +57,6 @@ export default function AuthModal({
     e.preventDefault();
     setAuthError(null);
     setIsSubmitting(true);
-    // Simulate auth login & persist session
     await new Promise((r) => setTimeout(r, 400));
     if (typeof window !== "undefined") {
       localStorage.setItem("aether_auth_active", "true");
@@ -80,83 +79,64 @@ export default function AuthModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fade-in">
-      <div className="w-full max-w-md rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-6 shadow-2xl space-y-5 text-[#F6F1E9]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#064E3B]/40 backdrop-blur-xs p-4 animate-fade-in text-[#064E3B]">
+      <div className="w-full max-w-md rounded-3xl border border-[#064E3B]/20 bg-white p-7 shadow-2xl space-y-5">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[rgba(246,241,233,0.09)] pb-3.5">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E8674A] font-serif text-base font-bold text-[#0A1620]">
+        <div className="flex items-center justify-between border-b border-[#064E3B]/15 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#064E3B] font-serif text-lg font-bold text-white shadow-soft">
               Æ
             </div>
             <div>
-              <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">
-                {tab === "signin" ? "Sign In to AETHER" : "Create AETHER Account"}
+              <h3 className="font-serif text-lg font-bold text-[#064E3B]">
+                {tab === "signin" ? "Sign In to Aether" : "Create Patient Account"}
               </h3>
-              <p className="text-xs text-[#7C8A93]">Healthcare Navigation Gateway</p>
+              <p className="text-xs text-[#064E3B]/70 font-medium">Personal Health Telemetry</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[#7C8A93] hover:text-[#F6F1E9] hover:bg-[#132A38] transition-colors"
+            className="rounded-xl p-1.5 text-[#064E3B]/70 hover:text-[#064E3B] hover:bg-[#F9FBF9] transition-colors"
           >
-            ✕
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* PROMINENT GOOGLE / GMAIL LOGIN BUTTON */}
+        {/* Google Login Button */}
         <div className="space-y-2">
           <button
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isGoogleSubmitting}
-            className="w-full flex items-center justify-center gap-3 rounded-xl border border-[rgba(246,241,233,0.2)] bg-[#132A38] hover:bg-[#163447] p-3 text-xs font-mono font-bold text-[#F6F1E9] transition-all shadow-md group disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] p-3 text-xs font-bold text-[#064E3B] transition-all shadow-xs disabled:opacity-50 min-tap-target"
           >
-            {/* Google Colorful G Logo */}
-            <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-              <path
-                fill="#EA4335"
-                d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z"
-              />
-              <path
-                fill="#4285F4"
-                d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.3 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.6 7.4C.6 9.4 0 11.6 0 14s.6 4.6 1.6 6.6l3.7-2.9z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z"
-              />
-            </svg>
             <span>
               {isGoogleSubmitting
                 ? "Connecting to Google..."
                 : tab === "signin"
-                ? "Continue with Google / Gmail"
-                : "Sign Up with Google / Gmail"}
+                ? "Continue with Google"
+                : "Sign Up with Google"}
             </span>
           </button>
         </div>
 
         {/* Divider */}
         <div className="relative flex items-center justify-center">
-          <div className="w-full border-t border-[rgba(246,241,233,0.09)]" />
-          <span className="absolute bg-[#0F2130] px-3 font-mono text-[10px] uppercase text-[#7C8A93]">
-            or use email
+          <div className="w-full border-t border-[#064E3B]/15" />
+          <span className="absolute bg-white px-3 text-[11px] font-bold text-[#064E3B]/60 uppercase">
+            or with email
           </span>
         </div>
 
         {/* Tab selector */}
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-[#132A38] p-1 font-mono text-xs">
+        <div className="grid grid-cols-2 gap-1 rounded-2xl bg-[#F9FBF9] p-1 text-xs font-bold">
           <button
             type="button"
             onClick={() => setTab("signin")}
-            className={`rounded-lg py-2 font-medium transition-colors ${
+            className={`rounded-xl py-2 transition-all ${
               tab === "signin"
-                ? "bg-[#E8674A] text-[#0A1620] font-bold"
-                : "text-[#B9C4CC] hover:text-[#F6F1E9]"
+                ? "bg-[#064E3B] text-white shadow-soft"
+                : "text-[#064E3B]/70 hover:text-[#064E3B]"
             }`}
           >
             Sign In
@@ -164,10 +144,10 @@ export default function AuthModal({
           <button
             type="button"
             onClick={() => setTab("signup")}
-            className={`rounded-lg py-2 font-medium transition-colors ${
+            className={`rounded-xl py-2 transition-all ${
               tab === "signup"
-                ? "bg-[#E8674A] text-[#0A1620] font-bold"
-                : "text-[#B9C4CC] hover:text-[#F6F1E9]"
+                ? "bg-[#064E3B] text-white shadow-soft"
+                : "text-[#064E3B]/70 hover:text-[#064E3B]"
             }`}
           >
             Sign Up
@@ -175,15 +155,15 @@ export default function AuthModal({
         </div>
 
         {authError && (
-          <div className="rounded-xl border border-[#D14343] bg-[#D14343]/10 p-2.5 text-xs text-[#D14343] text-center">
+          <div className="rounded-2xl border border-[#064E3B]/30 bg-[#F9FBF9] p-3 text-xs text-[#064E3B] font-bold text-center">
             {authError}
           </div>
         )}
 
         {/* Email/Password Form */}
-        <form onSubmit={handleSubmit} className="space-y-3 text-xs font-sans">
+        <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-wider text-[#7C8A93] mb-1">
+            <label className="block text-xs font-bold text-[#064E3B] mb-1">
               Email Address
             </label>
             <input
@@ -191,13 +171,13 @@ export default function AuthModal({
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@example.com"
-              className="w-full rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-3.5 py-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+              placeholder="patient@example.com"
+              className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
             />
           </div>
 
           <div>
-            <label className="block font-mono text-[10px] uppercase tracking-wider text-[#7C8A93] mb-1">
+            <label className="block text-xs font-bold text-[#064E3B] mb-1">
               Password
             </label>
             <input
@@ -206,30 +186,30 @@ export default function AuthModal({
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-3.5 py-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+              className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
             />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-xl bg-[#E8674A] py-2.5 text-xs font-semibold text-[#0A1620] hover:brightness-110 disabled:opacity-50 transition-all shadow-md mt-1"
+            className="w-full rounded-2xl bg-[#064E3B] hover:bg-[#043327] py-3 text-xs font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 transition-all mt-1 min-tap-target"
           >
             {isSubmitting
-              ? "Authenticating..."
+              ? "Entering Dashboard..."
               : tab === "signin"
               ? "Sign In & Enter Dashboard →"
               : "Register & Get Started →"}
           </button>
         </form>
 
-        <div className="relative border-t border-[rgba(246,241,233,0.09)] pt-3 text-center">
+        <div className="border-t border-[#064E3B]/15 pt-3 text-center">
           <button
             type="button"
             onClick={handleGuestEnter}
-            className="w-full rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] py-2 text-xs font-mono text-[#B9C4CC] hover:text-[#F6F1E9] hover:border-[#4F9D8C] transition-all"
+            className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] py-2.5 text-xs font-bold text-[#064E3B] transition-all min-tap-target"
           >
-            🚀 Continue as Demo Guest →
+            ✦ Explore as Demo Guest →
           </button>
         </div>
       </div>

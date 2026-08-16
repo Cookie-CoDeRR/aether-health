@@ -8,13 +8,13 @@ import {
   toggleMedicationDoseTaken,
   addAssignedMedication,
 } from "@/services/domain/medicationScheduleService";
+import { Check, Plus, Clock, Pill, ShieldCheck, X } from "lucide-react";
 
 interface TodayMedicationsCardProps {
   userId: string;
-  isMobileCompact?: boolean;
 }
 
-export default function TodayMedicationsCard({ userId, isMobileCompact = false }: TodayMedicationsCardProps) {
+export default function TodayMedicationsCard({ userId }: TodayMedicationsCardProps) {
   const [medications, setMedications] = useState<DailyMedicationItem[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -61,178 +61,204 @@ export default function TodayMedicationsCard({ userId, isMobileCompact = false }
   const progressPct = totalCount > 0 ? Math.round((takenCount / totalCount) * 100) : 0;
 
   return (
-    <div className="rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] p-3.5 sm:p-4 space-y-3 text-[#F6F1E9]">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-[rgba(246,241,233,0.09)] pb-2.5">
-        <div>
-          <div className="flex items-center gap-1.5 font-serif text-sm sm:text-base font-medium text-[#F6F1E9]">
-            <span>💊 Today&apos;s Assigned Medications</span>
+    <div className="rounded-3xl border border-[#064E3B]/20 bg-white p-5 space-y-4.5 shadow-sm text-[#064E3B]">
+      {/* Sleek Header */}
+      <div className="flex items-center justify-between border-b border-[#064E3B]/15 pb-3.5">
+        <div className="flex items-center gap-3">
+          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#064E3B] text-white shadow-xs">
+            <Pill className="w-4.5 h-4.5" />
           </div>
-          <p className="text-[9.5px] font-mono text-[#7C8A93] uppercase tracking-wider pt-0.5">
-            Active Patient Dosing Schedule
-          </p>
+          <div>
+            <h3 className="font-serif text-sm font-bold text-[#064E3B] tracking-tight">
+              Medication Schedule
+            </h3>
+            <span className="text-[11px] text-[#064E3B]/70 font-medium block">
+              Today&apos;s Active Reminders
+            </span>
+          </div>
         </div>
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="rounded-lg bg-[#E8674A] hover:bg-[#E8674A]/90 text-[#0A1620] px-2.5 py-1 text-[11px] font-bold transition-all shrink-0"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-[#064E3B] hover:text-white px-3 py-1.5 text-xs font-bold text-[#064E3B] transition-all shadow-2xs"
         >
-          + Add
+          <Plus className="w-3.5 h-3.5" />
+          <span>Add Dose</span>
         </button>
       </div>
 
-      {/* Progress Bar */}
-      <div className="space-y-1 font-mono text-xs">
-        <div className="flex justify-between text-[10.5px] text-[#7C8A93]">
-          <span>Dose Compliance</span>
-          <span className="text-[#4F9D8C] font-bold">{takenCount}/{totalCount} Taken ({progressPct}%)</span>
+      {/* Mini Adherence Indicator */}
+      <div className="rounded-2xl bg-[#F9FBF9] border border-[#064E3B]/15 p-3 space-y-2">
+        <div className="flex justify-between items-center text-xs">
+          <span className="font-bold text-[#064E3B]">Daily Adherence</span>
+          <span className="font-bold text-[#064E3B] bg-white border border-[#064E3B]/20 px-2.5 py-0.5 rounded-full text-[11px]">
+            {takenCount} of {totalCount} Taken ({progressPct}%)
+          </span>
         </div>
-        <div className="h-1.5 rounded-full bg-[#0F2130] overflow-hidden border border-[rgba(246,241,233,0.09)]">
+        <div className="h-2 rounded-full bg-white overflow-hidden border border-[#064E3B]/15">
           <div
-            className="h-full bg-[#4F9D8C] transition-all duration-300"
+            className="h-full bg-[#064E3B] transition-all duration-300 rounded-full"
             style={{ width: `${progressPct}%` }}
           />
         </div>
       </div>
 
-      {/* Medication Dosing List */}
-      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-0.5">
+      {/* Medication Dosing Item Cards with Generous Spacing */}
+      <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
         {medications.map((med) => (
           <div
             key={med.id}
-            className={`rounded-lg border p-2.5 space-y-1.5 transition-all ${
+            onClick={() => handleToggle(med.id)}
+            className={`group rounded-2xl border p-3.5 flex items-center justify-between gap-3.5 cursor-pointer transition-all ${
               med.isTaken
-                ? "border-[#4F9D8C]/40 bg-[#4F9D8C]/10 opacity-90"
-                : "border-[rgba(246,241,233,0.09)] bg-[#0F2130]"
+                ? "border-[#064E3B]/20 bg-[#F9FBF9]/90 opacity-80"
+                : "border-[#064E3B]/20 bg-white hover:border-[#064E3B] hover:shadow-sm"
             }`}
           >
-            <div className="flex items-start justify-between gap-1.5">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <h4 className="font-serif text-xs sm:text-sm font-semibold text-[#F6F1E9] truncate">
-                    {med.brandName}
-                  </h4>
-                  <span className="font-mono text-[9px] text-[#E8674A] bg-[#E8674A]/10 px-1.5 py-0.5 rounded shrink-0">
-                    {med.dosage}
-                  </span>
-                </div>
-                <p className="text-[10px] text-[#7C8A93] font-mono truncate">{med.genericName}</p>
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span
+                  className={`font-bold text-xs sm:text-sm text-[#064E3B] truncate ${
+                    med.isTaken ? "line-through text-[#064E3B]/50" : ""
+                  }`}
+                >
+                  {med.brandName}
+                </span>
+                <span className="rounded-lg bg-[#F9FBF9] border border-[#064E3B]/20 px-2 py-0.5 text-[10.5px] font-bold text-[#064E3B]">
+                  {med.dosage}
+                </span>
               </div>
-
-              <button
-                onClick={() => handleToggle(med.id)}
-                className={`rounded-md px-2 py-0.5 font-mono text-[10px] font-bold transition-all shrink-0 ${
-                  med.isTaken
-                    ? "bg-[#4F9D8C] text-white"
-                    : "bg-[#132A38] border border-[rgba(246,241,233,0.16)] text-[#B9C4CC] hover:border-[#4F9D8C] hover:text-[#F6F1E9]"
-                }`}
-              >
-                {med.isTaken ? `✓ Taken` : "⏰ Take"}
-              </button>
+              <div className="flex items-center gap-1.5 text-xs text-[#064E3B]/70 font-medium">
+                <Clock className="w-3.5 h-3.5 text-[#064E3B]" />
+                <span>{med.scheduleTime} • {med.instruction}</span>
+              </div>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] font-mono text-[#7C8A93] pt-0.5">
-              <span>🕒 {med.scheduleTime} • {med.instruction}</span>
+            {/* Circular Checkmark Button */}
+            <div
+              className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
+                med.isTaken
+                  ? "bg-[#064E3B] border-[#064E3B] text-white shadow-2xs"
+                  : "bg-white border-[#064E3B]/30 text-transparent group-hover:border-[#064E3B]"
+              }`}
+            >
+              <Check className="w-4.5 h-4.5 stroke-[3]" />
             </div>
-
-            {med.allergySafeWarning && (
-              <div className="text-[9.5px] font-mono text-[#4F9D8C] flex items-center gap-1 pt-0.5 border-t border-[rgba(246,241,233,0.09)] truncate">
-                <span>🛡️ {med.allergySafeWarning}</span>
-              </div>
-            )}
           </div>
         ))}
       </div>
 
-      {/* Footer Links */}
-      <div className="flex justify-between items-center border-t border-[rgba(246,241,233,0.09)] pt-2.5 text-xs">
-        <span className="text-[10px] text-[#7C8A93] font-mono">Penicillin Allergy Checked</span>
-        <Link href="/medicines" className="font-mono text-[10px] font-semibold text-[#E8674A] hover:underline">
-          View All →
+      {/* Safety & Prescription Footer */}
+      <div className="flex items-center justify-between border-t border-[#064E3B]/15 pt-3 text-xs">
+        <span className="text-[#064E3B]/70 font-medium">Allergy checks active</span>
+        <Link
+          href="/medicines"
+          className="font-bold text-[#064E3B] hover:underline"
+        >
+          Pharmacy Prices →
         </Link>
       </div>
 
       {/* Add Medication Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#064E3B]/40 p-4 backdrop-blur-xs animate-fade-in text-[#064E3B]">
           <form
             onSubmit={handleAddMed}
-            className="w-full max-w-sm rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-5 shadow-2xl space-y-3"
+            className="w-full max-w-sm rounded-3xl border border-[#064E3B]/20 bg-white p-6 shadow-2xl space-y-4"
           >
-            <div className="flex justify-between items-center border-b border-[rgba(246,241,233,0.09)] pb-2">
-              <h4 className="font-serif text-base font-medium text-[#F6F1E9]">Assign New Medication</h4>
-              <button type="button" onClick={() => setIsAddModalOpen(false)} className="text-[#7C8A93]">✕</button>
+            <div className="flex justify-between items-center border-b border-[#064E3B]/15 pb-3">
+              <h4 className="font-serif text-lg font-bold text-[#064E3B]">
+                Add Daily Medication
+              </h4>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-[#064E3B]/70 hover:text-[#064E3B] p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="space-y-2 text-xs">
+            <div className="space-y-3 text-xs">
               <div>
-                <label className="font-semibold text-[#F6F1E9]">Brand / Medication Name</label>
+                <label className="font-bold text-[#064E3B] block mb-1">
+                  Medication Name *
+                </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Paracetamol 650mg"
+                  placeholder="e.g. Crocin 650mg, Glycomet 500mg"
                   value={newBrand}
                   onChange={(e) => setNewBrand(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                  className="w-full rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] p-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                 />
               </div>
 
               <div>
-                <label className="font-semibold text-[#F6F1E9]">Generic / Active Ingredient</label>
+                <label className="font-bold text-[#064E3B] block mb-1">
+                  Active Ingredient (Generic)
+                </label>
                 <input
                   type="text"
-                  placeholder="e.g. Acetaminophen"
+                  placeholder="e.g. Paracetamol, Metformin"
                   value={newGeneric}
                   onChange={(e) => setNewGeneric(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                  className="w-full rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] p-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-semibold text-[#F6F1E9]">Dosage</label>
+                  <label className="font-bold text-[#064E3B] block mb-1">
+                    Dosage
+                  </label>
                   <input
                     type="text"
                     value={newDosage}
                     onChange={(e) => setNewDosage(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                    className="w-full rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] p-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                   />
                 </div>
                 <div>
-                  <label className="font-semibold text-[#F6F1E9]">Time</label>
+                  <label className="font-bold text-[#064E3B] block mb-1">
+                    Time
+                  </label>
                   <input
                     type="text"
                     value={newTime}
                     onChange={(e) => setNewTime(e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                    className="w-full rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] p-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-semibold text-[#F6F1E9]">Instruction</label>
+                <label className="font-bold text-[#064E3B] block mb-1">
+                  Instruction
+                </label>
                 <input
                   type="text"
                   value={newInstruction}
                   onChange={(e) => setNewInstruction(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                  placeholder="e.g. After breakfast, with water"
+                  className="w-full rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] p-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                 />
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-[rgba(246,241,233,0.09)]">
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#064E3B]/15">
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="rounded-lg px-3 py-1.5 text-xs text-[#7C8A93]"
+                className="rounded-xl px-4 py-2 text-xs font-bold text-[#064E3B]/70 hover:text-[#064E3B]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-[#E8674A] px-4 py-1.5 text-xs font-semibold text-[#0A1620] hover:brightness-108 transition-all"
+                className="rounded-xl bg-[#064E3B] hover:bg-[#043327] px-5 py-2 text-xs font-bold text-white shadow-xs transition-all min-tap-target"
               >
-                Assign Medication
+                Save Medication
               </button>
             </div>
           </form>

@@ -9,33 +9,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: {
-          0: "var(--ink-0)",
-          1: "var(--ink-1)",
-          2: "var(--ink-2)",
+        forest: {
+          DEFAULT: "#064E3B",
+          primary: "#064E3B",
+          dark: "#043327",
+          subtle: "rgba(6, 78, 59, 0.12)",
+          highlight: "rgba(6, 78, 59, 0.08)",
+          grid: "rgba(6, 78, 59, 0.09)",
         },
-        panel: "var(--panel)",
-        paper: {
-          DEFAULT: "var(--paper)",
-          dim: "var(--paper-dim)",
+        surface: {
+          white: "#FFFFFF",
+          card: "#F9FBF9",
+          border: "rgba(6, 78, 59, 0.12)",
+          hover: "rgba(6, 78, 59, 0.04)",
         },
-        coral: {
-          DEFAULT: "var(--coral)",
-          dim: "var(--coral-dim)",
-        },
-        teal: "var(--teal)",
-        textCustom: {
-          hi: "var(--text-hi)",
-          mid: "var(--text-mid)",
-          lo: "var(--text-lo)",
-        },
-        borderCustom: "var(--line)",
-        borderStrong: "var(--line-strong)",
       },
       fontFamily: {
         serif: ["Newsreader", "Georgia", "serif"],
-        sans: ["IBM Plex Sans", "system-ui", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "Inter", "system-ui", "sans-serif"],
         mono: ["IBM Plex Mono", "monospace"],
+      },
+      boxShadow: {
+        soft: "0 1px 3px rgba(6, 78, 59, 0.04)",
+        card: "0 2px 8px -2px rgba(6, 78, 59, 0.06), 0 1px 3px rgba(6, 78, 59, 0.03)",
+        elevated: "0 10px 25px -5px rgba(6, 78, 59, 0.08), 0 4px 6px -2px rgba(6, 78, 59, 0.03)",
       },
     },
   },

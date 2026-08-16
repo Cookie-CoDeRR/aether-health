@@ -1,15 +1,27 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState } from "react";
+import Link from "next/link";
 import { useSettings } from "@/context/SettingsContext";
 import { SUPPORTED_LANGUAGES } from "@/lib/i18n";
+import ActionsGrid from "@/components/actions/ActionsGrid";
+import {
+  User,
+  ShieldCheck,
+  Globe,
+  Key,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Check,
+  Sparkles,
+  Terminal,
+  Activity,
+  LogOut,
+} from "lucide-react";
 
 export default function SettingsPage() {
   const {
-    theme,
-    setTheme,
     language,
     setLanguage,
     userId,
@@ -32,6 +44,7 @@ export default function SettingsPage() {
   const [showKey, setShowKey] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [isDevDrawerOpen, setIsDevDrawerOpen] = useState(false);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,42 +76,42 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8 animate-fade-in p-6 lg:p-12 max-w-4xl mx-auto text-[#F6F1E9]">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-10 max-w-4xl mx-auto text-[#1E293B] w-full">
       {/* Page Header */}
-      <div className="border-b border-[rgba(246,241,233,0.09)] pb-4">
-        <div className="text-[11px] uppercase tracking-[0.14em] text-[#E8674A] font-mono font-semibold mb-1">
-          System Preferences & Governance
+      <div className="border-b border-[#E2E8F0] pb-4">
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-[#1E5D57] mb-1">
+          Patient Preferences & Profile
         </div>
-        <h1 className="font-serif text-3xl font-medium tracking-[0.01em] text-[#F6F1E9]">
-          {t("settingsTitle")}
+        <h1 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E293B]">
+          Settings & Profile
         </h1>
-        <p className="text-xs text-[#7C8A93] mt-1 leading-relaxed">
-          {t("settingsSub")}
+        <p className="text-xs text-[#64748B] mt-1 leading-relaxed">
+          Manage your patient identity, language preferences, and personal health context for AI triage.
         </p>
       </div>
 
-      {/* Gmail Authentication & SSO Governance Card */}
-      <div className="rounded-2xl border border-[#4F9D8C]/30 bg-[#0F2130] p-6 space-y-4 shadow-xl">
-        <div className="flex items-center justify-between flex-wrap gap-2 border-b border-[rgba(246,241,233,0.09)] pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] uppercase font-bold text-[#4F9D8C] bg-[#4F9D8C]/10 px-2 py-0.5 rounded border border-[#4F9D8C]/30">
-                Firebase OAuth 2.0 Active
-              </span>
+      {/* Account & Google Sync Card */}
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 space-y-4 shadow-card">
+        <div className="flex items-center justify-between flex-wrap gap-3 border-b border-[#E2E8F0] pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E6F4F1] text-[#1E5D57]">
+              <ShieldCheck className="w-5 h-5" />
             </div>
-            <h3 className="font-serif text-lg font-medium text-[#F6F1E9] mt-1">
-              Gmail & Google SSO Authentication
-            </h3>
-            <p className="text-xs text-[#B9C4CC] mt-0.5">
-              Connect your official Google account to sync health records across sessions securely.
-            </p>
+            <div>
+              <h3 className="font-serif text-base font-semibold text-[#1E293B]">
+                Account Synchronization
+              </h3>
+              <p className="text-xs text-[#64748B]">
+                Securely sync health history across your devices
+              </p>
+            </div>
           </div>
 
           {!isGmailAuthenticated ? (
             <button
               onClick={handleGmailConnect}
               disabled={isSigningIn}
-              className="rounded-xl bg-[#4F9D8C] hover:bg-[#4F9D8C]/90 text-white font-mono px-5 py-2.5 text-xs font-bold transition-all shadow-md flex items-center gap-2 disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] hover:bg-white hover:border-[#1E5D57] px-4 py-2 text-xs font-semibold text-[#1E293B] transition-all shadow-xs min-tap-target disabled:opacity-50"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.3 8.9 5 12 5z" />
@@ -106,59 +119,64 @@ export default function SettingsPage() {
                 <path fill="#FBBC05" d="M5.3 14.8c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.6 7.4C.6 9.4 0 11.6 0 14s.6 4.6 1.6 6.6l3.7-2.9z" />
                 <path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3.1 0-5.8-2.3-6.7-5.3L1.6 16C3.5 19.8 7.4 23 12 23z" />
               </svg>
-              <span>{isSigningIn ? "Connecting Gmail..." : "Sign in with Gmail"}</span>
+              <span>{isSigningIn ? "Connecting..." : "Sync with Google"}</span>
             </button>
           ) : (
             <button
               onClick={signOutGmail}
-              className="rounded-xl border border-[#D14343]/50 bg-[#D14343]/10 hover:bg-[#D14343] hover:text-white font-mono px-4 py-2 text-xs font-bold text-[#D14343] transition-all"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#FDE6E2] bg-[#FEF4F2] hover:bg-[#FDE6E2] px-3.5 py-2 text-xs font-semibold text-[#C85339] transition-all"
             >
-              Sign Out of Gmail
+              <LogOut className="w-4 h-4" />
+              <span>Disconnect</span>
             </button>
           )}
         </div>
 
         {isGmailAuthenticated && (
-          <div className="flex items-center gap-4 rounded-xl bg-[#132A38] p-4 border border-[rgba(246,241,233,0.09)] font-mono text-xs">
-            {userPhoto && (
-              <img src={userPhoto} alt={userName} className="h-12 w-12 rounded-full border-2 border-[#4F9D8C] object-cover" />
+          <div className="flex items-center gap-3.5 rounded-xl bg-[#F8FAF9] p-3.5 border border-[#E2E8F0] text-xs">
+            {userPhoto ? (
+              <img src={userPhoto} alt={userName} className="h-10 w-10 rounded-full border border-[#D0EAE4] object-cover" />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E5D57] text-white font-bold">
+                {userName[0]}
+              </div>
             )}
             <div className="space-y-0.5">
-              <div className="font-bold text-[#F6F1E9] text-sm">{userName}</div>
-              <div className="text-[#4F9D8C]">📧 {userEmail}</div>
-              <div className="text-[10px] text-[#7C8A93]">Firebase UID: {userId}</div>
+              <div className="font-semibold text-[#1E293B]">{userName}</div>
+              <div className="text-[#1E5D57] font-medium">{userEmail}</div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Patient Profile & Preprompt Background History Card */}
-      <form onSubmit={handleSaveProfile} className="rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-6 space-y-5 shadow-xl">
-        <div className="flex items-center justify-between border-b border-[rgba(246,241,233,0.09)] pb-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[10px] uppercase font-bold text-[#00F0FF] bg-[#00F0FF]/10 px-2 py-0.5 rounded border border-[#00F0FF]/20">
-                Gemini AI Preprompt Active
-              </span>
+      {/* Patient Profile & Medical History Form */}
+      <form onSubmit={handleSaveProfile} className="rounded-2xl border border-[#E2E8F0] bg-white p-6 space-y-5 shadow-card">
+        <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E6F4F1] text-[#1E5D57]">
+              <User className="w-5 h-5" />
             </div>
-            <h3 className="font-serif text-lg font-medium text-[#F6F1E9] mt-1">
-              Patient Identity & Baseline Medical History Profile
-            </h3>
-            <p className="text-xs text-[#7C8A93] mt-0.5">
-              This information is injected as context into Gemini 1.5 Flash AI Triage so the AI understands your baseline health conditions.
-            </p>
+            <div>
+              <h3 className="font-serif text-base font-semibold text-[#1E293B]">
+                Patient Identity & Medical History
+              </h3>
+              <p className="text-xs text-[#64748B]">
+                Injected into AI triage so recommendations reflect your health profile
+              </p>
+            </div>
           </div>
+
           <button
             type="submit"
-            className="rounded-xl bg-[#E8674A] px-4.5 py-2 text-xs font-semibold text-[#0A1620] hover:brightness-110 transition-all shadow-md shrink-0"
+            className="rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-4.5 py-2 text-xs font-semibold text-white transition-all shadow-soft min-tap-target shrink-0"
           >
-            {isSaved ? "✓ Saved to AI Preprompt" : "Save Profile"}
+            {isSaved ? "✓ Profile Saved" : "Save Profile"}
           </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
+            <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">
               Full Patient Name
             </label>
             <input
@@ -167,178 +185,174 @@ export default function SettingsPage() {
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               placeholder="e.g. Alex Rivers"
-              className="w-full rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-3.5 py-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+              className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] px-3.5 py-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
             />
           </div>
 
           <div>
-            <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
-              AETHER Patient Identifier
+            <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">
+              Patient ID
             </label>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 readOnly
                 value={userId}
-                className="w-full rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38]/60 px-3.5 py-2.5 text-xs text-[#7C8A93] font-mono"
+                className="w-full rounded-xl border border-[#E2E8F0] bg-[#F1F5F4] px-3.5 py-2.5 text-xs text-[#64748B] font-mono"
               />
               <button
                 type="button"
                 onClick={handleCopyId}
-                className="rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-3.5 py-2.5 text-xs font-mono text-[#F6F1E9] hover:bg-[#E8674A] hover:text-[#0A1620] transition-all"
+                className="rounded-xl border border-[#E2E8F0] bg-white hover:bg-[#F8FAF9] px-3.5 py-2.5 text-xs text-[#1E293B] font-medium transition-all shadow-xs"
               >
-                {copiedId ? "✓" : "Copy"}
+                {copiedId ? <Check className="w-4 h-4 text-[#1E5D57]" /> : <Copy className="w-4 h-4 text-[#64748B]" />}
               </button>
             </div>
           </div>
         </div>
 
         <div>
-          <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
-            Baseline Medical Conditions & History (Injected into AI Triage)
+          <label className="block text-xs font-semibold text-[#1E293B] mb-1.5">
+            Baseline Medical Conditions & Known Allergies
           </label>
           <textarea
             rows={3}
             value={medicalHistory}
             onChange={(e) => setMedicalHistory(e.target.value)}
-            placeholder="e.g. 34-year-old with mild asthma, penicillin allergy, and previous high blood pressure..."
-            className="w-full rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-3 text-xs text-[#F6F1E9] font-sans leading-relaxed focus:outline-none focus:border-[#E8674A]"
+            placeholder="e.g. Mild asthma, penicillin allergy, past kidney stone, high blood pressure..."
+            className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-3 text-xs text-[#1E293B] leading-relaxed focus:bg-white focus:outline-none focus:border-[#1E5D57]"
           />
+          <p className="text-[11px] text-[#64748B] mt-1">
+            💡 Mentioning allergies helps Aether flag contraindicated medications automatically.
+          </p>
         </div>
       </form>
 
       {/* Language Selector Grid */}
-      <div className="rounded-2xl border border-[rgba(246,241,233,0.09)] bg-[#0F2130] p-6 space-y-4 shadow-lg">
-        <div>
-          <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">
-            {t("languageSection")}
-          </h3>
-          <p className="text-xs text-[#7C8A93] mt-0.5">Select preferred localized clinical navigation language.</p>
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 space-y-4 shadow-card">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E6F4F1] text-[#1E5D57]">
+            <Globe className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-serif text-base font-semibold text-[#1E293B]">
+              Preferred Language
+            </h3>
+            <p className="text-xs text-[#64748B]">Select clinical navigation language</p>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
           {SUPPORTED_LANGUAGES.map((lang) => (
             <button
               key={lang.code}
+              type="button"
               onClick={() => setLanguage(lang.code)}
-              className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+              className={`flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all min-tap-target ${
                 language === lang.code
-                  ? "border-[#E8674A] bg-[#E8674A]/15 text-[#F6F1E9] font-bold shadow-md"
-                  : "border-[rgba(246,241,233,0.09)] bg-[#132A38] text-[#B9C4CC] hover:bg-[#F6F1E9]/5"
+                  ? "border-[#1E5D57] bg-[#E6F4F1] text-[#134E48] font-bold shadow-soft"
+                  : "border-[#E2E8F0] bg-white text-[#475569] hover:bg-[#F8FAF9]"
               }`}
             >
               <span className="text-2xl">{lang.flag}</span>
               <div>
-                <span className="block text-xs font-sans leading-tight">{lang.nativeName}</span>
-                <span className="block text-[10px] font-mono text-[#7C8A93] mt-0.5">{lang.name}</span>
+                <span className="block text-xs font-semibold leading-tight">{lang.nativeName}</span>
+                <span className="block text-[11px] text-[#64748B] mt-0.5">{lang.name}</span>
               </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Visual Display Theme Selector */}
-      <div className="rounded-2xl border border-[rgba(246,241,233,0.09)] bg-[#0F2130] p-6 space-y-4 shadow-lg">
-        <div>
-          <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">
-            {t("themeSection")}
-          </h3>
-          <p className="text-xs text-[#7C8A93] mt-0.5">Toggle high-contrast clinical monitor or daylight paper theme.</p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
-            onClick={() => setTheme("dark")}
-            className={`p-5 rounded-2xl border text-left transition-all ${
-              theme === "dark"
-                ? "border-[#E8674A] bg-[#132A38] ring-2 ring-[#E8674A]"
-                : "border-[rgba(246,241,233,0.09)] bg-[#132A38]/50 hover:bg-[#132A38]"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-lg">🌙</span>
-              {theme === "dark" && (
-                <span className="text-[10px] font-mono font-bold text-[#E8674A] uppercase bg-[#E8674A]/10 px-2 py-0.5 rounded">
-                  Selected
-                </span>
-              )}
+      {/* Optional Collapsible Developer / Operations Drawer */}
+      <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAF9] overflow-hidden shadow-soft">
+        <button
+          type="button"
+          onClick={() => setIsDevDrawerOpen(!isDevDrawerOpen)}
+          className="w-full flex items-center justify-between p-5 text-left transition-colors hover:bg-[#F1F5F4]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white border border-[#E2E8F0] text-[#64748B]">
+              <Terminal className="w-4 h-4" />
             </div>
-            <h4 className="font-serif text-base font-medium text-[#F6F1E9]">{t("darkTheme")}</h4>
-            <p className="text-xs text-[#7C8A93] mt-1">High contrast dark monitor telemetry palette.</p>
-          </button>
-
-          <button
-            onClick={() => setTheme("light")}
-            className={`p-5 rounded-2xl border text-left transition-all ${
-              theme === "light"
-                ? "border-[#EAE4D6] bg-[#EAE4D6] text-[#0A1620] ring-2 ring-[#E8674A]"
-                : "border-[rgba(246,241,233,0.09)] bg-[#132A38]/50 hover:bg-[#132A38]"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-lg">☀️</span>
-              {theme === "light" && (
-                <span className="text-[10px] font-mono font-bold text-[#E8674A] uppercase bg-[#E8674A]/10 px-2 py-0.5 rounded">
-                  Selected
-                </span>
-              )}
-            </div>
-            <h4 className={`font-serif text-base font-medium ${theme === "light" ? "text-[#0A1620]" : "text-[#F6F1E9]"}`}>
-              {t("lightTheme")}
-            </h4>
-            <p className={`text-xs mt-1 ${theme === "light" ? "text-[#647481]" : "text-[#7C8A93]"}`}>
-              Clean daylight paper clinical aesthetic.
-            </p>
-          </button>
-        </div>
-      </div>
-
-      {/* External Hospital System API Webhook Secret Generator */}
-      <div className="rounded-2xl border border-[rgba(246,241,233,0.09)] bg-[#0F2130] p-6 space-y-4 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">
-              {t("apiSection")}
-            </h3>
-            <p className="text-xs text-[#7C8A93] mt-0.5">{t("apiSub")}</p>
-          </div>
-          <span className="font-mono text-[10px] uppercase font-bold text-[#00F0FF] bg-[#00F0FF]/10 px-2.5 py-1 rounded border border-[#00F0FF]/20">
-            {t("hospitalSyncStatus")}
-          </span>
-        </div>
-
-        <div className="space-y-3 font-mono text-xs">
-          <label className="block text-[10px] uppercase text-[#7C8A93]">
-            {t("apiKeyLabel")}
-          </label>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <div className="flex-1 bg-[#132A38] px-4 py-3 rounded-xl border border-[rgba(246,241,233,0.16)] flex items-center justify-between">
-              <span className="text-[#B9C4CC] font-bold">
-                {showKey ? hospitalApiKey : "••••••••••••••••••••••••••••••••"}
+            <div>
+              <span className="font-serif text-sm font-semibold text-[#1E293B]">
+                Developer Tools & Telemetry Settings
               </span>
-              <button
-                onClick={() => setShowKey(!showKey)}
-                className="text-[11px] text-[#E8674A] hover:underline ml-2"
-              >
-                {showKey ? "Hide" : "Show"}
-              </button>
+              <span className="block text-[11px] text-[#64748B]">
+                External hospital webhooks, API keys & background action modules
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs font-medium text-[#64748B]">
+            <span>{isDevDrawerOpen ? "Hide" : "Show"}</span>
+            {isDevDrawerOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </div>
+        </button>
+
+        {isDevDrawerOpen && (
+          <div className="p-6 pt-2 border-t border-[#E2E8F0] bg-white space-y-6 animate-fade-in">
+            {/* Hospital API Webhook Key */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#1E293B] flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5 text-[#1E5D57]" />
+                  <span>Hospital System Webhook API Key</span>
+                </span>
+                <span className="rounded-full bg-[#E6F4F1] text-[#134E48] text-[10px] px-2 py-0.5 font-bold">
+                  Active
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <div className="flex-1 bg-[#F8FAF9] px-3.5 py-2.5 rounded-xl border border-[#E2E8F0] flex items-center justify-between font-mono text-xs text-[#1E293B]">
+                  <span>{showKey ? hospitalApiKey : "••••••••••••••••••••••••••••••••"}</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowKey(!showKey)}
+                    className="text-[11px] text-[#1E5D57] hover:underline font-semibold"
+                  >
+                    {showKey ? "Hide" : "Show"}
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopyKey}
+                  className="rounded-xl border border-[#E2E8F0] bg-white hover:bg-[#F8FAF9] px-3.5 py-2.5 text-xs text-[#1E293B] font-medium transition-all"
+                >
+                  {copiedKey ? "✓ Copied" : "Copy"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={generateNewApiKey}
+                  className="rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-4 py-2.5 text-xs font-semibold text-white transition-all"
+                >
+                  Generate New
+                </button>
+              </div>
             </div>
 
-            <button
-              onClick={handleCopyKey}
-              className="rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-4 py-3 text-xs text-[#F6F1E9] hover:bg-[#4F9D8C] transition-all shrink-0"
-            >
-              {copiedKey ? "✓ " + t("copied") : t("copyId")}
-            </button>
-
-            <button
-              onClick={generateNewApiKey}
-              className="rounded-xl bg-[#E8674A] px-4 py-3 text-xs font-semibold text-[#0A1620] hover:brightness-110 transition-all shrink-0"
-            >
-              {t("genKey")}
-            </button>
+            {/* Embedded Action Modules */}
+            <div className="space-y-3 pt-3 border-t border-[#E2E8F0]">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#1E293B] flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-[#1E5D57]" />
+                  <span>System Action Modules & Diagnostics</span>
+                </span>
+                <Link
+                  href="/actions"
+                  className="text-xs text-[#1E5D57] hover:underline font-semibold"
+                >
+                  Full Operations Center →
+                </Link>
+              </div>
+              <ActionsGrid />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

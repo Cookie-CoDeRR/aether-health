@@ -1,10 +1,20 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState, useEffect } from "react";
-
+import Link from "next/link";
 import { searchMedicines, MedicineWithPrices } from "@/services/domain/medicineService";
+import {
+  Pill,
+  Search,
+  Plus,
+  Check,
+  Building2,
+  Clock,
+  ShieldCheck,
+  Tag,
+  ArrowLeft,
+  X,
+} from "lucide-react";
 
 interface PrescribedMedication {
   id: string;
@@ -17,43 +27,42 @@ interface PrescribedMedication {
   takenToday: boolean;
   takenAt?: string;
   hospitalName: string;
-  sourceDataset?: string;
 }
 
-const INITIAL_HOSPITAL_PRESCRIPTIONS: PrescribedMedication[] = [
+const INITIAL_PRESCRIPTIONS: PrescribedMedication[] = [
   {
     id: "hosp_rx_1",
-    brandName: "Amoxicillin Trihydrate",
-    genericName: "Amoxicillin 500mg Capsule",
-    dosage: "500 mg",
-    frequency: "Twice daily after food (Morning & Evening)",
+    brandName: "Crocin 650",
+    genericName: "Paracetamol 650mg Tablet",
+    dosage: "650 mg",
+    frequency: "Twice daily after meals",
     totalDoses: 14,
     dosesRemaining: 10,
-    takenToday: false,
-    hospitalName: "Apollo Specialty Hospital EHR",
+    takenToday: true,
+    takenAt: "08:15 AM",
+    hospitalName: "Apollo Specialty Hospital",
   },
   {
     id: "hosp_rx_2",
-    brandName: "Metformin Hydrochloride",
-    genericName: "Metformin 500mg Extended Release",
+    brandName: "Glycomet 500",
+    genericName: "Metformin HCl 500mg",
     dosage: "500 mg",
     frequency: "Once daily with dinner",
     totalDoses: 30,
     dosesRemaining: 24,
-    takenToday: true,
-    takenAt: "08:15 AM Today",
-    hospitalName: "St. Johns Medical Center API",
+    takenToday: false,
+    hospitalName: "St. Johns Medical Center",
   },
   {
     id: "hosp_rx_3",
-    brandName: "Atorvastatin Calcium",
+    brandName: "Lipivas 10",
     genericName: "Atorvastatin 10mg Tablet",
     dosage: "10 mg",
     frequency: "Once daily at bedtime",
     totalDoses: 20,
     dosesRemaining: 16,
     takenToday: false,
-    hospitalName: "City Emergency Health Network",
+    hospitalName: "City Care Network",
   },
 ];
 
@@ -62,10 +71,10 @@ export default function MedicinesPage() {
   const [medicines, setMedicines] = useState<MedicineWithPrices[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [prescriptions, setPrescriptions] = useState<PrescribedMedication[]>(
-    INITIAL_HOSPITAL_PRESCRIPTIONS
+    INITIAL_PRESCRIPTIONS
   );
 
-  // Manual Medication Add Modal state
+  // Manual Add Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newBrandName, setNewBrandName] = useState("");
   const [newGenericName, setNewGenericName] = useState("");
@@ -94,7 +103,9 @@ export default function MedicinesPage() {
             ...item,
             takenToday: nextTaken,
             dosesRemaining: nextRemaining,
-            takenAt: nextTaken ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + " Today" : undefined,
+            takenAt: nextTaken
+              ? new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+              : undefined,
           };
         }
         return item;
@@ -115,13 +126,12 @@ export default function MedicinesPage() {
       totalDoses: newTotalDoses || 30,
       dosesRemaining: newTotalDoses || 30,
       takenToday: false,
-      hospitalName: newHospitalName || "Self-Prescribed / Personal Entry",
+      hospitalName: newHospitalName || "Personal Entry",
     };
 
     setPrescriptions((prev) => [newMed, ...prev]);
     setIsAddModalOpen(false);
 
-    // Reset form
     setNewBrandName("");
     setNewGenericName("");
     setNewDosage("");
@@ -130,52 +140,50 @@ export default function MedicinesPage() {
     setNewHospitalName("");
   };
 
+  const takenCount = prescriptions.filter((p) => p.takenToday).length;
+
   return (
-    <div className="space-y-8 animate-fade-in p-6 lg:p-12 max-w-5xl mx-auto">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto text-[#1E293B] w-full">
       {/* Header */}
-      <div className="border-b border-[rgba(246,241,233,0.09)] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border-b border-[#E2E8F0] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.12em] text-[#E8674A] font-mono font-semibold mb-1 flex items-center gap-2">
-            <span>💊 OpenFDA API & Hospital Sync</span>
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-[#1E5D57] mb-1 flex items-center gap-2">
+            <span>Prescription Care</span>
             <span>•</span>
-            <span>Live Telemetry</span>
+            <span className="text-[#64748B]">Dosage Schedule & Pharmacy Price Comparison</span>
           </div>
-          <h1 className="font-serif text-3xl font-medium tracking-[0.01em] text-[#F6F1E9]">
-            Active Medications & OpenFDA Lookup
+          <h1 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E293B]">
+            Prescriptions & Medicines
           </h1>
         </div>
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#E8674A] px-4.5 py-2.5 text-xs font-semibold text-[#0A1620] hover:brightness-110 transition-all shadow-md shrink-0"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-4.5 py-2.5 text-xs font-semibold text-white shadow-soft transition-all shrink-0 min-tap-target"
         >
-          <span>➕ Add Prescription Manually</span>
+          <Plus className="w-4 h-4" />
+          <span>Add Prescription</span>
         </button>
       </div>
 
-      {/* External Hospital Prescriptions & Medication Tracker Checklist */}
-      <div className="rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-6 space-y-6 shadow-xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[rgba(246,241,233,0.09)] pb-4">
+      {/* Active Prescription Tracker Card */}
+      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 space-y-5 shadow-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] pb-4">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="inline-block rounded bg-[#00F0FF]/20 text-[#00F0FF] border border-[#00F0FF]/30 px-2 py-0.5 font-mono text-[10px] font-bold uppercase">
-                Active Prescription Tracker
-              </span>
-            </div>
-            <h2 className="font-serif text-xl font-medium text-[#F6F1E9] mt-1">
-              Daily Medication Cross-Off & Inventory Tracker
+            <h2 className="font-serif text-lg font-semibold text-[#1E293B]">
+              Daily Medication Dosing Tracker
             </h2>
-            <p className="text-xs text-[#7C8A93] mt-0.5">
-              Click the checkbox to cross off completed daily doses and automatically update remaining pill counts.
+            <p className="text-xs text-[#64748B] mt-0.5">
+              Cross off completed daily doses to update your remaining inventory automatically.
             </p>
           </div>
 
-          <span className="font-mono text-xs text-[#4F9D8C] bg-[#4F9D8C]/10 px-3 py-1.5 rounded-lg border border-[#4F9D8C]/20 self-start sm:self-center font-bold">
-            {prescriptions.filter((p) => p.takenToday).length} / {prescriptions.length} Doses Taken Today
+          <span className="text-xs font-semibold text-[#134E48] bg-[#E6F4F1] px-3 py-1.5 rounded-full border border-[#D0EAE4] self-start sm:self-center">
+            {takenCount} of {prescriptions.length} Completed Today
           </span>
         </div>
 
-        {/* Prescription Task List */}
+        {/* Prescription List */}
         <div className="space-y-3">
           {prescriptions.map((med) => {
             const percentRemaining = Math.round(
@@ -187,66 +195,65 @@ export default function MedicinesPage() {
                 key={med.id}
                 className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border transition-all ${
                   med.takenToday
-                    ? "border-[#4F9D8C]/30 bg-[#132A38]/40"
-                    : "border-[rgba(246,241,233,0.09)] bg-[#132A38]"
+                    ? "border-[#D0EAE4] bg-[#F6FAF9]"
+                    : "border-[#E2E8F0] bg-white hover:border-[#CBD5E1]"
                 }`}
               >
                 <div className="space-y-1.5 flex-1">
                   <div className="flex items-center gap-3">
                     <button
                       onClick={() => toggleDoseTaken(med.id)}
-                      className={`h-6 w-6 rounded-md border flex items-center justify-center transition-all ${
+                      aria-label={`Mark ${med.brandName} as ${med.takenToday ? "not taken" : "taken"}`}
+                      className={`h-9 w-9 rounded-xl border flex items-center justify-center transition-all min-tap-target shrink-0 ${
                         med.takenToday
-                          ? "bg-[#4F9D8C] border-[#4F9D8C] text-[#0A1620]"
-                          : "border-[rgba(246,241,233,0.3)] bg-[#0F2130] hover:border-[#E8674A]"
+                          ? "bg-[#1E5D57] border-[#1E5D57] text-white"
+                          : "border-[#CBD5E1] bg-[#F8FAF9] text-[#94A3B8] hover:border-[#1E5D57]"
                       }`}
                     >
-                      {med.takenToday && <span className="font-bold text-xs">✓</span>}
+                      <Check className={`w-5 h-5 ${med.takenToday ? "opacity-100" : "opacity-40"}`} />
                     </button>
 
                     <div>
                       <h3
-                        className={`font-serif text-base font-medium transition-all ${
-                          med.takenToday
-                            ? "line-through text-[#7C8A93]"
-                            : "text-[#F6F1E9]"
+                        className={`font-serif text-base font-semibold text-[#1E293B] ${
+                          med.takenToday ? "line-through text-[#64748B]" : ""
                         }`}
                       >
                         {med.brandName} ({med.dosage})
                       </h3>
-                      <span className="text-xs font-mono text-[#E8674A]">
+                      <span className="text-xs text-[#1E5D57] font-medium">
                         {med.genericName}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#B9C4CC] font-sans pl-9">
+                  <p className="text-xs text-[#64748B] pl-12">
                     📌 {med.frequency}
                   </p>
 
-                  <div className="flex items-center gap-3 font-mono text-[11px] text-[#7C8A93] pl-9">
+                  <div className="flex items-center gap-3 text-xs text-[#94A3B8] pl-12">
                     <span>🏥 {med.hospitalName}</span>
-                    {med.takenToday && (
-                      <span className="text-[#4F9D8C] font-semibold">
+                    {med.takenToday && med.takenAt && (
+                      <span className="text-[#1E5D57] font-semibold">
                         ✓ Taken at {med.takenAt}
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Remaining Doses Indicator */}
-                <div className="sm:text-right shrink-0 font-mono space-y-1 pl-9 sm:pl-0 border-t sm:border-t-0 border-[rgba(246,241,233,0.09)] pt-2 sm:pt-0">
-                  <div className="flex sm:flex-col justify-between sm:items-end gap-1">
-                    <span className="text-[10px] text-[#7C8A93] uppercase">Remaining Inventory</span>
-                    <span className="text-sm font-bold text-[#F6F1E9]">
+                {/* Remaining Inventory Pill Tracker */}
+                <div className="sm:text-right shrink-0 space-y-1 pl-12 sm:pl-0 border-t sm:border-t-0 border-[#E2E8F0] pt-2 sm:pt-0">
+                  <div className="flex sm:flex-col justify-between sm:items-end gap-1 text-xs">
+                    <span className="text-[#64748B]">Remaining</span>
+                    <span className="font-bold text-sm text-[#1E293B]">
                       {med.dosesRemaining} / {med.totalDoses} pills
                     </span>
                   </div>
 
-                  <div className="h-2 w-36 bg-[#0F2130] rounded-full overflow-hidden border border-[rgba(246,241,233,0.09)]">
+                  <div className="h-2 w-32 bg-[#F1F5F4] rounded-full overflow-hidden border border-[#E2E8F0]">
                     <div
-                      className={`h-full transition-all duration-300 ${
-                        percentRemaining < 30 ? "bg-[#E8674A]" : "bg-[#4F9D8C]"
+                      className={`h-full transition-all duration-300 rounded-full ${
+                        percentRemaining < 30 ? "bg-[#E06D53]" : "bg-[#1E5D57]"
                       }`}
                       style={{ width: `${percentRemaining}%` }}
                     />
@@ -258,51 +265,32 @@ export default function MedicinesPage() {
         </div>
       </div>
 
-      {/* Search Bar for OpenFDA Comparative Pricing */}
+      {/* Search Bar for Generic Pricing Comparison */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="font-serif text-xl font-medium text-[#F6F1E9]">
-            Search Free OpenFDA Public Drug Dataset & Generic Price Comparison
-          </h2>
-          <span className="font-mono text-[10px] uppercase text-[#00F0FF] bg-[#00F0FF]/10 px-2 py-0.5 rounded border border-[#00F0FF]/20">
-            OpenFDA API Connected
-          </span>
-        </div>
+        <h2 className="font-serif text-lg font-semibold text-[#1E293B]">
+          Generic Medicine & Pharmacy Price Comparison
+        </h2>
 
         <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search OpenFDA by brand name, generic name, active ingredient (e.g. Ibuprofen, Amoxicillin, Metformin)..."
-            className="w-full rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-4 py-3 pl-11 text-sm text-[#F6F1E9] placeholder-[#7C8A93] focus:outline-none focus:border-[#E8674A]"
+            placeholder="Search by brand name or active ingredient (e.g. Paracetamol, Metformin, Atorvastatin)..."
+            className="w-full rounded-2xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-[#1E5D57] shadow-soft"
           />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="absolute left-4 top-3.5 text-[#7C8A93]"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
         </div>
       </div>
 
       {/* Medicine Cards List */}
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#E8674A] border-t-transparent" />
+        <div className="flex justify-center py-14">
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#1E5D57] border-t-transparent" />
         </div>
       ) : medicines.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[rgba(246,241,233,0.16)] p-12 text-center text-xs font-mono text-[#7C8A93]">
-          No medicines found matching &quot;{query}&quot;. Try searching for a generic ingredient like Paracetamol, Ibuprofen, or Metformin.
+        <div className="rounded-2xl border border-dashed border-[#E2E8F0] bg-white p-10 text-center text-xs text-[#64748B] shadow-soft">
+          No medicines found matching &quot;{query}&quot;. Try searching for Paracetamol, Ibuprofen, or Metformin.
         </div>
       ) : (
         <div className="space-y-4">
@@ -312,48 +300,49 @@ export default function MedicinesPage() {
             return (
               <div
                 key={med.id}
-                className="rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] p-5 space-y-4 hover:border-[#E8674A]/40 transition-colors"
+                className="rounded-2xl border border-[#E2E8F0] bg-white p-5 space-y-4 shadow-card hover:border-[#1E5D57] transition-all"
               >
                 {/* Header info */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[rgba(246,241,233,0.09)] pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h2 className="font-serif text-lg font-medium text-[#F6F1E9]">{med.brandName}</h2>
-                      {med.sourceDataset && (
-                        <span className="font-mono text-[9px] uppercase font-bold text-[#00F0FF] bg-[#00F0FF]/10 px-2 py-0.5 rounded border border-[#00F0FF]/20">
-                          {med.sourceDataset}
-                        </span>
-                      )}
+                      <h3 className="font-serif text-lg font-semibold text-[#1E293B]">
+                        {med.brandName}
+                      </h3>
+                      <span className="rounded-full bg-[#E6F4F1] text-[#134E48] px-2.5 py-0.5 text-xs font-semibold">
+                        {med.drugClass}
+                      </span>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                      <span className="text-[#7C8A93]">Generic equivalent:</span>
-                      <span className="font-semibold text-[#E8674A]">{med.genericName}</span>
+                    <div className="flex items-center gap-2 pt-1 text-xs">
+                      <span className="text-[#64748B]">Active Generic:</span>
+                      <span className="font-semibold text-[#1E5D57]">{med.genericName}</span>
                     </div>
                   </div>
-                  <span className="self-start sm:self-center rounded bg-[#4F9D8C] px-2.5 py-1 font-mono text-xs font-semibold text-white">
-                    {med.drugClass}
+
+                  <span className="text-xs font-bold text-[#1E5D57] bg-[#E6F4F1] px-3 py-1 rounded-full border border-[#D0EAE4] self-start sm:self-center">
+                    From ₹{minPrice.toFixed(2)}
                   </span>
                 </div>
 
                 {/* Details */}
                 <div className="grid gap-3 text-xs sm:grid-cols-2">
                   <div>
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#7C8A93]">Active Ingredient</span>
-                    <p className="font-mono text-[#F6F1E9] pt-0.5">{med.activeIngredient}</p>
+                    <span className="font-semibold text-[#64748B] block mb-0.5">Active Ingredient</span>
+                    <p className="text-[#1E293B] font-medium">{med.activeIngredient}</p>
                   </div>
                   <div>
-                    <span className="font-mono text-[10px] uppercase tracking-wider text-[#7C8A93]">Labeling Summary & Purpose</span>
-                    <p className="text-[#B9C4CC] pt-0.5 leading-relaxed font-sans">{med.description || "N/A"}</p>
+                    <span className="font-semibold text-[#64748B] block mb-0.5">Medical Purpose</span>
+                    <p className="text-[#475569] leading-relaxed">{med.description || "Prescription medication"}</p>
                   </div>
                 </div>
 
                 {/* Comparative Price Display */}
-                <div className="rounded-lg border border-[rgba(246,241,233,0.09)] bg-[#0F2130] p-3 space-y-2 font-mono">
+                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-3.5 space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-[10px] uppercase tracking-wider text-[#7C8A93]">
-                      Comparative Pharmacy Prices
+                    <span className="font-semibold text-[#64748B]">
+                      Compare Pharmacy Rates
                     </span>
-                    <span className="text-[#4F9D8C] font-bold text-[11px]">
+                    <span className="text-[#1E5D57] font-bold text-xs">
                       Lowest: ₹{minPrice.toFixed(2)}
                     </span>
                   </div>
@@ -362,14 +351,14 @@ export default function MedicinesPage() {
                     {med.prices.map((price) => (
                       <div
                         key={price.id}
-                        className={`rounded-lg border p-2 text-center text-xs ${
+                        className={`rounded-xl border p-2.5 text-center text-xs ${
                           price.price === minPrice
-                            ? "border-[#4F9D8C] bg-[#4F9D8C]/20 text-[#F6F1E9] font-bold"
-                            : "border-[rgba(246,241,233,0.09)] bg-[#132A38] text-[#B9C4CC]"
+                            ? "border-[#1E5D57] bg-[#E6F4F1] text-[#134E48] font-bold ring-1 ring-[#1E5D57]"
+                            : "border-[#E2E8F0] bg-white text-[#475569]"
                         }`}
                       >
-                        <p className="text-[11px] text-[#7C8A93] truncate">{price.pharmacyName}</p>
-                        <p className="text-sm pt-0.5">₹{price.price.toFixed(2)}</p>
+                        <p className="text-[11px] text-[#64748B] truncate">{price.pharmacyName}</p>
+                        <p className="text-sm font-bold pt-0.5">₹{price.price.toFixed(2)}</p>
                       </div>
                     ))}
                   </div>
@@ -380,117 +369,117 @@ export default function MedicinesPage() {
         </div>
       )}
 
-      {/* Manual Add Medication Modal */}
+      {/* Manual Add Prescription Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[rgba(246,241,233,0.09)] pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-elevated space-y-4 text-[#1E293B]">
+            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
               <div>
-                <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">
-                  Add Prescription Manually
+                <h3 className="font-serif text-lg font-semibold text-[#1E293B]">
+                  Add Prescription
                 </h3>
-                <p className="text-xs text-[#7C8A93]">Enter medication details for daily tracking</p>
+                <p className="text-xs text-[#64748B]">Track daily doses and refill inventory</p>
               </div>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-[#7C8A93] hover:text-[#F6F1E9]">
-                ✕
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#64748B] hover:text-[#1E293B] p-1">
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleAddMedication} className="space-y-3 text-xs font-sans">
+            <form onSubmit={handleAddMedication} className="space-y-3 text-xs">
               <div>
-                <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
+                <label className="font-medium text-[#1E293B] block mb-1">
                   Brand Name *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Lipitor, Augmentin, Metformin"
+                  placeholder="e.g. Crocin, Glycomet, Lipitor"
                   value={newBrandName}
                   onChange={(e) => setNewBrandName(e.target.value)}
-                  className="w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
-                  Generic Active Ingredient
+                <label className="font-medium text-[#1E293B] block mb-1">
+                  Generic Ingredient
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Atorvastatin 20mg"
+                  placeholder="e.g. Paracetamol 650mg, Metformin 500mg"
                   value={newGenericName}
                   onChange={(e) => setNewGenericName(e.target.value)}
-                  className="w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
+                  <label className="font-medium text-[#1E293B] block mb-1">
                     Dosage
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 20 mg"
+                    placeholder="e.g. 500 mg"
                     value={newDosage}
                     onChange={(e) => setNewDosage(e.target.value)}
-                    className="w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
-                    Total Doses (Pills)
+                  <label className="font-medium text-[#1E293B] block mb-1">
+                    Total Pills
                   </label>
                   <input
                     type="number"
                     min="1"
                     value={newTotalDoses}
                     onChange={(e) => setNewTotalDoses(parseInt(e.target.value) || 1)}
-                    className="w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
-                  Frequency / Instructions
+                <label className="font-medium text-[#1E293B] block mb-1">
+                  Instructions
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Once daily after dinner"
+                  placeholder="e.g. Twice daily after food"
                   value={newFrequency}
                   onChange={(e) => setNewFrequency(e.target.value)}
-                  className="w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] uppercase text-[#7C8A93] mb-1">
-                  Prescribed By / Facility
+                <label className="font-medium text-[#1E293B] block mb-1">
+                  Clinic / Prescribed By
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Personal Prescription / Dr. Sharma"
+                  placeholder="e.g. Apollo Hospital / Dr. Sharma"
                   value={newHospitalName}
                   onChange={(e) => setNewHospitalName(e.target.value)}
-                  className="w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[rgba(246,241,233,0.09)]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="rounded-lg px-4 py-2 text-xs text-[#7C8A93] hover:text-[#F6F1E9]"
+                  className="rounded-xl px-4 py-2 text-xs font-medium text-[#64748B] hover:text-[#1E293B]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#E8674A] px-5 py-2 text-xs font-semibold text-[#0A1620] hover:brightness-108 transition-all"
+                  className="rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-5 py-2 text-xs font-semibold text-white shadow-soft transition-all min-tap-target"
                 >
-                  Save & Add to Tracker
+                  Save Prescription
                 </button>
               </div>
             </form>

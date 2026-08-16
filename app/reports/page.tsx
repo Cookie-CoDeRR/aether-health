@@ -1,15 +1,23 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState } from "react";
-
+import Link from "next/link";
 import { analyzeReport } from "@/services/domain/ocrService";
 import { SafetyWrappedResponse } from "@/types/disclaimers";
 import { ReportParseOutput, ReportMetric } from "@/types/ai";
 import { ParseStatus } from "@/types/report";
-
 import { issueClearanceCertificate } from "@/services/domain/timelineService";
+import {
+  UploadCloud,
+  FileText,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  Sparkles,
+  History,
+  ShieldCheck,
+  Plus,
+} from "lucide-react";
 
 export default function ReportsPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -22,8 +30,8 @@ export default function ReportsPage() {
   const handleIssueCertificate = async () => {
     await issueClearanceCertificate({
       userId: "aether_usr_8f92a170b4c2",
-      title: `Clearance: ${file?.name || "CBC Lab Report"}`,
-      subtitle: "Lab report metrics reviewed. Clearance certificate issued.",
+      title: `Clearance: ${file?.name || "Blood Test (CBC)"}`,
+      subtitle: "Lab report metrics reviewed. Verified within normal recovery limits.",
       doctorName: "Dr. Sarah Jenkins (Pathology)",
       certificateNote: "WBC count and inflammatory markers verified within normal recovery limits.",
     });
@@ -33,7 +41,7 @@ export default function ReportsPage() {
   const handleFileSelect = (selectedFile: File) => {
     const validTypes = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
     if (!validTypes.includes(selectedFile.type)) {
-      setErrorMessage("Invalid file type. Please upload a PDF or image file (PNG, JPG, WEBP).");
+      setErrorMessage("Please upload a PDF or image file (PNG, JPG, WEBP).");
       return;
     }
 
@@ -47,7 +55,7 @@ export default function ReportsPage() {
   };
 
   const processAnalysis = async (forcedStatus?: ParseStatus) => {
-    const activeFile = file || new File(["dummy"], "sample_blood_report.pdf", { type: "application/pdf" });
+    const activeFile = file || new File(["dummy"], "cbc_blood_test_report.pdf", { type: "application/pdf" });
     if (!file) setFile(activeFile);
 
     setErrorMessage(null);
@@ -71,43 +79,33 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in p-6 lg:p-12 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[rgba(246,241,233,0.09)] pb-4 gap-3">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto text-[#1E293B] w-full">
+      {/* Header & Section Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E2E8F0] pb-4 gap-4">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.12em] text-[#E8674A] font-sans font-medium mb-1">
-            OCR Document Parser
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-[#1E5D57] mb-1 flex items-center gap-2">
+            <span>Patient Records & Diagnostics</span>
+            <span>•</span>
+            <span className="text-[#64748B]">Automated Lab Metric Extraction</span>
           </div>
-          <h1 className="font-serif text-2xl font-medium tracking-[0.01em] text-[#F6F1E9]">
-            Report Analysis
+          <h1 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E293B]">
+            Medical Reports & Timeline
           </h1>
         </div>
 
-        {/* Demo Status Switcher */}
-        <div className="flex items-center gap-1.5 rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-1 text-[11px]">
-          <span className="px-1.5 font-mono text-[#7C8A93]">Test State:</span>
-          <button
-            onClick={() => processAnalysis("ok")}
-            className="rounded px-2 py-0.5 font-mono font-bold bg-[#4F9D8C] text-white hover:opacity-80"
+        {/* View Switcher Pill */}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/timeline"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-[#E2E8F0] bg-white hover:bg-[#F8FAF9] hover:border-[#1E5D57] px-4 py-2 text-xs font-semibold text-[#1E293B] transition-all shadow-soft min-tap-target"
           >
-            OK
-          </button>
-          <button
-            onClick={() => processAnalysis("low_confidence")}
-            className="rounded px-2 py-0.5 font-mono font-bold bg-[#E8674A] text-white hover:opacity-80"
-          >
-            Low Conf
-          </button>
-          <button
-            onClick={() => processAnalysis("failed")}
-            className="rounded px-2 py-0.5 font-mono font-bold bg-[#D14343] text-white hover:opacity-80"
-          >
-            Failed
-          </button>
+            <History className="w-4 h-4 text-[#1E5D57]" />
+            <span>View Health Timeline →</span>
+          </Link>
         </div>
       </div>
 
-      {/* Upload Dropzone */}
+      {/* Warm Patient Dropzone Card */}
       <div
         onDragOver={(e) => {
           e.preventDefault();
@@ -121,8 +119,10 @@ export default function ReportsPage() {
             handleFileSelect(e.dataTransfer.files[0]);
           }
         }}
-        className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-center transition-all ${
-          dragActive ? "border-[#E8674A] bg-[#E8674A]/10" : "border-[rgba(246,241,233,0.16)] bg-[#132A38] hover:border-[#E8674A]/40"
+        className={`relative flex flex-col items-center justify-center rounded-3xl border-2 border-dashed p-8 sm:p-12 text-center transition-all bg-white shadow-soft ${
+          dragActive
+            ? "border-[#1E5D57] bg-[#E6F4F1]/40"
+            : "border-[#E2E8F0] hover:border-[#1E5D57] hover:bg-[#F8FAF9]"
         }`}
       >
         <input
@@ -131,23 +131,26 @@ export default function ReportsPage() {
           onChange={(e) => e.target.files && e.target.files[0] && handleFileSelect(e.target.files[0])}
           className="absolute inset-0 cursor-pointer opacity-0"
         />
-        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#E8674A] text-[#0A1620] mb-3">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
+
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[#E6F4F1] text-[#1E5D57] mb-4 shadow-xs">
+          <UploadCloud className="w-8 h-8" />
         </div>
 
         {file ? (
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-[#F6F1E9]">📄 {file.name}</p>
-            <p className="font-mono text-xs text-[#7C8A93]">{(file.size / 1024).toFixed(1)} KB • Ready for analysis</p>
+          <div className="space-y-1.5">
+            <p className="text-base font-semibold text-[#1E293B]">📄 {file.name}</p>
+            <p className="text-xs text-[#64748B]">
+              {(file.size / 1024).toFixed(1)} KB • Ready for automated lab insights
+            </p>
           </div>
         ) : (
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-[#F6F1E9]">Drag and drop your report here, or click to browse</p>
-            <p className="text-xs text-[#7C8A93]">Supports PDF, PNG, JPG, WEBP (Max 10MB)</p>
+          <div className="space-y-1.5 max-w-sm">
+            <h3 className="font-serif text-lg font-semibold text-[#1E293B]">
+              Upload lab test or prescription (PDF, Image)
+            </h3>
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              Drag & drop your health report here, or click to browse files (Supports PDF, PNG, JPG up to 10MB)
+            </p>
           </div>
         )}
 
@@ -155,44 +158,56 @@ export default function ReportsPage() {
           type="button"
           onClick={() => processAnalysis()}
           disabled={parseState === "pending"}
-          className="mt-4 rounded-xl bg-[#E8674A] px-6 py-2.5 text-xs font-semibold text-[#0A1620] hover:brightness-108 transition-all z-10 disabled:opacity-50"
+          className="mt-6 rounded-2xl bg-[#1E5D57] hover:bg-[#134E48] px-7 py-3 text-xs font-semibold text-white shadow-soft hover:shadow-card transition-all z-10 disabled:opacity-50 min-tap-target"
         >
-          {parseState === "pending" ? "Analyzing..." : file ? "Analyze Document" : "Run Sample Report Analysis"}
+          {parseState === "pending"
+            ? "Analyzing Report..."
+            : file
+            ? "Upload & Analyze Report"
+            : "Upload Sample Blood Report"}
         </button>
       </div>
 
       {errorMessage && (
-        <div className="rounded-xl border border-[#D14343] bg-[#D14343]/10 p-3 text-xs text-[#D14343] flex justify-between items-center">
+        <div className="rounded-2xl border border-[#FDE6E2] bg-[#FEF4F2] p-4 text-xs text-[#C85339] flex justify-between items-center shadow-xs">
           <span>{errorMessage}</span>
-          <button onClick={() => setErrorMessage(null)} className="font-bold underline">Dismiss</button>
+          <button onClick={() => setErrorMessage(null)} className="font-bold underline">
+            Dismiss
+          </button>
         </div>
       )}
 
       {/* 1. Pending State */}
       {parseState === "pending" && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] py-16 space-y-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#E8674A] border-t-transparent" />
-          <p className="font-serif text-base text-[#F6F1E9]">Analyzing document metrics with Gemini 1.5 Pro...</p>
-          <p className="font-mono text-xs text-[#7C8A93]">Extracting tabular numerical values and reference ranges</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-[#E2E8F0] bg-white py-14 space-y-3 shadow-soft">
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#1E5D57] border-t-transparent" />
+          <p className="font-serif text-base font-semibold text-[#1E293B]">
+            Extracting lab values and medical reference ranges...
+          </p>
+          <p className="text-xs text-[#64748B]">
+            Categorizing test metrics (Hemoglobin, Glucose, Platelets, WBC)
+          </p>
         </div>
       )}
 
       {/* 2. Failed State */}
       {parseState === "failed" && (
-        <div className="rounded-xl border border-[#D14343] bg-[#D14343]/15 p-6 space-y-4 text-[#F6F1E9]">
-          <span className="rounded bg-[#D14343] text-white px-2 py-0.5 font-mono text-xs font-bold uppercase">
-            Parse Status: Failed
+        <div className="rounded-2xl border border-[#FDE6E2] bg-[#FEF4F2] p-6 space-y-3 text-[#1E293B] shadow-soft">
+          <span className="rounded-full bg-[#C85339] text-white px-3 py-1 text-xs font-semibold">
+            Unable to Read Report
           </span>
           <div className="space-y-1">
-            <h3 className="font-serif text-base font-medium">Unable to Extract Report Data</h3>
-            <p className="text-xs text-[#B9C4CC] leading-relaxed">
-              We could not read the text from this document. Ensure the file is clear, unblurred, and formatted as a standard lab result.
+            <h3 className="font-serif text-base font-semibold text-[#1E293B]">
+              Could Not Extract Document Text
+            </h3>
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              Please ensure the uploaded report is clear and unblurred, then try again.
             </p>
           </div>
-          <div className="flex items-center gap-3 pt-2">
+          <div className="pt-2">
             <button
               onClick={() => processAnalysis("ok")}
-              className="rounded-lg bg-[#D14343] text-white px-4 py-2 text-xs font-semibold hover:bg-[#D14343]/90"
+              className="rounded-xl bg-[#1E293B] text-white px-4 py-2 text-xs font-semibold hover:bg-black"
             >
               🔄 Retry Analysis
             </button>
@@ -200,88 +215,93 @@ export default function ReportsPage() {
         </div>
       )}
 
-      {/* 3. OK or Low Confidence States */}
+      {/* 3. Analyzed State */}
       {(parseState === "ok" || parseState === "low_confidence") && analysisResult?.data && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-2 border-b border-[rgba(246,241,233,0.09)] pb-3">
+        <div className="space-y-5 animate-fade-in">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
             <div className="flex items-center gap-2">
-              <span
-                className={`rounded px-2.5 py-1 font-mono text-xs font-bold uppercase tracking-wider ${
-                  parseState === "ok"
-                    ? "bg-[#4F9D8C] text-white"
-                    : "bg-[#E8674A] text-white"
-                }`}
-              >
-                Parse Status: {parseState === "ok" ? "OK" : "Low Confidence"}
+              <span className="rounded-full bg-[#E6F4F1] border border-[#D0EAE4] text-[#134E48] px-3 py-1 text-xs font-semibold flex items-center gap-1.5 shadow-xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#1E5D57]" />
+                <span>Analyzed</span>
               </span>
-              <span className="font-mono text-xs text-[#7C8A93]">Gemini 1.5 Pro</span>
+              <span className="text-xs text-[#64748B]">
+                {analysisResult.data.parsedMetrics.length} lab markers extracted
+              </span>
             </div>
 
             {certificateIssued ? (
-              <span className="rounded-lg bg-[#4F9D8C]/20 border border-[#4F9D8C] px-3 py-1 text-xs font-mono text-[#4F9D8C] font-bold">
-                ✓ Clearance Certificate Issued to Timeline
+              <span className="rounded-xl bg-[#E6F4F1] border border-[#D0EAE4] px-3.5 py-1.5 text-xs text-[#134E48] font-semibold flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#1E5D57]" />
+                <span>Saved to Health Timeline</span>
               </span>
             ) : (
               <button
                 onClick={handleIssueCertificate}
-                className="rounded-lg bg-[#4F9D8C] hover:bg-[#4F9D8C]/90 text-white px-3.5 py-1.5 text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 font-mono"
+                className="rounded-xl bg-[#1E5D57] hover:bg-[#134E48] text-white px-4 py-2 text-xs font-semibold transition-all shadow-soft flex items-center gap-1.5 min-tap-target"
               >
-                <span>📜 Issue Clearance Certificate & Update Timeline</span>
+                <Plus className="w-4 h-4" />
+                <span>Save to Health Timeline</span>
               </button>
             )}
           </div>
 
-          {parseState === "low_confidence" && (
-            <div className="rounded-xl border border-[#E8674A] bg-[#E8674A]/10 p-4 space-y-1 text-xs text-[#F6F1E9]">
-              <div className="font-bold text-[#E8674A]">Low Confidence Extraction Warning</div>
-              <p className="text-[#B9C4CC]">
-                Some values could not be extracted with high confidence due to document resolution or formatting. <strong>Please verify all values with your healthcare provider.</strong>
-              </p>
+          {/* Plain Language Summary Card */}
+          <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 space-y-2 shadow-card">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[#1E5D57] flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Plain-Language Summary</span>
             </div>
-          )}
-
-          {/* Plain Language Summary */}
-          <div className="rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] p-4 space-y-1">
-            <h3 className="text-xs font-mono uppercase tracking-wider text-[#7C8A93]">Plain-Language Summary</h3>
-            <p className="text-sm text-[#F6F1E9] leading-relaxed">{analysisResult.data.plainSummary}</p>
+            <p className="text-sm text-[#1E293B] leading-relaxed">
+              {analysisResult.data.plainSummary}
+            </p>
           </div>
 
-          {/* Metrics Table */}
-          <div className="rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] overflow-hidden">
-            <div className="border-b border-[rgba(246,241,233,0.09)] bg-[#0F2130] px-4 py-3 flex items-center justify-between">
-              <h3 className="font-serif text-sm font-medium text-[#F6F1E9]">Extracted Lab Metrics</h3>
-              <span className="font-mono text-[11px] text-[#7C8A93]">{analysisResult.data.parsedMetrics.length} values extracted</span>
+          {/* Extracted Metrics Table */}
+          <div className="rounded-2xl border border-[#E2E8F0] bg-white overflow-hidden shadow-card">
+            <div className="border-b border-[#E2E8F0] bg-[#F8FAF9] px-5 py-3.5 flex items-center justify-between">
+              <h3 className="font-serif text-base font-semibold text-[#1E293B]">
+                Extracted Lab Values
+              </h3>
+              <span className="text-xs text-[#64748B]">
+                Compared against standard clinical reference ranges
+              </span>
             </div>
 
-            <div className="overflow-x-auto font-mono">
+            <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#0F2130] text-[#7C8A93] font-semibold border-b border-[rgba(246,241,233,0.09)]">
+                <thead className="bg-[#F8FAF9] text-[#64748B] font-semibold border-b border-[#E2E8F0]">
                   <tr>
-                    <th className="px-4 py-2.5">Metric Name</th>
-                    <th className="px-4 py-2.5">Extracted Value</th>
-                    <th className="px-4 py-2.5">Reference Range</th>
-                    <th className="px-4 py-2.5 text-right">Status</th>
+                    <th className="px-5 py-3">Metric Name</th>
+                    <th className="px-5 py-3">Extracted Result</th>
+                    <th className="px-5 py-3">Standard Reference Range</th>
+                    <th className="px-5 py-3 text-right">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[rgba(246,241,233,0.09)]">
+                <tbody className="divide-y divide-[#E2E8F0]">
                   {analysisResult.data.parsedMetrics.map((metric: ReportMetric, i: number) => (
                     <tr
                       key={i}
-                      className={metric.isOutOfRange ? "bg-[#E8674A]/15 font-semibold text-[#F6F1E9]" : "hover:bg-[#0F2130]/50"}
+                      className={metric.isOutOfRange ? "bg-[#FEF4F2]/50" : "hover:bg-[#F8FAF9]"}
                     >
-                      <td className="px-4 py-3">{metric.name}</td>
-                      <td className="px-4 py-3 font-bold text-[#E8674A]">
+                      <td className="px-5 py-3.5 font-medium text-[#1E293B]">
+                        {metric.name}
+                      </td>
+                      <td className="px-5 py-3.5 font-bold text-[#1E5D57]">
                         {metric.value} {metric.unit || ""}
                       </td>
-                      <td className="px-4 py-3 text-[#7C8A93]">{metric.referenceRange}</td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-5 py-3.5 text-[#64748B]">
+                        {metric.referenceRange}
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
                         {metric.isOutOfRange ? (
-                          <span className="rounded bg-[#E8674A] text-white px-2 py-0.5 text-[10px] font-bold uppercase">
-                            ⚠️ Out of Range
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#FEF4F2] border border-[#FDE6E2] text-[#C85339] px-2.5 py-0.5 text-[11px] font-semibold">
+                            <AlertCircle className="w-3 h-3" />
+                            <span>Out of Range</span>
                           </span>
                         ) : (
-                          <span className="rounded bg-[#4F9D8C] text-white px-2 py-0.5 text-[10px] font-medium">
-                            Normal
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#E6F4F1] border border-[#D0EAE4] text-[#134E48] px-2.5 py-0.5 text-[11px] font-medium">
+                            <CheckCircle2 className="w-3 h-3 text-[#1E5D57]" />
+                            <span>Normal</span>
                           </span>
                         )}
                       </td>

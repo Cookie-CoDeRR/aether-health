@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,192 +6,118 @@
 
 @layer base {
   :root {
-    /* AETHER Triage v3 — Dark Clinical Monitor Theme */
-    --ink-0: #0A1620;
-    --ink-1: #0F2130;
-    --panel: #132A38;
-    
-    --paper: #F6F1E9;
-    --paper-dim: #EAE4D6;
-    
-    --coral: #E8674A;
-    --coral-dim: #7E3419;
-    
-    --teal: #4F9D8C;
-    
-    --line: rgba(246, 241, 233, 0.09);
-    --line-strong: rgba(246, 241, 233, 0.16);
-    
-    --text-hi: #F6F1E9;
-    --text-mid: #B9C4CC;
-    --text-lo: #7C8A93;
+    /* Strict Two-Color Design System Tokens */
+    --forest-primary: #064E3B;
+    --forest-dark: #043327;
+    --forest-subtle-border: rgba(6, 78, 59, 0.12);
+    --forest-highlight-badge: rgba(6, 78, 59, 0.08);
+    --surface-white: #FFFFFF;
+    --surface-card: #F9FBF9;
 
-    /* Tailwind Mappings */
-    --background: 206 52% 8%;           /* #0A1620 */
-    --foreground: 36 33% 94%;            /* #F6F1E9 */
+    --background: 0 0% 100%;
+    --foreground: 167 85% 14%;          /* #064E3B */
     
-    --card: 204 49% 15%;                 /* #132A38 */
-    --card-foreground: 36 33% 94%;
+    --card: 0 0% 100%;
+    --card-foreground: 167 85% 14%;
     
-    --popover: 206 52% 12%;              /* #0F2130 */
-    --popover-foreground: 36 33% 94%;
+    --primary: 167 85% 14%;             /* #064E3B */
+    --primary-foreground: 0 0% 100%;
     
-    --primary: 11 76% 60%;               /* #E8674A (Vital Coral) */
-    --primary-foreground: 206 52% 8%;
+    --secondary: 160 33% 98%;           /* #F9FBF9 */
+    --secondary-foreground: 167 85% 14%;
     
-    --secondary: 167 33% 46%;            /* #4F9D8C (Trace Teal) */
-    --secondary-foreground: 36 33% 94%;
+    --border: 167 85% 14% / 0.12;       /* rgba(6, 78, 59, 0.12) */
+    --input: 167 85% 14% / 0.12;
+    --ring: 167 85% 14%;
     
-    --muted: 206 52% 12%;
-    --muted-foreground: 204 10% 53%;     /* #7C8A93 */
-    
-    --border: rgba(246, 241, 233, 0.09);
-    --input: rgba(246, 241, 233, 0.16);
-    --ring: 11 76% 60%;
-    
-    --destructive: 0 65% 54%;            /* Critical #D14343 */
-    --destructive-foreground: 36 33% 94%;
-  }
-
-  html.light,
-  .light {
-    /* Sleek Paper Light Clinical Theme */
-    --ink-0: #F6F1E9;
-    --ink-1: #EAE4D6;
-    --panel: #FFFFFF;
-    
-    --paper: #0A1620;
-    --paper-dim: #132A38;
-    
-    --coral: #D25235;
-    --coral-dim: #E8674A;
-    
-    --teal: #367A6C;
-    
-    --line: rgba(10, 22, 32, 0.12);
-    --line-strong: rgba(10, 22, 32, 0.22);
-    
-    --text-hi: #0A1620;
-    --text-mid: #2C3E4C;
-    --text-lo: #556675;
-
     color-scheme: light;
   }
 
-  /* Comprehensive Light Mode Global Overrides */
-  html.light body,
-  .light body {
-    background-color: #F6F1E9 !important;
-    color: #0A1620 !important;
-  }
-
-  html.light .bg-\[\#0A1620\],
-  .light .bg-\[\#0A1620\] {
-    background-color: #F6F1E9 !important;
-  }
-
-  html.light .bg-\[\#0F2130\],
-  .light .bg-\[\#0F2130\],
-  html.light .bg-\[\#0F2130\]\/50,
-  .light .bg-\[\#0F2130\]\/50 {
-    background-color: #EAE4D6 !important;
-    color: #0A1620 !important;
-  }
-
-  html.light .bg-\[\#132A38\],
-  .light .bg-\[\#132A38\],
-  html.light .bg-\[\#132A38\]\/80,
-  .light .bg-\[\#132A38\]\/80,
-  html.light .bg-\[\#132A38\]\/60,
-  .light .bg-\[\#132A38\]\/60,
-  html.light .bg-\[\#132A38\]\/50,
-  .light .bg-\[\#132A38\]\/50 {
-    background-color: #FFFFFF !important;
-    color: #0A1620 !important;
-  }
-
-  html.light input,
-  .light input,
-  html.light select,
-  .light select,
-  html.light textarea,
-  .light textarea {
-    background-color: #FFFFFF !important;
-    color: #0A1620 !important;
-    border-color: rgba(10, 22, 32, 0.2) !important;
-  }
-
-  html.light input::placeholder,
-  .light input::placeholder,
-  html.light textarea::placeholder,
-  .light textarea::placeholder {
-    color: #647481 !important;
-  }
-
-  html.light .text-\[\#F6F1E9\],
-  .light .text-\[\#F6F1E9\] {
-    color: #0A1620 !important;
-  }
-
-  html.light .text-\[\#B9C4CC\],
-  .light .text-\[\#B9C4CC\] {
-    color: #2C3E4C !important;
-  }
-
-  html.light .text-\[\#7C8A93\],
-  .light .text-\[\#7C8A93\] {
-    color: #4A5B69 !important;
-  }
-
-  html.light .border-\[rgba\(246\,241\,233\,0\.09\)\],
-  .light .border-\[rgba\(246\,241\,233\,0\.09\)\],
-  html.light .border-\[rgba\(246\,241\,233\,0\.16\)\],
-  .light .border-\[rgba\(246\,241\,233\,0\.16\)\] {
-    border-color: rgba(10, 22, 32, 0.15) !important;
-  }
-
   body {
-    background-color: var(--ink-0);
-    color: var(--text-hi);
-    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    background-color: #FFFFFF;
+    color: #064E3B;
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
-    transition: background-color 0.25s ease, color 0.25s ease;
-  }
-
-  /* Faint ECG grid texture on the base */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(var(--line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line) 1px, transparent 1px);
-    background-size: 28px 28px;
-    opacity: 0.35;
-    pointer-events: none;
-    z-index: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, .font-serif-heading {
     font-family: 'Newsreader', Georgia, serif;
+    letter-spacing: -0.015em;
+  }
+
+  /* Accessible High-Contrast Focus Ring */
+  *:focus-visible {
+    outline: 2px solid #064E3B;
+    outline-offset: 2px;
+  }
+
+  /* Minimum 44px tap targets helper class */
+  .min-tap-target {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 
-/* Custom scrollbar */
+/* Sleek subtle scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--ink-0);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 3px;
+  background: rgba(6, 78, 59, 0.12);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-lo);
+  background: rgba(6, 78, 59, 0.3);
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Leaflet Map Customizations */
+.leaflet-container {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+  border-radius: 1rem;
+}
+
+.aether-map-popup .leaflet-popup-content-wrapper {
+  border-radius: 16px;
+  box-shadow: 0 10px 25px -5px rgba(6, 78, 59, 0.12), 0 4px 6px -2px rgba(6, 78, 59, 0.04);
+  border: 1px solid rgba(6, 78, 59, 0.15);
+  padding: 4px;
+  background: #FFFFFF;
+}
+
+.aether-map-popup .leaflet-popup-tip {
+  background: #FFFFFF;
 }

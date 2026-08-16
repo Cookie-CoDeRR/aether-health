@@ -1,6 +1,7 @@
 "use client";
 
 import { UrgencyLevel } from "@/types/symptomLog";
+import { Stethoscope, AlertTriangle, CheckCircle2, FileText } from "lucide-react";
 
 interface ClinicalResponseCardProps {
   text: string;
@@ -15,7 +16,7 @@ export default function ClinicalResponseCard({
   patientRecordContext,
   onOpenManageRecords,
 }: ClinicalResponseCardProps) {
-  // Parse raw text sections cleanly to remove markdown hashtags (#, ##, ###, ####)
+  // Parse raw text sections cleanly to remove markdown hashtags
   const cleanText = text
     .replace(/^###\s+Clinical Consultant Assessment.*$/gm, "")
     .replace(/^####\s+/gm, "")
@@ -25,65 +26,63 @@ export default function ClinicalResponseCard({
   const paragraphs = cleanText.split(/\n\n+/).filter((p) => p.trim().length > 0);
 
   return (
-    <div className="space-y-4 text-sm leading-relaxed text-[#F6F1E9]">
-      {/* Top Banner & Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[rgba(246,241,233,0.09)] pb-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#E8674A] text-[#0A1620] text-xs font-bold">
-            🩺
+    <div className="space-y-4 text-sm leading-relaxed text-[#064E3B]">
+      {/* Top Banner & Urgency Header */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#064E3B]/15 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#064E3B] text-white">
+            <Stethoscope className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-serif text-base font-medium tracking-tight text-[#F6F1E9]">
-              Clinical Consultant Readout
+            <h3 className="font-serif text-base font-bold text-[#064E3B]">
+              Clinical Care Summary
             </h3>
-            <p className="text-[10px] font-mono text-[#7C8A93] uppercase tracking-wider">
-              Evaluated by AETHER Triage System
+            <p className="text-[11px] text-[#064E3B]/70 font-medium">
+              Assessed by Aether Health Assistant
             </p>
           </div>
         </div>
 
-        <span
-          className={`rounded-lg px-2.5 py-1 font-mono text-xs font-bold uppercase tracking-wider ${
-            urgencyLevel === "high_critical"
-              ? "bg-[#D14343] text-white"
+        <span className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs border border-[#064E3B]/30 bg-[#F9FBF9] text-[#064E3B]">
+          {urgencyLevel === "high_critical" ? (
+            <AlertTriangle className="w-3.5 h-3.5" />
+          ) : (
+            <CheckCircle2 className="w-3.5 h-3.5" />
+          )}
+          <span>
+            {urgencyLevel === "high_critical"
+              ? "Urgent Care Recommended"
               : urgencyLevel === "moderate"
-              ? "bg-[#D9A441] text-[#0A1620]"
-              : "bg-[#4F9D8C] text-white"
-          }`}
-        >
-          {urgencyLevel.replace("_", " ")} Urgency
+              ? "Moderate Priority"
+              : "Routine / Home Care"}
+          </span>
         </span>
       </div>
 
-      {/* Applied Patient Records Banner (Interactive) */}
+      {/* Applied Patient Records Context Pill */}
       {patientRecordContext && patientRecordContext.length > 0 && (
-        <div className="rounded-xl border border-[rgba(79,157,140,0.3)] bg-[#4F9D8C]/10 p-3.5 space-y-2 text-xs">
+        <div className="rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] p-3.5 space-y-2 text-xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 font-bold text-[#4F9D8C]">
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <path d="M14 2v6h6" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
-              <span>Applied Patient Medical Records ({patientRecordContext.length})</span>
+            <div className="flex items-center gap-1.5 font-bold text-[#064E3B]">
+              <FileText className="w-4 h-4 text-[#064E3B]" />
+              <span>Cross-Referenced Medical History ({patientRecordContext.length})</span>
             </div>
 
             {onOpenManageRecords && (
               <button
                 onClick={onOpenManageRecords}
-                className="rounded-lg bg-[#4F9D8C] hover:bg-[#4F9D8C]/90 text-white font-semibold px-2.5 py-1 text-[11px] transition-all flex items-center gap-1 shadow-xs"
+                className="rounded-lg bg-white border border-[#064E3B]/25 hover:bg-[#064E3B] hover:text-white text-[#064E3B] font-bold px-2.5 py-1 text-[11px] transition-all shadow-2xs"
               >
-                <span>🩺 Manage / Clear Cured Records</span>
+                Manage History
               </button>
             )}
           </div>
 
-          <div className="flex flex-wrap gap-1.5 pt-1">
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
             {patientRecordContext.map((item, idx) => (
               <span
                 key={idx}
-                className="rounded-md border border-[rgba(246,241,233,0.16)] bg-[#0F2130] px-2.5 py-1 text-[11px] text-[#B9C4CC] font-sans font-medium"
+                className="rounded-full border border-[#064E3B]/20 bg-white px-2.5 py-0.5 text-[11px] text-[#064E3B] font-semibold"
               >
                 {item}
               </span>
@@ -92,10 +91,14 @@ export default function ClinicalResponseCard({
         </div>
       )}
 
-      {/* Main Clinical Body Paragraphs */}
+      {/* Main Clinical Body Content */}
       <div className="space-y-3 font-sans">
         {paragraphs.map((p, idx) => {
-          const isHeading = p.startsWith("Clinical Breakdown") || p.startsWith("Recommended Next") || p.startsWith("Clinical Guidance") || p.startsWith("Recommended Action");
+          const isHeading =
+            p.startsWith("Clinical Breakdown") ||
+            p.startsWith("Recommended Next") ||
+            p.startsWith("Clinical Guidance") ||
+            p.startsWith("Recommended Action");
 
           if (isHeading) {
             const parts = p.split("\n");
@@ -103,11 +106,14 @@ export default function ClinicalResponseCard({
             const bodyLines = parts.slice(1).join("\n");
 
             return (
-              <div key={idx} className="rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] p-4 space-y-2">
-                <h4 className="font-serif text-sm font-medium text-[#E8674A] border-b border-[rgba(246,241,233,0.09)] pb-1">
+              <div
+                key={idx}
+                className="rounded-xl border border-[#064E3B]/15 bg-[#F9FBF9] p-4 space-y-2"
+              >
+                <h4 className="font-bold text-sm text-[#064E3B] border-b border-[#064E3B]/15 pb-1.5">
                   {headingTitle}
                 </h4>
-                <div className="text-xs text-[#B9C4CC] leading-relaxed whitespace-pre-wrap font-sans">
+                <div className="text-xs text-[#064E3B]/85 leading-relaxed whitespace-pre-wrap">
                   {bodyLines}
                 </div>
               </div>
@@ -115,7 +121,7 @@ export default function ClinicalResponseCard({
           }
 
           return (
-            <p key={idx} className="text-xs sm:text-[13.5px] text-[#B9C4CC] leading-relaxed">
+            <p key={idx} className="text-xs sm:text-[13.5px] text-[#064E3B]/90 leading-relaxed">
               {p.replace(/\*\*/g, "")}
             </p>
           );

@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { ACTION_ITEMS, ActionCategory, ActionItem } from "@/types/actions";
 import ActionCard from "./ActionCard";
 import ActionModal from "./ActionModal";
+import { Search } from "lucide-react";
 
 export default function ActionsGrid() {
   const [selectedCategory, setSelectedCategory] = useState<ActionCategory | "All">("All");
@@ -30,19 +31,19 @@ export default function ActionsGrid() {
   }, [selectedCategory, searchQuery]);
 
   return (
-    <section className="space-y-8">
+    <section className="space-y-6 text-[#1E293B]">
       {/* Search and Category Filter Toolbar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-[rgba(246,241,233,0.09)] pb-6">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-mono whitespace-nowrap transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
                 selectedCategory === cat
-                  ? "bg-[#E8674A] text-[#0A1620] font-bold shadow-md"
-                  : "bg-[#132A38] border border-[rgba(246,241,233,0.09)] text-[#B9C4CC] hover:text-[#F6F1E9] hover:border-[rgba(246,241,233,0.2)]"
+                  ? "bg-[#1E5D57] text-white shadow-soft"
+                  : "bg-white border border-[#E2E8F0] text-[#64748B] hover:text-[#1E293B] hover:bg-[#F8FAF9]"
               }`}
             >
               {cat}
@@ -51,36 +52,25 @@ export default function ActionsGrid() {
         </div>
 
         {/* Search Bar */}
-        <div className="relative min-w-[260px]">
+        <div className="relative min-w-[240px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
           <input
             type="text"
             placeholder="Search action modules..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#132A38] border border-[rgba(246,241,233,0.16)] rounded-xl pl-9 pr-4 py-2 text-xs font-mono text-[#F6F1E9] placeholder-[#7C8A93] focus:outline-none focus:border-[#E8674A] transition-colors"
+            className="w-full bg-[#F8FAF9] border border-[#E2E8F0] rounded-xl pl-9 pr-4 py-2 text-xs text-[#1E293B] placeholder-[#94A3B8] focus:bg-white focus:outline-none focus:border-[#1E5D57] transition-colors"
           />
-          <svg
-            className="absolute left-3 top-2.5 text-[#7C8A93]"
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
         </div>
       </div>
 
       {/* Grid of Action Cards */}
       {filteredActions.length === 0 ? (
-        <div className="p-12 text-center border border-dashed border-[rgba(246,241,233,0.16)] rounded-2xl font-mono text-xs text-[#7C8A93]">
+        <div className="p-10 text-center border border-dashed border-[#E2E8F0] rounded-2xl text-xs text-[#64748B] bg-white">
           No actions found matching your criteria.
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {filteredActions.map((action) => (
             <ActionCard
               key={action.id}

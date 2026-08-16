@@ -4,9 +4,9 @@ import AppShell from "@/components/AppShell";
 import { SettingsProvider } from "@/context/SettingsContext";
 
 export const metadata: Metadata = {
-  title: "AETHER — Health Navigator",
+  title: "Aether Health — Patient Care & Navigation Portal",
   description:
-    "AI-powered healthcare navigation prototype with Signal Design System. Symptom triage, specialist routing, report analysis, and medicine lookup.",
+    "A calming, accessible, patient-first healthcare experience with AI symptom triage, verified doctor consultations, and lab report insights.",
 };
 
 export default function RootLayout({
@@ -23,13 +23,12 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        {/* Load Newsreader (serif heading), IBM Plex Sans (body UI), IBM Plex Mono (tabular metrics) */}
         <link
-          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&display=swap"
+          href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body>
+      <body className="bg-[#F8FAF9] text-[#1E293B] antialiased selection:bg-[#E6F4F1] selection:text-[#134E48]">
         <SettingsProvider>
           <AppShell>{children}</AppShell>
         </SettingsProvider>
@@ -37,4 +36,3 @@ export default function RootLayout({
     </html>
   );
 }
-

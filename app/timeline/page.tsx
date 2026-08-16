@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
   getHealthTimeline,
   issueClearanceCertificate,
@@ -9,6 +10,19 @@ import {
   updateTimelineEntry,
 } from "@/services/domain/timelineService";
 import { TimelineEntry, TimelineEntryType } from "@/types/timeline";
+import {
+  HeartPulse,
+  FileText,
+  CheckCircle2,
+  Calendar,
+  Sparkles,
+  ArrowLeft,
+  Plus,
+  Edit2,
+  Trash2,
+  X,
+  Stethoscope,
+} from "lucide-react";
 
 export default function TimelinePage() {
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
@@ -51,9 +65,9 @@ export default function TimelinePage() {
     await issueClearanceCertificate({
       userId: "aether_usr_8f92a170b4c2",
       title: certTitle,
-      subtitle: certSubtitle || "Patient condition certified fully cured and cleared.",
+      subtitle: certSubtitle || "Condition certified resolved by licensed physician.",
       doctorName: certDoctorName,
-      certificateNote: certNote || "Condition evaluated and verified completely resolved.",
+      certificateNote: certNote || "Patient evaluated and certified fully recovered.",
     });
 
     setIsCertModalOpen(false);
@@ -68,7 +82,7 @@ export default function TimelinePage() {
     if (!activeEntryForCured) return;
     await markTimelineEntryAsCured(
       activeEntryForCured.id,
-      markCuredDoctor || "Certified Specialist Practitioner",
+      markCuredDoctor || "Certified Specialist",
       markCuredNote || "Evaluated and certified cured."
     );
 
@@ -94,308 +108,124 @@ export default function TimelinePage() {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in p-6 lg:p-12 max-w-4xl mx-auto text-[#F6F1E9]">
-      {/* Issue Clearance Certificate Modal */}
-      {isCertModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-[rgba(246,241,233,0.09)] pb-3">
-              <div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-[#4F9D8C]">
-                  Official Clearance
-                </div>
-                <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">
-                  Issue Certificate of Being Cured
-                </h3>
-              </div>
-              <button onClick={() => setIsCertModalOpen(false)} className="text-[#7C8A93]">✕</button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="font-semibold text-[#F6F1E9]">Condition / Medical Topic</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Acute Gastroenteritis / Stomach Infection"
-                  value={certTitle}
-                  onChange={(e) => setCertTitle(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#4F9D8C]"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-[#F6F1E9]">Certified Doctor Name & Designation</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Dr. Sarah Jenkins (Gastroenterology)"
-                  value={certDoctorName}
-                  onChange={(e) => setCertDoctorName(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#4F9D8C]"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-[#F6F1E9]">Summary Subtitle</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Patient fully recovered after 5-day course."
-                  value={certSubtitle}
-                  onChange={(e) => setCertSubtitle(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#4F9D8C]"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-[#F6F1E9]">Doctor Resolution / Clearance Note</label>
-                <textarea
-                  rows={2}
-                  placeholder="Detailed notes confirming patient has no active symptoms or lab abnormalities..."
-                  value={certNote}
-                  onChange={(e) => setCertNote(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#4F9D8C]"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-[rgba(246,241,233,0.09)]">
-              <button
-                onClick={() => setIsCertModalOpen(false)}
-                className="rounded-lg px-4 py-2 text-xs text-[#7C8A93]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateCertificate}
-                disabled={!certTitle.trim() || !certDoctorName.trim()}
-                className="rounded-xl bg-[#4F9D8C] px-5 py-2 text-xs font-semibold text-white hover:bg-[#4F9D8C]/90 disabled:opacity-50 transition-colors"
-              >
-                📜 Issue & Update Timeline
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Mark Existing Card as Cured Modal */}
-      {activeEntryForCured && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-[rgba(246,241,233,0.09)] pb-3">
-              <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">
-                Mark Condition as Cured
-              </h3>
-              <button onClick={() => setActiveEntryForCured(null)} className="text-[#7C8A93]">✕</button>
-            </div>
-
-            <p className="text-xs text-[#B9C4CC]">
-              Marking <strong>&quot;{activeEntryForCured.title}&quot;</strong> as cured will update the health timeline and resolve AI vector memories.
-            </p>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="font-semibold text-[#F6F1E9]">Clearing Doctor Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Dr. Michael Vance"
-                  value={markCuredDoctor}
-                  onChange={(e) => setMarkCuredDoctor(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#4F9D8C]"
-                />
-              </div>
-              <div>
-                <label className="font-semibold text-[#F6F1E9]">Resolution / Clearance Details</label>
-                <textarea
-                  rows={2}
-                  placeholder="Notes on recovery, follow-up tests, or doctor verification..."
-                  value={markCuredNote}
-                  onChange={(e) => setMarkCuredNote(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#4F9D8C]"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-[rgba(246,241,233,0.09)]">
-              <button
-                onClick={() => setActiveEntryForCured(null)}
-                className="rounded-lg px-4 py-2 text-xs text-[#7C8A93]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleMarkCuredSubmit}
-                className="rounded-xl bg-[#4F9D8C] px-5 py-2 text-xs font-semibold text-white hover:bg-[#4F9D8C]/90 transition-colors"
-              >
-                ✓ Mark Cured & Update Timeline
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Entry Modal */}
-      {editingEntry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-2xl border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-6 shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b border-[rgba(246,241,233,0.09)] pb-3">
-              <h3 className="font-serif text-lg font-medium text-[#F6F1E9]">Edit Timeline Entry</h3>
-              <button onClick={() => setEditingEntry(null)} className="text-[#7C8A93]">✕</button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div>
-                <label className="font-semibold text-[#F6F1E9]">Title</label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
-                />
-              </div>
-              <div>
-                <label className="font-semibold text-[#F6F1E9]">Subtitle / Description</label>
-                <textarea
-                  rows={3}
-                  value={editSubtitle}
-                  onChange={(e) => setEditSubtitle(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] p-2.5 text-xs text-[#F6F1E9] focus:outline-none focus:border-[#E8674A]"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2 border-t border-[rgba(246,241,233,0.09)]">
-              <button onClick={() => setEditingEntry(null)} className="rounded-lg px-4 py-2 text-xs text-[#7C8A93]">
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveEdit}
-                className="rounded-xl bg-[#E8674A] px-5 py-2 text-xs font-semibold text-[#0A1620] hover:brightness-108 transition-colors"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Main Header & Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[rgba(246,241,233,0.09)] pb-4 gap-3">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-10 max-w-4xl mx-auto text-[#1E293B] w-full">
+      {/* Top Header & Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E2E8F0] pb-4 gap-4">
         <div>
-          <div className="text-[11px] uppercase tracking-[0.12em] text-[#E8674A] font-sans font-medium mb-1">
-            Chronological Signal Feed
+          <div className="flex items-center gap-2">
+            <Link
+              href="/reports"
+              className="text-xs font-semibold text-[#1E5D57] hover:underline flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Reports</span>
+            </Link>
           </div>
-          <h1 className="font-serif text-2xl font-medium tracking-[0.01em] text-[#F6F1E9]">
-            Health Activity Timeline
+          <h1 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E293B] mt-1">
+            Health History Timeline
           </h1>
+          <p className="text-xs text-[#64748B] mt-0.5">
+            Human-readable health journey & care milestones
+          </p>
         </div>
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsCertModalOpen(true)}
-            className="rounded-lg bg-[#4F9D8C] hover:bg-[#4F9D8C]/90 text-white font-semibold px-3.5 py-1.5 text-xs transition-all flex items-center gap-1.5 font-mono shadow-xs"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-[#1E5D57] hover:bg-[#134E48] text-white px-4 py-2 text-xs font-semibold shadow-soft transition-all min-tap-target"
           >
-            <span>📜 + Issue Clearance Certificate</span>
+            <Plus className="w-4 h-4" />
+            <span>Add Medical Clearance</span>
           </button>
-
-          {/* Filter Pills */}
-          <div className="flex items-center gap-1 rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-1 text-xs font-mono">
-            {[
-              { id: "all", label: "All" },
-              { id: "symptom_log", label: "Symptoms" },
-              { id: "report", label: "Reports" },
-              { id: "cured_certificate", label: "Clearances" },
-            ].map((pill) => (
-              <button
-                key={pill.id}
-                onClick={() => setFilterType(pill.id as any)}
-                className={`rounded px-2.5 py-1 font-medium transition-colors ${
-                  filterType === pill.id
-                    ? "bg-[#132A38] text-[#F6F1E9] font-bold"
-                    : "text-[#7C8A93] hover:text-[#F6F1E9]"
-                }`}
-              >
-                {pill.label}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
+      {/* Filter Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+        {[
+          { id: "all", label: "All Events" },
+          { id: "symptom_log", label: "Symptom Checks" },
+          { id: "report", label: "Lab Reports" },
+          { id: "cured_certificate", label: "Doctor Clearances" },
+        ].map((pill) => (
+          <button
+            key={pill.id}
+            onClick={() => setFilterType(pill.id as any)}
+            className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-all whitespace-nowrap ${
+              filterType === pill.id
+                ? "bg-[#1E5D57] text-white shadow-soft"
+                : "bg-white text-[#64748B] hover:text-[#1E293B] hover:bg-[#F8FAF9] border border-[#E2E8F0]"
+            }`}
+          >
+            {pill.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Timeline Stream */}
       {isLoading ? (
-        <div className="flex justify-center py-20">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#E8674A] border-t-transparent" />
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#1E5D57] border-t-transparent" />
         </div>
       ) : filteredEntries.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-[rgba(246,241,233,0.16)] p-12 text-center text-xs text-[#7C8A93]">
+        <div className="rounded-2xl border border-dashed border-[#E2E8F0] bg-white p-12 text-center text-xs text-[#64748B] shadow-soft">
           No timeline events matching the selected filter.
         </div>
       ) : (
-        /* Vertical Chronological Timeline Feed */
-        <div className="relative pl-6 space-y-6 before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-[rgba(246,241,233,0.09)]">
+        <div className="relative pl-6 sm:pl-8 space-y-6 before:absolute before:left-3 before:sm:left-4 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#E2E8F0]">
           {filteredEntries.map((entry) => (
             <div key={entry.id} className="relative group">
               {/* Connector Dot */}
               <div
-                className={`absolute -left-6 top-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#0A1620] text-white shadow-xs ${
+                className={`absolute -left-6 sm:-left-8 top-1.5 flex h-7 w-7 sm:h-8 sm:sm-w-8 items-center justify-center rounded-full border-2 border-white shadow-card text-white text-xs ${
                   entry.isCuredCleared || entry.type === "cured_certificate"
-                    ? "bg-[#4F9D8C]"
+                    ? "bg-[#1E5D57]"
                     : entry.type === "symptom_log"
-                    ? "bg-[#E8674A]"
-                    : entry.type === "report"
-                    ? "bg-[#132A38]"
-                    : "bg-[#0F2130]"
+                    ? "bg-[#E06D53]"
+                    : "bg-[#1E293B]"
                 }`}
               >
                 {entry.isCuredCleared || entry.type === "cured_certificate" ? (
-                  "✓"
+                  <CheckCircle2 className="w-4 h-4 text-white" />
                 ) : entry.type === "symptom_log" ? (
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
+                  <HeartPulse className="w-4 h-4 text-white" />
                 ) : (
-                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                  </svg>
+                  <FileText className="w-4 h-4 text-white" />
                 )}
               </div>
 
-              {/* Event Card */}
+              {/* Event Card formatted as Human-Readable Story */}
               <div
-                className={`rounded-xl border p-4 space-y-3 transition-colors ${
+                className={`rounded-2xl border p-5 space-y-3 transition-all shadow-soft bg-white ${
                   entry.isCuredCleared || entry.type === "cured_certificate"
-                    ? "border-[#4F9D8C]/50 bg-[#4F9D8C]/10"
-                    : "border-[rgba(246,241,233,0.09)] bg-[#132A38] group-hover:border-[#E8674A]/40"
+                    ? "border-[#D0EAE4] ring-1 ring-[#E6F4F1]"
+                    : "border-[#E2E8F0] hover:border-[#CBD5E1] hover:shadow-card"
                 }`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[rgba(246,241,233,0.09)] pb-2">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-serif text-base font-medium text-[#F6F1E9]">{entry.title}</h3>
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-2.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-serif text-base font-semibold text-[#1E293B]">
+                      {entry.title}
+                    </h3>
 
                     {entry.isCuredCleared ? (
-                      <span className="rounded bg-[#4F9D8C] text-white px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        ✓ CURED & CLEARED
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#E6F4F1] border border-[#D0EAE4] text-[#134E48] px-2.5 py-0.5 text-[11px] font-semibold">
+                        <CheckCircle2 className="w-3 h-3 text-[#1E5D57]" />
+                        <span>Resolved & Cleared</span>
                       </span>
                     ) : (
                       entry.badgeText && (
-                        <span
-                          className={`rounded px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
-                            entry.badgeVariant === "emerald"
-                              ? "bg-[#4F9D8C] text-white"
-                              : entry.badgeVariant === "amber"
-                              ? "bg-[#E8674A] text-white"
-                              : entry.badgeVariant === "rose"
-                              ? "bg-[#D14343] text-white"
-                              : "bg-[#0F2130] text-[#7C8A93]"
-                          }`}
-                        >
+                        <span className="rounded-full bg-[#F1F5F4] border border-[#E2E8F0] text-[#475569] px-2.5 py-0.5 text-[11px] font-medium">
                           {entry.badgeText}
                         </span>
                       )
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 font-mono text-[11px] text-[#7C8A93]">
-                    <time>
+                  <time className="text-xs text-[#64748B] font-medium flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-[#94A3B8]" />
+                    <span>
                       {entry.timestamp.toLocaleString([], {
                         month: "short",
                         day: "numeric",
@@ -403,32 +233,34 @@ export default function TimelinePage() {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
-                    </time>
-                  </div>
+                    </span>
+                  </time>
                 </div>
 
-                <p className="text-xs text-[#B9C4CC] leading-relaxed font-sans">{entry.subtitle}</p>
+                <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
+                  {entry.subtitle}
+                </p>
 
-                {/* Certified Clearance Note Block */}
+                {/* Medical Clearance Detail Block */}
                 {entry.isCuredCleared && (
-                  <div className="rounded-lg border border-[#4F9D8C]/30 bg-[#0F2130] p-3 text-xs space-y-1">
-                    <div className="flex items-center gap-1.5 font-bold text-[#4F9D8C]">
-                      <span>📜 Certified Medical Clearance</span>
-                      {entry.curedDoctorName && <span className="font-normal text-[#B9C4CC]">({entry.curedDoctorName})</span>}
+                  <div className="rounded-xl border border-[#D0EAE4] bg-[#F6FAF9] p-3.5 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-semibold text-[#134E48]">
+                      <Stethoscope className="w-4 h-4 text-[#1E5D57]" />
+                      <span>Certified Medical Resolution</span>
+                      {entry.curedDoctorName && (
+                        <span className="font-normal text-[#64748B]">
+                          — {entry.curedDoctorName}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-[#B9C4CC] text-[11px] leading-relaxed">{entry.curedCertificateNote}</p>
-                  </div>
-                )}
-
-                {entry.details?.aiSummary && !entry.isCuredCleared && (
-                  <div className="rounded-lg bg-[#0F2130] p-2.5 text-[11px] text-[#7C8A93] space-y-1">
-                    <p className="font-serif font-medium text-[#F6F1E9]">AI Guidance:</p>
-                    <p>{entry.details.aiSummary}</p>
+                    <p className="text-[12px] text-[#475569] leading-relaxed">
+                      {entry.curedCertificateNote}
+                    </p>
                   </div>
                 )}
 
                 {/* Card Action Controls: Edit, Mark Cured, Delete */}
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[rgba(246,241,233,0.09)] text-[11px] font-mono">
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E2E8F0] text-xs">
                   {!entry.isCuredCleared && (
                     <button
                       onClick={() => {
@@ -436,9 +268,9 @@ export default function TimelinePage() {
                         setMarkCuredDoctor("");
                         setMarkCuredNote("");
                       }}
-                      className="rounded bg-[#4F9D8C]/20 border border-[#4F9D8C] text-[#4F9D8C] hover:bg-[#4F9D8C] hover:text-white px-2.5 py-1 font-semibold transition-colors"
+                      className="rounded-xl bg-[#E6F4F1] border border-[#D0EAE4] text-[#134E48] hover:bg-[#D0EAE4] px-3 py-1.5 font-semibold transition-colors"
                     >
-                      ✓ Mark Cured & Attach Cert
+                      ✓ Mark Cured
                     </button>
                   )}
 
@@ -448,21 +280,212 @@ export default function TimelinePage() {
                       setEditTitle(entry.title);
                       setEditSubtitle(entry.subtitle);
                     }}
-                    className="rounded bg-[#0F2130] border border-[rgba(246,241,233,0.16)] text-[#B9C4CC] hover:text-[#F6F1E9] px-2.5 py-1 transition-colors"
+                    className="rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] text-[#64748B] hover:text-[#1E293B] hover:bg-white px-2.5 py-1.5 transition-colors"
+                    title="Edit entry"
                   >
-                    ✏️ Edit
+                    <Edit2 className="w-3.5 h-3.5" />
                   </button>
 
                   <button
                     onClick={() => handleDelete(entry.id)}
-                    className="rounded bg-[#D14343]/10 border border-[#D14343]/30 text-[#D14343] hover:bg-[#D14343] hover:text-white px-2 py-1 transition-colors"
+                    className="rounded-xl border border-[#FDE6E2] bg-[#FEF4F2] text-[#C85339] hover:bg-[#FDE6E2] px-2.5 py-1.5 transition-colors"
+                    title="Delete entry"
                   >
-                    🗑️ Delete
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Clearance Certificate Creation Modal */}
+      {isCertModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-elevated space-y-4 text-[#1E293B]">
+            <div className="flex justify-between items-center border-b border-[#E2E8F0] pb-3">
+              <div>
+                <h3 className="font-serif text-lg font-semibold text-[#1E293B]">
+                  Add Medical Clearance Certificate
+                </h3>
+                <p className="text-xs text-[#64748B]">Document physician clearance for a condition</p>
+              </div>
+              <button onClick={() => setIsCertModalOpen(false)} className="text-[#64748B] hover:text-[#1E293B] p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-medium text-[#1E293B] block mb-1">Medical Topic / Condition</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Acute Bronchitis / Bacterial Infection"
+                  value={certTitle}
+                  onChange={(e) => setCertTitle(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                />
+              </div>
+
+              <div>
+                <label className="font-medium text-[#1E293B] block mb-1">Attending Physician Name & Department</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Dr. Sarah Jenkins (Pulmonology)"
+                  value={certDoctorName}
+                  onChange={(e) => setCertDoctorName(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                />
+              </div>
+
+              <div>
+                <label className="font-medium text-[#1E293B] block mb-1">Summary Note</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Patient fully recovered after course of antibiotics."
+                  value={certSubtitle}
+                  onChange={(e) => setCertSubtitle(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                />
+              </div>
+
+              <div>
+                <label className="font-medium text-[#1E293B] block mb-1">Clinical Clearance Details</label>
+                <textarea
+                  rows={2}
+                  placeholder="Follow-up lab markers and chest scan verified normal..."
+                  value={certNote}
+                  onChange={(e) => setCertNote(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
+              <button
+                onClick={() => setIsCertModalOpen(false)}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-[#64748B] hover:text-[#1E293B]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateCertificate}
+                disabled={!certTitle.trim() || !certDoctorName.trim()}
+                className="rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-5 py-2.5 text-xs font-semibold text-white shadow-soft disabled:opacity-50 transition-all min-tap-target"
+              >
+                Save Milestone
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark Cured Modal */}
+      {activeEntryForCured && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-elevated space-y-4 text-[#1E293B]">
+            <div className="flex justify-between items-center border-b border-[#E2E8F0] pb-3">
+              <h3 className="font-serif text-lg font-semibold text-[#1E293B]">
+                Mark Condition as Resolved
+              </h3>
+              <button onClick={() => setActiveEntryForCured(null)} className="text-[#64748B] hover:text-[#1E293B] p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#64748B]">
+              Confirm that <strong>&quot;{activeEntryForCured.title}&quot;</strong> has resolved.
+            </p>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-medium text-[#1E293B] block mb-1">Physician / Facility Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Dr. Michael Vance"
+                  value={markCuredDoctor}
+                  onChange={(e) => setMarkCuredDoctor(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                />
+              </div>
+              <div>
+                <label className="font-medium text-[#1E293B] block mb-1">Resolution Details</label>
+                <textarea
+                  rows={2}
+                  placeholder="Notes on recovery, follow-up tests, or doctor verification..."
+                  value={markCuredNote}
+                  onChange={(e) => setMarkCuredNote(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
+              <button
+                onClick={() => setActiveEntryForCured(null)}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-[#64748B] hover:text-[#1E293B]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMarkCuredSubmit}
+                className="rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-5 py-2.5 text-xs font-semibold text-white shadow-soft transition-all min-tap-target"
+              >
+                ✓ Mark Cured & Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Entry Modal */}
+      {editingEntry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-elevated space-y-4 text-[#1E293B]">
+            <div className="flex justify-between items-center border-b border-[#E2E8F0] pb-3">
+              <h3 className="font-serif text-lg font-semibold text-[#1E293B]">Edit Timeline Entry</h3>
+              <button onClick={() => setEditingEntry(null)} className="text-[#64748B] hover:text-[#1E293B] p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-medium text-[#1E293B] block mb-1">Title</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                />
+              </div>
+              <div>
+                <label className="font-medium text-[#1E293B] block mb-1">Description</label>
+                <textarea
+                  rows={3}
+                  value={editSubtitle}
+                  onChange={(e) => setEditSubtitle(e.target.value)}
+                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
+              <button
+                onClick={() => setEditingEntry(null)}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-[#64748B] hover:text-[#1E293B]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveEdit}
+                className="rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-5 py-2.5 text-xs font-semibold text-white shadow-soft transition-all min-tap-target"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

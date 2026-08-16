@@ -2,100 +2,53 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSettings } from "@/context/SettingsContext";
+import {
+  HeartPulse,
+  Pill,
+  FileText,
+  MapPin,
+  Settings,
+  X,
+  ShieldCheck,
+  PhoneCall,
+  User,
+  LogOut,
+} from "lucide-react";
 
 const navItems = [
   {
-    label: "Triage",
-    subLabel: "AI symptom read",
+    label: "Care Today",
+    subLabel: "AI symptom check & care",
     href: "/triage",
-    icon: (
-      <svg className="w-[18px] h-[18px] shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      </svg>
-    ),
+    icon: <HeartPulse className="w-5 h-5 shrink-0" />,
   },
   {
-    label: "Nearby Hospitals",
-    subLabel: "Map & OSM Engine",
-    href: "/discovery",
-    icon: (
-      <svg className="w-[18px] h-[18px] shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
-  },
-  {
-    label: "Doctors",
-    subLabel: "Find & book",
-    href: "/doctors",
-    icon: (
-      <svg className="w-[18px] h-[18px] shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <circle cx="9" cy="7" r="4" />
-        <path d="M17 11a4 4 0 1 0-4-4" />
-        <path d="M1 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" />
-      </svg>
-    ),
-  },
-  {
-    label: "Reports",
-    subLabel: "Upload & parse",
-    href: "/reports",
-    icon: (
-      <svg className="w-[18px] h-[18px] shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <path d="M14 2v6h6" />
-      </svg>
-    ),
-  },
-  {
-    label: "Timeline",
-    subLabel: "Health history",
-    href: "/timeline",
-    icon: (
-      <svg className="w-[18px] h-[18px] shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 3" />
-      </svg>
-    ),
-  },
-  {
-    label: "Medicines",
-    subLabel: "Tracker & pricing",
+    label: "Medications",
+    subLabel: "Dose tracker & pricing",
     href: "/medicines",
-    icon: (
-      <svg className="w-[18px] h-[18px] shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <path d="M10.5 20.5 3.5 13.5a5 5 0 0 1 7-7l1 1 1-1a5 5 0 0 1 7 7l-7 7" />
-        <line x1="8" y1="10" x2="16" y2="10" />
-      </svg>
-    ),
+    icon: <Pill className="w-5 h-5 shrink-0" />,
   },
   {
-    label: "Actions",
-    subLabel: "Operations & dispatch",
-    href: "/actions",
-    icon: (
-      <svg className="w-[18px] h-[18px] shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-      </svg>
-    ),
+    label: "Records & Reports",
+    subLabel: "Lab analysis & timeline",
+    href: "/reports",
+    icon: <FileText className="w-5 h-5 shrink-0" />,
   },
   {
-    label: "Settings",
-    subLabel: "Theme, i18n & APIs",
+    label: "Find Care",
+    subLabel: "Hospitals & verified doctors",
+    href: "/discovery",
+    icon: <MapPin className="w-5 h-5 shrink-0" />,
+  },
+  {
+    label: "Settings & Profile",
+    subLabel: "Preferences & history",
     href: "/settings",
-    icon: (
-      <svg className="w-[18px] h-[18px] shrink-0 opacity-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
-    ),
+    icon: <Settings className="w-5 h-5 shrink-0" />,
   },
 ];
-
-
-
 
 interface SidebarProps {
   open: boolean;
@@ -104,83 +57,172 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { userName, userEmail, userPhoto, isGmailAuthenticated, signOutGmail } =
+    useSettings();
 
   return (
-    <>
-      {/* Mobile Backdrop */}
+    <AnimatePresence>
       {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
-          onClick={onClose}
-        />
-      )}
+        <>
+          {/* Backdrop Blur Overlay */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-[#064E3B]/40 backdrop-blur-sm"
+            onClick={onClose}
+          />
 
-      {/* Sidebar Container (248px fixed width) */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[248px] shrink-0 flex-col bg-[#0F2130] border-r border-[rgba(246,241,233,0.09)] px-4 py-7 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0",
-          open ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
-        {/* Brand Header */}
-        <div className="flex items-center gap-2.5 px-2 pb-7">
-          <div className="flex h-[34px] w-[34px] items-center justify-center rounded-lg bg-[#E8674A] font-serif text-[17px] font-semibold text-[#0A1620]">
-            Æ
-          </div>
-          <div>
-            <div className="font-serif text-[17px] font-medium tracking-[0.02em] text-[#F6F1E9]">
-              AETHER
-            </div>
-            <div className="text-[9px] font-sans tracking-[0.14em] uppercase text-[#7C8A93] mt-[1px]">
-              Health Navigator
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Category Label */}
-        <div className="px-2.5 pt-2 pb-2.5 font-sans text-[10px] uppercase tracking-[0.15em] text-[#7C8A93]">
-          Navigate
-        </div>
-
-        {/* Nav Links */}
-        <nav className="flex-1 space-y-0.5">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={cn(
-                  "relative flex items-center gap-3 rounded-lg px-2.5 py-2.5 text-sm transition-all duration-150",
-                  isActive
-                    ? "bg-[#E8674A]/12 text-[#F6F1E9]"
-                    : "text-[#B9C4CC] hover:bg-[#F6F1E9]/5 hover:text-[#F6F1E9]"
-                )}
-              >
-                {/* Active Indicator Left Bar */}
-                {isActive && (
-                  <span className="absolute left-[-16px] top-2 bottom-2 w-[3px] bg-[#E8674A] rounded-r-[3px]" />
-                )}
-
-                {item.icon}
-
-                <div>
-                  <span className="block font-medium leading-tight">{item.label}</span>
-                  <small className="block text-[11px] font-normal text-[#7C8A93] mt-[1px]">
-                    {item.subLabel}
-                  </small>
+          {/* Slide-over Drawer Sheet (From Left) */}
+          <motion.aside
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", damping: 26, stiffness: 280 }}
+            className="fixed inset-y-0 left-0 z-50 flex h-full w-80 max-w-[85vw] flex-col bg-white border-r border-[#064E3B]/20 shadow-2xl p-6 text-[#064E3B] overflow-y-auto"
+          >
+            {/* Header with Close Button */}
+            <div className="flex items-center justify-between pb-5 border-b border-[#064E3B]/15">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#064E3B] font-serif text-xl font-bold text-white shadow-soft">
+                  Æ
                 </div>
-              </Link>
-            );
-          })}
-        </nav>
+                <div>
+                  <div className="font-serif text-lg font-bold tracking-tight text-[#064E3B]">
+                    Aether Health
+                  </div>
+                  <div className="text-[10px] font-sans font-semibold tracking-wider uppercase text-[#064E3B]/70">
+                    Patient Telemetry
+                  </div>
+                </div>
+              </div>
 
-        {/* Sidebar Foot Disclaimer */}
-        <div className="mt-auto border-t border-[rgba(246,241,233,0.09)] pt-3.5 px-3 text-[11px] leading-relaxed text-[#7C8A93]">
-          <strong className="font-medium text-[#B9C4CC]">Informational prototype.</strong> AETHER assists navigation, it does not diagnose. High-urgency findings always route to emergency guidance.
-        </div>
-      </aside>
-    </>
+              <button
+                onClick={onClose}
+                className="rounded-xl p-2 text-[#064E3B]/70 hover:text-[#064E3B] hover:bg-[#064E3B]/5 transition-colors"
+                aria-label="Close navigation"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Patient Profile Card inside Drawer */}
+            <div className="my-5 rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] p-4 flex items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-3 min-w-0">
+                {userPhoto ? (
+                  <img
+                    src={userPhoto}
+                    alt={userName}
+                    className="h-10 w-10 rounded-full border-2 border-[#064E3B] object-cover"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#064E3B] text-white font-bold text-sm">
+                    {userName ? userName[0] : <User className="w-5 h-5" />}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <div className="font-bold text-xs text-[#064E3B] truncate">
+                    {userName || "Patient Account"}
+                  </div>
+                  <div className="text-[11px] text-[#064E3B]/70 font-medium truncate">
+                    {isGmailAuthenticated ? userEmail : "ABDM Profile Linked"}
+                  </div>
+                </div>
+              </div>
+
+              {isGmailAuthenticated && (
+                <button
+                  onClick={signOutGmail}
+                  title="Sign out"
+                  className="rounded-lg p-1.5 text-[#064E3B]/60 hover:text-[#064E3B] hover:bg-white"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Navigation List */}
+            <div className="px-1 py-1 text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/60">
+              Portal Navigation
+            </div>
+
+            <nav className="space-y-1.5 pt-1">
+              {navItems.map((item) => {
+                const isActive =
+                  pathname === item.href ||
+                  (item.href === "/discovery" && pathname === "/doctors") ||
+                  (item.href === "/reports" && pathname === "/timeline");
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    className={`group flex items-center gap-3.5 rounded-2xl px-4 py-3 text-xs font-semibold transition-all duration-150 min-tap-target ${
+                      isActive
+                        ? "bg-[#064E3B] text-white shadow-soft"
+                        : "text-[#064E3B]/80 hover:bg-[#064E3B]/5 hover:text-[#064E3B]"
+                    }`}
+                  >
+                    <div
+                      className={`transition-colors ${
+                        isActive ? "text-white" : "text-[#064E3B]"
+                      }`}
+                    >
+                      {item.icon}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <span className="block text-[13px] leading-tight font-bold">
+                        {item.label}
+                      </span>
+                      <span
+                        className={`block text-[11px] font-normal mt-0.5 truncate ${
+                          isActive ? "text-white/80" : "text-[#064E3B]/60"
+                        }`}
+                      >
+                        {item.subLabel}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Emergency Hotline Assistance Card */}
+            <div className="mt-auto space-y-3 pt-5 border-t border-[#064E3B]/15">
+              <div className="rounded-2xl bg-[#F9FBF9] border border-[#064E3B]/20 p-4 space-y-2 text-xs shadow-xs">
+                <div className="flex items-center gap-2 font-bold text-[#064E3B]">
+                  <PhoneCall className="w-4 h-4" />
+                  <span>Immediate Medical Hotline</span>
+                </div>
+                <p className="text-[11.5px] text-[#064E3B]/80 leading-relaxed">
+                  In case of clinical emergency, immediately call:
+                </p>
+                <div className="flex gap-2">
+                  <a
+                    href="tel:108"
+                    className="flex-1 text-center rounded-xl bg-[#064E3B] text-white py-2 font-bold text-xs shadow-xs hover:bg-[#043327]"
+                  >
+                    Dial 108
+                  </a>
+                  <a
+                    href="tel:112"
+                    className="flex-1 text-center rounded-xl border border-[#064E3B] text-[#064E3B] bg-white py-2 font-bold text-xs shadow-xs hover:bg-[#064E3B]/5"
+                  >
+                    Dial 112
+                  </a>
+                </div>
+              </div>
+
+              <div className="text-[11px] text-[#064E3B]/60 text-center font-medium">
+                Aether Health • Autonomous Patient Triage
+              </div>
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

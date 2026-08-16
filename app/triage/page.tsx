@@ -1,9 +1,9 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useSettings } from "@/context/SettingsContext";
 import { sendTriageMessage } from "@/services/domain/triageService";
 import { SafetyWrappedResponse } from "@/types/disclaimers";
 import { TriageOutput, SpecialtySuggestion } from "@/types/ai";
@@ -11,6 +11,20 @@ import { UrgencyLevel } from "@/types/symptomLog";
 import ClinicalResponseCard from "@/components/triage/ClinicalResponseCard";
 import PatientRecordsModal from "@/components/triage/PatientRecordsModal";
 import TodayMedicationsCard from "@/components/triage/TodayMedicationsCard";
+import TriageNatureBackground from "@/components/triage/TriageNatureBackground";
+import {
+  Sparkles,
+  AlertTriangle,
+  Stethoscope,
+  Pill,
+  ArrowRight,
+  ShieldCheck,
+  Building2,
+  FileText,
+  Activity,
+  HeartPulse,
+  RotateCcw,
+} from "lucide-react";
 
 interface ChatMessage {
   id: string;
@@ -28,21 +42,24 @@ interface ChatMessage {
 
 const ACTIVE_PATIENT_USER_ID = "aether_usr_8f92a170b4c2";
 
-const MOCK_PROMPTS = [
-  { text: "i am having some pain in my stomach", tag: "Moderate", urgency: "moderate" as UrgencyLevel },
-  { text: "Mild headache and tiredness, two days running", tag: "Low", urgency: "low" as UrgencyLevel },
-  { text: "Fever, dry cough, and body aches since last night", tag: "Moderate", urgency: "moderate" as UrgencyLevel },
-  { text: "Sudden chest pain radiating to my left arm", tag: "Critical", urgency: "high_critical" as UrgencyLevel },
+// Clean 1-2 word quick clinical prompt chips
+const QUICK_PROMPTS = [
+  { label: "Headache & Fatigue", query: "I have had a mild throbbing headache and fatigue for the past 2 days." },
+  { label: "Safe Painkillers", query: "What over-the-counter pain relievers are safe for me given my Penicillin allergy?" },
+  { label: "Fever & Chills", query: "I have a moderate fever and body chills since last night." },
+  { label: "CBC Blood Check", query: "Is my mild stomach pain related to my recent elevated WBC count (11.2 K/µL)?" },
+  { label: "Stomach Ache", query: "I have mild cramps and discomfort after meals." },
+  { label: "Specialist Care", query: "Which specialist should I consult for persistent morning dizziness?" },
 ];
 
-export default function TriagePage() {
+function TriageContent() {
+  const searchParams = useSearchParams();
+  const { userName } = useSettings();
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [currentUrgency, setCurrentUrgency] = useState<UrgencyLevel>("low");
   const [isRecordsModalOpen, setIsRecordsModalOpen] = useState(false);
-  const [showMobileMeds, setShowMobileMeds] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -50,12 +67,33 @@ export default function TriagePage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  const handleSend = async (textToSend?: string) => {
-    const queryText = (textToSend || input).trim();
+  // Check URL query param ?q=
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      handleSend(q);
+    }
+  }, [searchParams]);
+
+  // Listen for prompt events dispatched from floating dock
+  useEffect(() => {
+    const handleTriagePromptEvent = (e: any) => {
+      const query = e.detail?.query || "";
+      if (query) {
+        handleSend(query);
+      }
+    };
+
+    window.addEventListener("aether-triage-prompt", handleTriagePromptEvent);
+    return () =>
+      window.removeEventListener("aether-triage-prompt", handleTriagePromptEvent);
+  }, []);
+
+  const handleSend = async (textToSend: string) => {
+    const queryText = textToSend.trim();
     if (!queryText || isLoading) return;
 
     setErrorMessage(null);
-    setInput("");
 
     const userMsgId = `user-${Date.now()}`;
     const userMsg: ChatMessage = {
@@ -81,7 +119,6 @@ export default function TriagePage() {
       }
 
       if (response.data) {
-        setCurrentUrgency(response.data.urgencyLevel);
         const aiMsg: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: "ai",
@@ -98,7 +135,7 @@ export default function TriagePage() {
         setMessages((prev) => [...prev, aiMsg]);
       }
     } catch (err) {
-      setErrorMessage("Unable to connect to AI triage assistant. Please try again.");
+      setErrorMessage("Unable to connect to Aether health assistant. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -110,107 +147,130 @@ export default function TriagePage() {
     );
   };
 
+  const handleResetChat = () => {
+    setMessages([]);
+    setErrorMessage(null);
+  };
+
+  const firstName = userName ? userName.split(" ")[0] : "Alex";
+
   return (
-    <div className="flex flex-1 min-h-0 divide-x divide-[rgba(246,241,233,0.09)] font-sans text-[#F6F1E9]">
-      {/* Patient Medical Record Management Modal */}
+    <div className="relative flex flex-1 h-full min-h-0 divide-x divide-[#064E3B]/15 font-sans text-[#064E3B] bg-transparent overflow-hidden">
+      {/* Patient Record Management Modal */}
       <PatientRecordsModal
         userId={ACTIVE_PATIENT_USER_ID}
         isOpen={isRecordsModalOpen}
         onClose={() => setIsRecordsModalOpen(false)}
       />
 
-      {/* ---------- CHAT COLUMN (Left) ---------- */}
-      <section className="flex flex-1 flex-col min-h-0 min-w-0">
-        {/* Mobile Quick Action Banner (Visible on mobile/tablet screens < lg) */}
-        <div className="flex flex-col border-b border-[rgba(246,241,233,0.09)] bg-[#0F2130] p-3 lg:hidden space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <button
-              onClick={() => setShowMobileMeds((prev) => !prev)}
-              className="flex items-center gap-1.5 font-mono text-xs text-[#E8674A] font-semibold hover:underline"
-            >
-              <span>💊 Today&apos;s Medications</span>
-              <span>{showMobileMeds ? "▲ Hide" : "▼ View"}</span>
-            </button>
+      {/* ---------- MAIN AI TRIAGE CHAT PANEL (Left / Center) ---------- */}
+      <section className="relative flex flex-1 flex-col h-full min-h-0 min-w-0 bg-transparent overflow-hidden">
+        {/* Dedicated Botanical Nature Canvas Layer for AI Chat Viewport */}
+        <TriageNatureBackground />
+
+        {/* Top Control Bar (Visible when conversation is active) */}
+        {messages.length > 0 && (
+          <div className="relative z-10 shrink-0 flex items-center justify-between px-6 py-3 border-b border-[#064E3B]/15 bg-[#F9FBF9]/90 backdrop-blur-xs text-xs">
+            <div className="flex items-center gap-2 font-bold text-[#064E3B]">
+              <Sparkles className="w-4 h-4 text-[#064E3B]" />
+              <span>Active Consultation • Aether Clinical AI</span>
+            </div>
 
             <button
-              onClick={() => setIsRecordsModalOpen(true)}
-              className="rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-2.5 py-1 text-[11px] font-mono text-[#B9C4CC]"
+              onClick={handleResetChat}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#064E3B]/20 bg-white px-3 py-1.5 font-bold text-[#064E3B] hover:bg-[#064E3B]/5 transition-all shadow-2xs"
             >
-              🩺 Medical Records
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>New Assessment</span>
             </button>
           </div>
+        )}
 
-          {showMobileMeds && (
-            <div className="pt-1">
-              <TodayMedicationsCard userId={ACTIVE_PATIENT_USER_ID} isMobileCompact />
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10">
+        {/* Scrollable Conversation Stream / Minimal Greet View */}
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 pb-28">
           {messages.length === 0 ? (
-            /* Empty State */
-            <div className="flex min-h-full flex-col justify-center max-w-[640px] space-y-6">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="text-[11px] uppercase tracking-[0.16em] text-[#7C8A93] font-sans flex items-center gap-2">
-                  <span>Start a read</span>
-                  <span>•</span>
-                  <span className="text-[#E8674A] font-semibold">Patient History Enabled</span>
+            /* CLEAN MINIMAL GREETING & CONCISE QUICK PROMPTS */
+            <div className="max-w-2xl mx-auto space-y-7 py-4 animate-fade-in">
+              {/* Header Badge & Patient Greeting */}
+              <div className="space-y-3 text-center sm:text-left">
+                <div className="inline-flex items-center gap-2 rounded-full bg-[#F9FBF9] border border-[#064E3B]/25 px-3.5 py-1 text-xs font-bold text-[#064E3B] shadow-2xs">
+                  <Sparkles className="w-3.5 h-3.5 text-[#064E3B]" />
+                  <span>Clinical Health Assistant • Real-Time Triage</span>
                 </div>
 
-                <button
-                  onClick={() => setIsRecordsModalOpen(true)}
-                  className="hidden sm:inline-flex rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#0F2130] px-3 py-1 text-xs text-[#B9C4CC] hover:text-[#F6F1E9] hover:border-[#E8674A] transition-all font-mono"
-                >
-                  🩺 Manage Medical Records
-                </button>
+                <h1 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-[#064E3B] leading-[1.12]">
+                  Hello {firstName}, <br />
+                  <span>how are you feeling today?</span>
+                </h1>
+
+                <p className="text-xs sm:text-sm text-[#064E3B]/80 leading-relaxed max-w-lg font-normal">
+                  Ask any health doubt or describe what you feel in the bottom bar. Aether cross-checks your records and known allergies for immediate clinical care advice.
+                </p>
               </div>
 
-              <h2 className="font-serif font-normal text-3xl sm:text-[38px] leading-[1.15] tracking-[-0.01em] text-[#F6F1E9] max-w-[480px]">
-                What are you<br />
-                <em className="not-italic italic text-[#E8674A]">feeling</em> right now?
-              </h2>
+              {/* Clean Inline Health Context Separator Line */}
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-semibold text-[#064E3B]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 px-3 py-1 text-[11.5px]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#064E3B]" />
+                  Penicillin Guard
+                </span>
+                <span className="text-[#064E3B]/30 font-bold">•</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 px-3 py-1 text-[11.5px]">
+                  <FileText className="w-3.5 h-3.5 text-[#064E3B]" />
+                  CBC Panel Normal
+                </span>
+                <span className="text-[#064E3B]/30 font-bold">•</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 px-3 py-1 text-[11.5px]">
+                  <Pill className="w-3.5 h-3.5 text-[#064E3B]" />
+                  2/3 Doses Taken
+                </span>
+              </div>
 
-              <p className="text-xs sm:text-sm text-[#B9C4CC] leading-relaxed max-w-[420px]">
-                Describe it plainly — where, how long, how it started. AETHER cross-references your past health history (lab reports, allergies), then routes you to the right next step.
-              </p>
+              {/* Clean Divider Line */}
+              <div className="w-full h-[1px] bg-[#064E3B]/10 my-2" />
 
-              {/* Sample Prompt Chips */}
-              <div className="flex flex-col gap-2 max-w-[460px] pt-2">
-                <div className="text-[10px] uppercase tracking-[0.14em] text-[#7C8A93] mb-1 font-sans">
-                  Common starting points
+              {/* Concise 1-2 Word Quick Health Prompts */}
+              <div className="space-y-3 pt-1">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/60">
+                  Quick Topics to Explore
                 </div>
-                {MOCK_PROMPTS.map((chip, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSend(chip.text)}
-                    className="group flex items-center justify-between gap-3 rounded-xl border border-[rgba(246,241,233,0.16)] bg-transparent p-3 sm:px-4 text-left text-xs sm:text-[13.5px] text-[#B9C4CC] transition-all hover:border-[#E8674A] hover:bg-[#E8674A]/5 hover:text-[#F6F1E9] hover:translate-x-0.5"
-                  >
-                    <span className="min-w-0 truncate">{chip.text}</span>
-                    <span className="shrink-0 text-[10px] uppercase tracking-[0.08em] text-[#7C8A93] group-hover:text-[#E8674A] font-sans">
-                      {chip.tag}
-                    </span>
-                  </button>
-                ))}
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {QUICK_PROMPTS.map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSend(item.query)}
+                      className="group inline-flex items-center gap-1.5 rounded-full border border-[#064E3B]/20 bg-white hover:bg-[#064E3B] hover:text-white px-3.5 py-1.5 text-xs font-semibold text-[#064E3B] transition-all shadow-2xs hover:scale-105 active:scale-95"
+                    >
+                      <span>{item.label}</span>
+                      <span className="text-[10.5px] opacity-50 group-hover:opacity-100 transition-opacity">
+                        →
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
-            /* Chat Stream */
-            <div className="space-y-6 max-w-[660px]">
+            /* ACTIVE CONVERSATION STREAM */
+            <div className="space-y-5 max-w-3xl mx-auto pb-4">
               {messages.map((msg) => (
                 <div key={msg.id} className="space-y-3">
-                  <div className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`flex ${
+                      msg.sender === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
                     <div
-                      className={`max-w-[98%] sm:max-w-[90%] rounded-2xl p-3.5 sm:p-5 text-sm leading-relaxed ${
+                      className={`max-w-[96%] sm:max-w-[88%] rounded-2xl p-4 sm:p-5 text-sm leading-relaxed shadow-xs ${
                         msg.sender === "user"
-                          ? "bg-[#132A38] text-[#F6F1E9] border border-[rgba(246,241,233,0.16)]"
-                          : "bg-[#0F2130] text-[#F6F1E9] border border-[rgba(246,241,233,0.09)] space-y-3"
+                          ? "bg-[#064E3B] text-white rounded-br-xs font-medium"
+                          : "bg-white text-[#064E3B] border border-[#064E3B]/20 rounded-bl-xs space-y-3"
                       }`}
                     >
                       {msg.sender === "user" ? (
-                        <p className="whitespace-pre-wrap text-xs sm:text-sm">{msg.text}</p>
+                        <p className="whitespace-pre-wrap">{msg.text}</p>
                       ) : (
-                        /* Styled Clinical Consultant Card */
                         <ClinicalResponseCard
                           text={msg.text}
                           urgencyLevel={msg.urgencyLevel}
@@ -221,73 +281,107 @@ export default function TriagePage() {
                     </div>
                   </div>
 
-                  {/* Suggested Follow-up Chat Chips */}
-                  {msg.sender === "ai" && msg.suggestedFollowUps && msg.suggestedFollowUps.length > 0 && (
-                    <div className="max-w-[98%] sm:max-w-[90%] rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] p-3 space-y-2 text-xs">
-                      <div className="text-[#E8674A] font-semibold flex items-center gap-1.5 font-sans text-[11.5px]">
-                        <span>💬 Suggested Follow-up Questions (Based on Your Medical Record)</span>
+                  {/* Suggested Follow-up Questions */}
+                  {msg.sender === "ai" &&
+                    msg.suggestedFollowUps &&
+                    msg.suggestedFollowUps.length > 0 && (
+                      <div className="max-w-[96%] sm:max-w-[88%] rounded-2xl border border-[#064E3B]/20 bg-white p-4 space-y-2.5 shadow-xs">
+                        <div className="text-xs font-bold text-[#064E3B] flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-[#064E3B]" />
+                          <span>Helpful follow-up questions:</span>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          {msg.suggestedFollowUps.map((promptText, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleSend(promptText)}
+                              className="text-left rounded-xl border border-[#064E3B]/15 bg-[#F9FBF9] hover:bg-[#064E3B] hover:text-white p-3 text-xs text-[#064E3B] font-semibold transition-all"
+                            >
+                              👉 {promptText}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-1.5">
-                        {msg.suggestedFollowUps.map((promptText, idx) => (
-                          <button
-                            key={idx}
-                            onClick={() => handleSend(promptText)}
-                            className="text-left rounded-lg border border-[rgba(246,241,233,0.16)] bg-[#0F2130] p-2.5 text-[11.5px] sm:text-[12px] text-[#B9C4CC] hover:border-[#E8674A] hover:text-[#F6F1E9] hover:bg-[#E8674A]/10 transition-all font-sans"
-                          >
-                            👉 {promptText}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Specialist Routing Section */}
-                  {msg.sender === "ai" && msg.specialties && msg.specialties.length > 0 && (
-                    <div className="max-w-[98%] sm:max-w-[90%] rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] p-3 space-y-2 text-xs">
-                      <div className="text-[#F6F1E9] font-medium font-serif">💡 Recommended Specialist Consultation:</div>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        {msg.specialties.map((spec, idx) => (
-                          <div key={idx} className="rounded-lg border border-[rgba(246,241,233,0.09)] bg-[#0F2130] p-2.5 space-y-1">
-                            <div className="flex justify-between items-center">
-                              <span className="font-semibold text-[#E8674A]">{spec.specialty}</span>
-                              <span className="font-mono text-[10px] text-[#7C8A93]">{Math.round(spec.confidenceScore * 100)}%</span>
+                  {/* Specialist Consultation Routing */}
+                  {msg.sender === "ai" &&
+                    msg.specialties &&
+                    msg.specialties.length > 0 && (
+                      <div className="max-w-[96%] sm:max-w-[88%] rounded-2xl border border-[#064E3B]/20 bg-white p-4 space-y-3 shadow-xs">
+                        <div className="text-sm font-bold text-[#064E3B] flex items-center gap-2">
+                          <Stethoscope className="w-4 h-4 text-[#064E3B]" />
+                          <span>Recommended Specialist Care:</span>
+                        </div>
+                        <div className="grid gap-2.5 sm:grid-cols-2">
+                          {msg.specialties.map((spec, idx) => (
+                            <div
+                              key={idx}
+                              className="rounded-xl border border-[#064E3B]/15 bg-[#F9FBF9] p-3.5 space-y-1.5 flex flex-col justify-between"
+                            >
+                              <div>
+                                <div className="font-bold text-sm text-[#064E3B]">
+                                  {spec.specialty}
+                                </div>
+                                <p className="text-xs text-[#064E3B]/70 leading-snug mt-0.5">
+                                  {spec.reasoning}
+                                </p>
+                              </div>
+                              <Link
+                                href={`/discovery?specialty=${encodeURIComponent(
+                                  spec.specialty
+                                )}`}
+                                className="inline-flex items-center gap-1 text-xs font-bold text-[#064E3B] hover:underline pt-1.5"
+                              >
+                                <span>Find {spec.specialty} Doctors</span>
+                                <ArrowRight className="w-3 h-3" />
+                              </Link>
                             </div>
-                            <p className="text-[11px] text-[#B9C4CC] leading-snug">{spec.reasoning}</p>
-                            <Link href={`/doctors?specialty=${encodeURIComponent(spec.specialty)}`} className="inline-block text-[10px] font-semibold text-[#4F9D8C] hover:underline pt-1 font-mono">
-                              Find {spec.specialty} doctors →
-                            </Link>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* High Critical Emergency Alert */}
-                  {msg.sender === "ai" && msg.urgencyLevel === "high_critical" && msg.emergencyGuidance && !msg.acknowledged && (
-                    <div className="rounded-xl border border-[#D14343] bg-[#D14343]/15 p-4 space-y-2 text-xs text-[#F6F1E9]">
-                      <div className="font-bold text-[#D14343] uppercase tracking-wider">⚠️ {msg.emergencyGuidance.title}</div>
-                      <p className="leading-relaxed text-[#B9C4CC]">{msg.emergencyGuidance.message}</p>
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {msg.emergencyGuidance.emergencyNumbers.map((num, idx) => (
-                          <span key={idx} className="rounded bg-[#D14343] text-white px-2 py-0.5 font-mono text-[10px] font-bold">
-                            📞 {num}
-                          </span>
-                        ))}
+                  {/* High Urgency Emergency Alert Banner */}
+                  {msg.sender === "ai" &&
+                    msg.urgencyLevel === "high_critical" &&
+                    msg.emergencyGuidance &&
+                    !msg.acknowledged && (
+                      <div className="rounded-2xl border border-[#064E3B]/30 bg-[#F9FBF9] p-5 space-y-3 text-xs text-[#064E3B] shadow-md">
+                        <div className="font-bold text-sm text-[#064E3B] flex items-center gap-2">
+                          <AlertTriangle className="w-5 h-5" />
+                          <span>{msg.emergencyGuidance.title}</span>
+                        </div>
+                        <p className="leading-relaxed text-[#064E3B]/80">
+                          {msg.emergencyGuidance.message}
+                        </p>
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {msg.emergencyGuidance.emergencyNumbers.map((num, idx) => (
+                            <a
+                              key={idx}
+                              href={`tel:${num}`}
+                              className="rounded-xl bg-[#064E3B] text-white px-3.5 py-1.5 font-bold text-xs flex items-center gap-1 shadow-xs hover:bg-[#043327]"
+                            >
+                              <span>📞 Call {num}</span>
+                            </a>
+                          ))}
+                        </div>
+                        <div className="pt-2 flex justify-end">
+                          <button
+                            onClick={() => handleAcknowledge(msg.id)}
+                            className="rounded-xl bg-[#064E3B] text-white font-bold px-4 py-2 text-xs transition-colors hover:bg-[#043327]"
+                          >
+                            ✓ I Acknowledge & Understand
+                          </button>
+                        </div>
                       </div>
-                      <div className="pt-2 flex justify-end">
-                        <button
-                          onClick={() => handleAcknowledge(msg.id)}
-                          className="rounded-lg bg-[#D14343] hover:bg-[#D14343]/90 text-white font-bold px-4 py-1.5 text-xs transition-colors"
-                        >
-                          ✓ I Acknowledge & Understand
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Disclaimer Footer */}
+                  {/* Medical Disclaimer */}
                   {msg.sender === "ai" && msg.disclaimer && (
-                    <p className="text-[10px] text-[#7C8A93] italic px-1">ℹ️ {msg.disclaimer}</p>
+                    <p className="text-[11px] text-[#064E3B]/60 italic px-2">
+                      ℹ️ {msg.disclaimer}
+                    </p>
                   )}
                 </div>
               ))}
@@ -295,84 +389,108 @@ export default function TriagePage() {
           )}
 
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="rounded-xl bg-[#132A38] px-4 py-3 text-xs text-[#B9C4CC] animate-pulse flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-[#E8674A] animate-ping" />
-                AETHER Clinical Consultant is evaluating symptoms...
+            <div className="flex justify-start max-w-3xl mx-auto py-2">
+              <div className="rounded-2xl bg-[#F9FBF9] border border-[#064E3B]/20 px-4 py-3 text-xs text-[#064E3B] flex items-center gap-2.5 shadow-xs font-semibold">
+                <div className="h-2 w-2 rounded-full bg-[#064E3B] animate-ping" />
+                <span>Aether health assistant is evaluating symptoms...</span>
               </div>
             </div>
           )}
 
           {errorMessage && (
-            <div className="rounded-xl border border-[#D14343] bg-[#D14343]/10 p-3 text-xs text-[#D14343] flex justify-between items-center">
+            <div className="rounded-2xl border border-[#064E3B]/30 bg-[#F9FBF9] p-4 text-xs text-[#064E3B] font-bold flex justify-between items-center max-w-3xl mx-auto shadow-xs">
               <span>{errorMessage}</span>
-              <button onClick={() => setErrorMessage(null)} className="font-bold underline">Dismiss</button>
+              <button onClick={() => setErrorMessage(null)} className="font-bold underline">
+                Dismiss
+              </button>
             </div>
           )}
 
           <div ref={messagesEndRef} />
         </div>
-
-        {/* Input Composer Bar */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          className="flex gap-2 p-4 sm:p-6 lg:px-9 lg:pb-7 border-t border-[rgba(246,241,233,0.09)] items-center"
-        >
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Describe your symptoms — fever, stomach ache, headache…"
-            disabled={isLoading}
-            className="flex-1 min-h-[44px] rounded-xl border border-[rgba(246,241,233,0.16)] bg-[#132A38] px-3.5 py-2.5 text-xs sm:text-sm text-[#F6F1E9] placeholder-[#7C8A93] focus:outline-none focus:border-[#E8674A]"
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !input.trim()}
-            className="flex items-center gap-1.5 rounded-xl bg-[#E8674A] px-4 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-[#0A1620] hover:brightness-108 active:scale-97 disabled:opacity-50 transition-all shrink-0"
-          >
-            <span>Send</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M5 12h14M13 6l6 6-6 6" />
-            </svg>
-          </button>
-        </form>
       </section>
 
-      {/* ---------- SIGNAL PANEL (Right - 320px Desktop Only) ---------- */}
-      <aside className="hidden lg:flex w-[320px] shrink-0 flex-col bg-[#0F2130] p-5 gap-4 overflow-y-auto">
-        <div className="flex justify-between items-center text-[11px] uppercase tracking-[0.14em] text-[#7C8A93] font-sans border-b border-[rgba(246,241,233,0.09)] pb-2">
-          <span>Active Patient Telemetry</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#4F9D8C] shadow-[0_0_0_3px_rgba(79,157,140,0.2)]" />
-        </div>
-
-        {/* Assigned Medication For Today Card */}
+      {/* ---------- RIGHT RAIL: PERMANENTLY VISIBLE PATIENT CONTEXT (380px - 410px) ---------- */}
+      <aside className="hidden lg:flex w-[380px] xl:w-[410px] shrink-0 flex-col h-full min-h-0 bg-white p-6 space-y-5 overflow-y-auto border-l border-[#064E3B]/15 pb-28">
+        {/* Today's Active Medications Card */}
         <TodayMedicationsCard userId={ACTIVE_PATIENT_USER_ID} />
 
-        {/* Doctor Clearance Action Card */}
-        <div className="rounded-xl border border-[rgba(246,241,233,0.09)] bg-[#132A38] p-4 space-y-2 text-xs">
-          <div className="font-serif font-medium text-[#F6F1E9] flex items-center gap-1.5">
-            <span>🩺 Cured a Condition?</span>
+        {/* Resolved Conditions / Doctor Clearance Card */}
+        <div className="rounded-3xl border border-[#064E3B]/20 bg-[#F9FBF9] p-5 space-y-3 text-xs text-[#064E3B] shadow-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-sm text-[#064E3B]">
+              <ShieldCheck className="w-4.5 h-4.5 text-[#064E3B]" />
+              <span>Health History & Allergies</span>
+            </div>
+            <span className="text-[10.5px] font-bold bg-white border border-[#064E3B]/20 px-2 py-0.5 rounded-full">
+              Protected
+            </span>
           </div>
-          <p className="text-[11px] text-[#B9C4CC] leading-relaxed font-sans">
-            If a certified doctor has cured a condition or allergy, update your records so future AI assessments stay accurate.
+
+          <p className="text-xs text-[#064E3B]/80 leading-relaxed font-normal">
+            Active penicillin allergy guard is enabled. Baseline conditions are automatically cross-referenced in triage.
           </p>
+
           <button
             onClick={() => setIsRecordsModalOpen(true)}
-            className="w-full mt-1 rounded-lg bg-[#4F9D8C] text-white py-1.5 px-3 font-semibold hover:bg-[#4F9D8C]/90 transition-colors text-xs font-mono"
+            className="w-full rounded-2xl bg-white border border-[#064E3B]/25 hover:bg-[#064E3B] hover:text-white text-[#064E3B] py-2.5 px-4 font-bold transition-all text-xs shadow-2xs min-tap-target"
           >
-            Manage & Mark Cured
+            Review & Edit History
           </button>
         </div>
 
-        {/* Disclaimer */}
-        <div className="mt-auto border-t border-[rgba(246,241,233,0.09)] pt-3 text-[11px] text-[#7C8A93] leading-relaxed font-sans">
-          <strong className="font-medium text-[#B9C4CC]">Not a diagnosis.</strong> AETHER is an informational navigation tool. In an emergency, contact local emergency services directly.
+        {/* Emergency Assistance Quick Card */}
+        <div className="rounded-3xl bg-[#F9FBF9] border border-[#064E3B]/20 p-5 space-y-3 text-xs text-[#064E3B] shadow-xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-sm text-[#064E3B]">
+              <span>🚨</span>
+              <span>Emergency Ambulance</span>
+            </div>
+            <span className="text-[10.5px] font-mono font-bold text-[#064E3B] bg-white border border-[#064E3B]/20 px-2 py-0.5 rounded-full">
+              24/7
+            </span>
+          </div>
+
+          <p className="text-xs text-[#064E3B]/80 leading-relaxed font-normal">
+            For acute chest pain, trauma, or sudden breathing difficulty:
+          </p>
+
+          <div className="flex gap-2.5 pt-0.5">
+            <a
+              href="tel:108"
+              className="flex-1 text-center rounded-2xl bg-[#064E3B] text-white py-2.5 font-bold text-xs shadow-xs hover:bg-[#043327] transition-colors"
+            >
+              Call 108
+            </a>
+            <a
+              href="tel:112"
+              className="flex-1 text-center rounded-2xl border border-[#064E3B] text-[#064E3B] bg-white py-2.5 font-bold text-xs shadow-xs hover:bg-[#064E3B]/5 transition-colors"
+            >
+              Call 112
+            </a>
+          </div>
+        </div>
+
+        {/* Patient Notice */}
+        <div className="mt-auto rounded-2xl bg-[#F9FBF9] p-3.5 text-[11.5px] text-[#064E3B]/70 leading-relaxed border border-[#064E3B]/15">
+          <strong className="text-[#064E3B]">Patient Note:</strong> Aether provides preliminary triage assistance. Always consult a certified doctor for medical treatment.
         </div>
       </aside>
     </div>
+  );
+}
+
+export default function TriagePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full items-center justify-center p-12 text-xs text-[#064E3B]">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#064E3B] border-t-transparent mr-2" />
+          <span>Loading Health Navigator...</span>
+        </div>
+      }
+    >
+      <TriageContent />
+    </Suspense>
   );
 }
