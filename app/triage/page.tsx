@@ -415,59 +415,47 @@ function TriageContent() {
         {/* Today's Active Medications Card */}
         <TodayMedicationsCard userId={ACTIVE_PATIENT_USER_ID} />
 
-        {/* Resolved Conditions / Doctor Clearance Card */}
-        <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-5 space-y-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs">
+        {/* Health History & Allergies Card */}
+        <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-4.5 space-y-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5]">
-              <ShieldCheck className="w-4.5 h-4.5 text-[#064E3B] dark:text-[#10B981]" />
-              <span>Health History & Allergies</span>
+            <div className="flex items-center gap-2 font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5]">
+              <ShieldCheck className="w-4 h-4 text-[#064E3B] dark:text-[#10B981]" />
+              <span>History & Allergies</span>
             </div>
-            <span className="text-[10.5px] font-bold bg-white dark:bg-[#132D26] border border-[#064E3B]/20 dark:border-white/15 text-[#064E3B] dark:text-[#10B981] px-2 py-0.5 rounded-full">
-              Protected
-            </span>
+            <button
+              onClick={() => setIsRecordsModalOpen(true)}
+              className="text-[11px] font-bold text-[#064E3B] dark:text-[#10B981] hover:underline cursor-pointer"
+            >
+              Edit History
+            </button>
           </div>
 
-          <p className="text-xs text-[#064E3B]/80 dark:text-[#A7F3D0]/80 leading-relaxed font-normal">
-            Active penicillin allergy guard is enabled. Baseline conditions are automatically cross-referenced in triage.
+          <p className="text-[11.5px] text-[#064E3B]/75 dark:text-[#A7F3D0]/75 leading-snug">
+            Penicillin allergy guard enabled. Baseline records are automatically cross-referenced during triage.
           </p>
-
-          <button
-            onClick={() => setIsRecordsModalOpen(true)}
-            className="w-full rounded-2xl bg-white dark:bg-[#132D26] border border-[#064E3B]/25 dark:border-white/15 hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] text-[#064E3B] dark:text-[#ECFDF5] py-2.5 px-4 font-bold transition-all text-xs shadow-2xs min-tap-target"
-          >
-            Review & Edit History
-          </button>
         </div>
 
-        {/* Emergency Assistance Quick Card */}
-        <div className="rounded-3xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/10 p-5 space-y-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs">
+        {/* Emergency Assistance Quick Strip */}
+        <div className="rounded-3xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/15 dark:border-white/10 p-4 space-y-2 text-xs text-[#064E3B] dark:text-[#ECFDF5]">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5]">
+            <span className="font-bold text-xs flex items-center gap-1.5">
               <span>🚨</span>
-              <span>Emergency Ambulance</span>
-            </div>
-            <span className="text-[10.5px] font-mono font-bold text-[#064E3B] dark:text-[#10B981] bg-white dark:bg-[#132D26] border border-[#064E3B]/20 dark:border-white/15 px-2 py-0.5 rounded-full">
-              24/7
+              <span>Emergency 24/7</span>
             </span>
-          </div>
-
-          <p className="text-xs text-[#064E3B]/80 dark:text-[#A7F3D0]/80 leading-relaxed font-normal">
-            For acute chest pain, trauma, or sudden breathing difficulty:
-          </p>
-
-          <div className="flex gap-2.5 pt-0.5">
-            <a
-              href="tel:108"
-              className="flex-1 text-center rounded-2xl bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] py-2.5 font-bold text-xs shadow-xs hover:bg-[#043327] dark:hover:bg-[#059669] transition-colors"
-            >
-              Call 108
-            </a>
-            <a
-              href="tel:112"
-              className="flex-1 text-center rounded-2xl border border-[#064E3B] dark:border-white/20 text-[#064E3B] dark:text-[#ECFDF5] bg-white dark:bg-transparent py-2.5 font-bold text-xs shadow-xs hover:bg-[#064E3B]/5 dark:hover:bg-white/10 transition-colors"
-            >
-              Call 112
-            </a>
+            <div className="flex items-center gap-1.5">
+              <a
+                href="tel:108"
+                className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 text-[11px] font-bold shadow-2xs transition-all"
+              >
+                Call 108
+              </a>
+              <a
+                href="tel:112"
+                className="rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#132D26] hover:bg-[#F9FBF9] dark:hover:bg-white/10 px-2.5 py-1 text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5] transition-all shadow-2xs"
+              >
+                112
+              </a>
+            </div>
           </div>
         </div>
 

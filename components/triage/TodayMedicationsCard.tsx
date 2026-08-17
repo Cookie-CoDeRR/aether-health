@@ -61,41 +61,35 @@ export default function TodayMedicationsCard({ userId }: TodayMedicationsCardPro
   const progressPct = totalCount > 0 ? Math.round((takenCount / totalCount) * 100) : 0;
 
   return (
-    <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-5 space-y-4.5 shadow-sm text-[#064E3B] dark:text-[#ECFDF5] transition-colors">
-      {/* Sleek Header */}
-      <div className="flex items-center justify-between border-b border-[#064E3B]/15 dark:border-white/10 pb-3.5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] shadow-xs">
-            <Pill className="w-4.5 h-4.5" />
+    <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-5 space-y-4 shadow-xs text-[#064E3B] dark:text-[#ECFDF5] transition-colors">
+      {/* Sleek Minimal Header & Progress */}
+      <div className="space-y-3 border-b border-[#064E3B]/10 dark:border-white/10 pb-3.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] shadow-xs">
+              <Pill className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="font-serif text-sm font-bold text-[#064E3B] dark:text-[#ECFDF5] leading-tight">
+                Daily Medications
+              </h3>
+              <span className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium">
+                {takenCount} of {totalCount} taken today
+              </span>
+            </div>
           </div>
-          <div>
-            <h3 className="font-serif text-sm font-bold text-[#064E3B] dark:text-[#ECFDF5] tracking-tight">
-              Medication Schedule
-            </h3>
-            <span className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium block">
-              Today&apos;s Active Reminders
-            </span>
-          </div>
+
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="inline-flex items-center gap-1 rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] px-2.5 py-1 text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5] transition-all shadow-2xs cursor-pointer"
+          >
+            <Plus className="w-3 h-3" />
+            <span>Add</span>
+          </button>
         </div>
 
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] px-3 py-1.5 text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] transition-all shadow-2xs"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>Add Dose</span>
-        </button>
-      </div>
-
-      {/* Mini Adherence Indicator */}
-      <div className="rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/15 dark:border-white/10 p-3 space-y-2">
-        <div className="flex justify-between items-center text-xs">
-          <span className="font-bold text-[#064E3B] dark:text-[#ECFDF5]">Daily Adherence</span>
-          <span className="font-bold text-[#064E3B] dark:text-[#10B981] bg-white dark:bg-[#132D26] border border-[#064E3B]/20 dark:border-white/15 px-2.5 py-0.5 rounded-full text-[11px]">
-            {takenCount} of {totalCount} Taken ({progressPct}%)
-          </span>
-        </div>
-        <div className="h-2 rounded-full bg-white dark:bg-[#132D26] overflow-hidden border border-[#064E3B]/15 dark:border-white/10">
+        {/* Minimal Integrated Progress Bar */}
+        <div className="h-1.5 w-full rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/10 dark:border-white/10 overflow-hidden">
           <div
             className="h-full bg-[#064E3B] dark:bg-[#10B981] transition-all duration-300 rounded-full"
             style={{ width: `${progressPct}%` }}
@@ -103,59 +97,61 @@ export default function TodayMedicationsCard({ userId }: TodayMedicationsCardPro
         </div>
       </div>
 
-      {/* Medication Dosing Item Cards with Generous Spacing */}
-      <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
+      {/* Clean Minimal Medication Rows (No nested bulky boxes) */}
+      <div className="divide-y divide-[#064E3B]/10 dark:divide-white/10 max-h-[300px] overflow-y-auto pr-0.5">
         {medications.map((med) => (
           <div
             key={med.id}
             onClick={() => handleToggle(med.id)}
-            className={`group rounded-2xl border p-3.5 flex items-center justify-between gap-3.5 cursor-pointer transition-all ${
-              med.isTaken
-                ? "border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9]/90 dark:bg-[#0F241E]/60 opacity-80"
-                : "border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0F241E] hover:border-[#064E3B] dark:hover:border-[#10B981] hover:shadow-sm"
+            className={`group py-3 flex items-center justify-between gap-3 cursor-pointer transition-colors hover:bg-[#F9FBF9]/60 dark:hover:bg-white/5 rounded-xl px-2 -mx-2 ${
+              med.isTaken ? "opacity-60" : ""
             }`}
           >
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span
-                  className={`font-bold text-xs sm:text-sm text-[#064E3B] dark:text-[#ECFDF5] truncate ${
-                    med.isTaken ? "line-through text-[#064E3B]/50 dark:text-white/40" : ""
-                  }`}
-                >
-                  {med.brandName}
-                </span>
-                <span className="rounded-lg bg-[#F9FBF9] dark:bg-[#132D26] border border-[#064E3B]/20 dark:border-white/15 px-2 py-0.5 text-[10.5px] font-bold text-[#064E3B] dark:text-[#A7F3D0]">
-                  {med.dosage}
-                </span>
+            <div className="flex items-center gap-3 min-w-0">
+              {/* Sleek Circular Checkbox */}
+              <div
+                className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
+                  med.isTaken
+                    ? "bg-[#064E3B] dark:bg-[#10B981] border-[#064E3B] dark:border-[#10B981] text-white dark:text-[#042F24] shadow-2xs"
+                    : "bg-white dark:bg-transparent border-[#064E3B]/30 dark:border-white/30 text-transparent group-hover:border-[#064E3B] dark:group-hover:border-[#10B981]"
+                }`}
+              >
+                <Check className="w-3.5 h-3.5 stroke-[3]" />
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium">
-                <Clock className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
-                <span>{med.scheduleTime} • {med.instruction}</span>
-              </div>
-            </div>
 
-            {/* Circular Checkmark Button */}
-            <div
-              className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all shrink-0 ${
-                med.isTaken
-                  ? "bg-[#064E3B] dark:bg-[#10B981] border-[#064E3B] dark:border-[#10B981] text-white dark:text-[#042F24] shadow-2xs"
-                  : "bg-white dark:bg-transparent border-[#064E3B]/30 dark:border-white/30 text-transparent group-hover:border-[#064E3B] dark:group-hover:border-[#10B981]"
-              }`}
-            >
-              <Check className="w-4.5 h-4.5 stroke-[3]" />
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span
+                    className={`font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] truncate ${
+                      med.isTaken ? "line-through text-[#064E3B]/50 dark:text-white/40" : ""
+                    }`}
+                  >
+                    {med.brandName}
+                  </span>
+                  <span className="text-[10px] text-[#064E3B]/60 dark:text-[#A7F3D0]/60 font-medium">
+                    ({med.dosage})
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium mt-0.5">
+                  <span>{med.scheduleTime} • {med.instruction}</span>
+                </div>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Safety & Prescription Footer */}
-      <div className="flex items-center justify-between border-t border-[#064E3B]/15 dark:border-white/10 pt-3 text-xs">
-        <span className="text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium">Allergy checks active</span>
+      {/* Safety & Link Footer */}
+      <div className="flex items-center justify-between border-t border-[#064E3B]/10 dark:border-white/10 pt-3 text-xs">
+        <span className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium flex items-center gap-1">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
+          <span>Allergy Guard Active</span>
+        </span>
         <Link
           href="/medicines"
-          className="font-bold text-[#064E3B] dark:text-[#10B981] hover:underline"
+          className="font-bold text-[11px] text-[#064E3B] dark:text-[#10B981] hover:underline"
         >
-          Pharmacy Prices →
+          All Medicines →
         </Link>
       </div>
 
