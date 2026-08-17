@@ -168,3 +168,23 @@
 .aether-map-popup .leaflet-popup-tip {
   background: #FFFFFF;
 }
+
+/* Mobile Performance & Smooth Momentum Scrolling */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  html, body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
+  }
+
+  /* Hardware acceleration for scroll views on mobile */
+  .overflow-y-auto, .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    will-change: scroll-position;
+  }
+}

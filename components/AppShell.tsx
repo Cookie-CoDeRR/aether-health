@@ -104,14 +104,14 @@ export default function AppShell({ children }: AppShellProps) {
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={pathname}
-              initial={{ opacity: 0, y: 8, filter: "blur(3px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={{ opacity: 0, y: -6, filter: "blur(2px)" }}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
               transition={{
-                duration: 0.28,
-                ease: [0.22, 1, 0.36, 1],
+                duration: 0.22,
+                ease: [0.25, 1, 0.5, 1],
               }}
-              className="flex-1 flex flex-col h-full min-h-0 overflow-hidden"
+              className="flex-1 flex flex-col h-full min-h-0 overflow-hidden transform-gpu will-change-transform"
             >
               {children}
             </motion.div>

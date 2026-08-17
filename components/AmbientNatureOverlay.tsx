@@ -51,14 +51,16 @@ export default function AmbientNatureOverlay() {
 
     window.addEventListener("resize", handleResize);
 
-    // Initialize subtle floating pollen
+    // Initialize subtle floating pollen (reduced on mobile for buttery 60fps)
     const initScene = () => {
+      const isMobile = width < 768;
+      const pollenCount = isMobile ? 8 : 20;
       const pollen: AmbientPollen[] = [];
-      for (let i = 0; i < 22; i++) {
+      for (let i = 0; i < pollenCount; i++) {
         pollen.push({
           x: Math.random() * width,
           y: Math.random() * height,
-          radius: 0.8 + Math.random() * 1.6,
+          radius: 0.8 + Math.random() * 1.4,
           speedY: 0.15 + Math.random() * 0.25,
           speedX: (Math.random() - 0.5) * 0.3,
           opacity: 0.05 + Math.random() * 0.12,
@@ -70,9 +72,12 @@ export default function AmbientNatureOverlay() {
 
     initScene();
 
-    // Spawn occasional drifting leaf blown by a wind gust (every 8-15 seconds)
+    // Spawn occasional drifting leaf blown by a wind gust (every 10-15 seconds)
     const spawnDriftingLeaf = () => {
       if (document.hidden) return;
+      const isMobile = window.innerWidth < 768;
+      if (leavesRef.current.length >= (isMobile ? 2 : 4)) return;
+
       const startFromTop = Math.random() > 0.5;
       const startX = startFromTop
         ? Math.random() * width * 0.8
@@ -81,82 +86,80 @@ export default function AmbientNatureOverlay() {
         ? -30
         : Math.random() * (height * 0.6);
 
-      const isMobile = window.innerWidth < 640;
       leavesRef.current.push({
         x: startX,
         y: startY,
-        vx: 1.2 + Math.random() * 1.8,
-        vy: 0.8 + Math.random() * 1.2,
-        scale: (0.75 + Math.random() * 0.45) * (isMobile ? 0.65 : 1.0),
+        vx: 1.1 + Math.random() * 1.6,
+        vy: 0.7 + Math.random() * 1.1,
+        scale: (0.75 + Math.random() * 0.45) * (isMobile ? 0.6 : 1.0),
         rotation: Math.random() * Math.PI * 2,
-        angularVelocity: (Math.random() - 0.5) * 0.06,
-        swaySpeed: 1.4 + Math.random() * 1.6,
+        angularVelocity: (Math.random() - 0.5) * 0.05,
+        swaySpeed: 1.2 + Math.random() * 1.4,
         swayOffset: Math.random() * Math.PI * 2,
         opacity: 0.45 + Math.random() * 0.35,
         life: 0,
-        maxLife: 320 + Math.floor(Math.random() * 180),
+        maxLife: isMobile ? 240 : 360,
       });
     };
 
     // Initial leaves
     spawnDriftingLeaf();
-    const leafInterval = setInterval(() => {
-      if (leavesRef.current.length < 5) {
-        spawnDriftingLeaf();
-      }
-    }, 11000);
+    const leafInterval = setInterval(spawnDriftingLeaf, 12000);
 
     // Draw Corner Botanical Grass Tufts (Bottom-Left & Bottom-Right)
     const drawCornerGrass = (time: number, isDark: boolean) => {
       ctx.save();
       ctx.lineCap = "round";
+      const isMobile = width < 768;
 
       // 1. Bottom-Left Corner Grass Cluster
-      const leftBlades = 12;
+      const leftBlades = isMobile ? 6 : 12;
       for (let i = 0; i < leftBlades; i++) {
-        const bladeX = (i / leftBlades) * 130;
-        const bladeHeight = 28 + (i % 3) * 16 + Math.sin(i * 1.2) * 10;
-        const sway = Math.sin(time * 1.2 + i * 0.4) * 8;
+        const bladeX = (i / leftBlades) * (isMobile ? 80 : 130);
+        const bladeHeight = (isMobile ? 22 : 28) + (i % 3) * (isMobile ? 10 : 16) + Math.sin(i * 1.2) * 8;
+        const sway = Math.sin(time * 1.2 + i * 0.4) * (isMobile ? 5 : 8);
 
         ctx.beginPath();
         ctx.strokeStyle = isDark
           ? `rgba(167, 243, 208, ${0.55 + (i % 2) * 0.3})`
           : `rgba(6, 78, 59, ${0.22 + (i % 2) * 0.15})`;
-        ctx.lineWidth = isDark ? 1.6 : 1.5;
+        ctx.lineWidth = isDark ? 1.5 : 1.4;
         ctx.moveTo(bladeX, height);
         ctx.quadraticCurveTo(
           bladeX + sway * 0.4,
           height - bladeHeight * 0.6,
-          bladeX + sway - 6,
+          bladeX + sway - (isMobile ? 4 : 6),
           height - bladeHeight
         );
         ctx.stroke();
       }
 
-      // Small pebbles on bottom-left corner
-      ctx.beginPath();
-      ctx.ellipse(32, height - 6, 8, 4, 0.2, 0, Math.PI * 2);
-      ctx.ellipse(68, height - 8, 11, 5, -0.15, 0, Math.PI * 2);
-      ctx.fillStyle = isDark ? "rgba(167, 243, 208, 0.4)" : "rgba(6, 78, 59, 0.18)";
-      ctx.fill();
+      if (!isMobile) {
+        // Small pebbles on bottom-left corner (desktop only for performance)
+        ctx.beginPath();
+        ctx.ellipse(32, height - 6, 8, 4, 0.2, 0, Math.PI * 2);
+        ctx.ellipse(68, height - 8, 11, 5, -0.15, 0, Math.PI * 2);
+        ctx.fillStyle = isDark ? "rgba(167, 243, 208, 0.4)" : "rgba(6, 78, 59, 0.18)";
+        ctx.fill();
+      }
 
       // 2. Bottom-Right Corner Grass Cluster
-      const rightBlades = 11;
+      const rightBlades = isMobile ? 5 : 11;
       for (let i = 0; i < rightBlades; i++) {
-        const bladeX = width - ((i / rightBlades) * 120);
-        const bladeHeight = 26 + (i % 3) * 14 + Math.cos(i * 1.4) * 9;
-        const sway = Math.sin(time * 1.1 + i * 0.5) * 7;
+        const bladeX = width - ((i / rightBlades) * (isMobile ? 75 : 120));
+        const bladeHeight = (isMobile ? 20 : 26) + (i % 3) * (isMobile ? 9 : 14) + Math.cos(i * 1.4) * 7;
+        const sway = Math.sin(time * 1.1 + i * 0.5) * (isMobile ? 4 : 7);
 
         ctx.beginPath();
         ctx.strokeStyle = isDark
           ? `rgba(167, 243, 208, ${0.52 + (i % 2) * 0.28})`
           : `rgba(6, 78, 59, ${0.2 + (i % 2) * 0.14})`;
-        ctx.lineWidth = isDark ? 1.6 : 1.5;
+        ctx.lineWidth = isDark ? 1.5 : 1.4;
         ctx.moveTo(bladeX, height);
         ctx.quadraticCurveTo(
           bladeX + sway * 0.4,
           height - bladeHeight * 0.6,
-          bladeX + sway + 6,
+          bladeX + sway + (isMobile ? 4 : 6),
           height - bladeHeight
         );
         ctx.stroke();

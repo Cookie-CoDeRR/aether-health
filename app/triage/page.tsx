@@ -165,9 +165,6 @@ function TriageContent() {
 
       {/* ---------- MAIN AI TRIAGE CHAT PANEL (Left / Center) ---------- */}
       <section className="relative flex flex-1 flex-col h-full min-h-0 min-w-0 bg-transparent overflow-hidden">
-        {/* Dedicated Botanical Nature Canvas Layer for AI Chat Viewport */}
-        <TriageNatureBackground />
-
         {/* Top Control Bar (Visible when conversation is active) */}
         {messages.length > 0 && (
           <div className="relative z-10 shrink-0 flex items-center justify-between px-6 py-3 border-b border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9]/90 dark:bg-[#0B1D17]/90 backdrop-blur-xs text-xs">
