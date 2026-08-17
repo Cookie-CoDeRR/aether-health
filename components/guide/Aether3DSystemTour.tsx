@@ -35,8 +35,9 @@ interface TourStep {
   highlights: string[];
   icon: any;
   accentColor: string;
-  arrowDirection: "top" | "bottom" | "left" | "right" | "center";
-  calloutPosition: string; // Tailwind placement classes
+  arrowDirection: "top" | "bottom" | "left" | "right";
+  calloutPosition: string; // Dynamic side positioning (left, right, top, bottom)
+  sizeClass: string; // Dynamic sizing per card
   focusLabel: string;
 }
 
@@ -52,12 +53,13 @@ const TOUR_STEPS: TourStep[] = [
     highlights: [
       "Plain-language advice by default with 1-click in-depth clinical reports",
       "Automatic penicillin allergy & baseline history cross-referencing",
-      "Instant specialist recommendation & follow-up symptom questions",
+      "Instant specialist recommendation & follow-up questions",
     ],
     icon: Stethoscope,
     accentColor: "#10B981",
     arrowDirection: "bottom",
     calloutPosition: "bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2",
+    sizeClass: "max-w-lg",
     focusLabel: "Symptom Prompt & Clinical Consultation Stream",
   },
   {
@@ -75,8 +77,9 @@ const TOUR_STEPS: TourStep[] = [
     ],
     icon: Building2,
     accentColor: "#0284C7",
-    arrowDirection: "top",
-    calloutPosition: "top-20 sm:top-24 left-1/2 -translate-x-1/2",
+    arrowDirection: "right",
+    calloutPosition: "top-24 sm:top-28 left-4 sm:left-8 lg:left-12",
+    sizeClass: "max-w-md",
     focusLabel: "Live OpenStreetMap Radar & Verified Specialists",
   },
   {
@@ -90,18 +93,19 @@ const TOUR_STEPS: TourStep[] = [
     highlights: [
       "Allergy safety shield checking every medication against your profile",
       "Morning, afternoon, and evening pill schedule timeline",
-      "Refill tracking with remaining dosage count alerts & pharmacy pricing",
+      "Refill tracking with remaining dosage count alerts",
     ],
     icon: Pill,
     accentColor: "#D97706",
-    arrowDirection: "top",
-    calloutPosition: "top-20 sm:top-24 left-1/2 -translate-x-1/2",
+    arrowDirection: "left",
+    calloutPosition: "top-24 sm:top-28 right-4 sm:right-8 lg:right-12",
+    sizeClass: "max-w-md",
     focusLabel: "Medication Reminders & Drug-Allergy Interaction Guard",
   },
   {
     id: "reports",
-    badge: "Step 4 of 6 • Diagnostics",
     stepNumber: 4,
+    badge: "Step 4 of 6 • Diagnostics",
     title: "Clinical Lab Reports & OCR",
     route: "/reports",
     description:
@@ -114,7 +118,8 @@ const TOUR_STEPS: TourStep[] = [
     icon: FileText,
     accentColor: "#7C3AED",
     arrowDirection: "top",
-    calloutPosition: "top-20 sm:top-24 left-1/2 -translate-x-1/2",
+    calloutPosition: "bottom-24 sm:bottom-28 left-4 sm:left-10 lg:left-16",
+    sizeClass: "max-w-md",
     focusLabel: "Diagnostic PDF/Image Upload Dropzone & Biomarkers",
   },
   {
@@ -132,8 +137,9 @@ const TOUR_STEPS: TourStep[] = [
     ],
     icon: Clock,
     accentColor: "#0D9488",
-    arrowDirection: "top",
-    calloutPosition: "top-20 sm:top-24 left-1/2 -translate-x-1/2",
+    arrowDirection: "left",
+    calloutPosition: "top-24 sm:top-28 right-4 sm:right-8 lg:right-14",
+    sizeClass: "max-w-md",
     focusLabel: "Longitudinal Milestone Timeline & Clearance Records",
   },
   {
@@ -152,7 +158,8 @@ const TOUR_STEPS: TourStep[] = [
     icon: Sliders,
     accentColor: "#10B981",
     arrowDirection: "top",
-    calloutPosition: "top-20 sm:top-24 left-1/2 -translate-x-1/2",
+    calloutPosition: "top-20 sm:top-24 left-4 sm:left-8 lg:left-12",
+    sizeClass: "max-w-md",
     focusLabel: "Allergy Context, Lighting Themes & ABDM Integration",
   },
 ];
@@ -167,7 +174,6 @@ export default function Aether3DSystemTour({
 
   const step = TOUR_STEPS[currentStepIndex];
 
-  // When step changes, navigate to that live page automatically!
   useEffect(() => {
     if (!isOpen) return;
     const targetRoute = TOUR_STEPS[currentStepIndex].route;
@@ -176,7 +182,6 @@ export default function Aether3DSystemTour({
     }
   }, [isOpen, currentStepIndex, pathname, router]);
 
-  // Keyboard navigation (Esc to close, Arrow keys for step navigation)
   useEffect(() => {
     if (!isOpen) return;
 
@@ -221,14 +226,12 @@ export default function Aether3DSystemTour({
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-auto select-none overflow-hidden animate-fade-in font-sans">
-      {/* Industrial Frosted Spotlight Backdrop */}
       <div
         onClick={handleComplete}
-        className="absolute inset-0 bg-[#064E3B]/30 dark:bg-black/60 backdrop-blur-[3px] transition-all duration-500 cursor-pointer"
+        className="absolute inset-0 bg-[#064E3B]/25 dark:bg-black/65 backdrop-blur-[3px] transition-all duration-500 cursor-pointer"
         title="Click anywhere to exit tour"
       />
 
-      {/* Top Banner Guide HUD Indicator */}
       <div className="absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 rounded-full bg-white/90 dark:bg-[#0B1D17]/90 backdrop-blur-2xl border border-[#064E3B]/20 dark:border-white/15 px-4 py-2 shadow-xl text-xs text-[#064E3B] dark:text-[#ECFDF5]">
         <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping" />
         <span className="font-serif font-bold">Interactive App Guide</span>
@@ -246,36 +249,56 @@ export default function Aether3DSystemTour({
         </button>
       </div>
 
-      {/* Floating Guided Callout Box with Directional Highlight Arrow */}
       <div
-        className={`absolute z-50 w-[94vw] max-w-lg ${step.calloutPosition} transition-all duration-500 ease-out`}
+        className={`absolute z-50 w-[94vw] ${step.sizeClass} ${step.calloutPosition} transition-all duration-500 ease-out`}
       >
         <AnimatePresence mode="wait">
           <motion.div
             key={step.id}
-            initial={{ opacity: 0, scale: 0.94, y: step.arrowDirection === "top" ? -15 : 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.94, y: step.arrowDirection === "top" ? -15 : 15 }}
-            transition={{ duration: 0.28, ease: "easeOut" }}
-            className="relative rounded-3xl border border-[#064E3B]/25 dark:border-white/20 bg-white/95 dark:bg-[#0B1D17]/95 backdrop-blur-3xl p-6 sm:p-7 shadow-[0_25px_60px_-15px_rgba(6,78,59,0.35)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] text-[#064E3B] dark:text-[#ECFDF5] space-y-4"
+            initial={{
+              opacity: 0,
+              scale: 0.93,
+              x: step.arrowDirection === "left" ? 20 : step.arrowDirection === "right" ? -20 : 0,
+              y: step.arrowDirection === "top" ? -20 : step.arrowDirection === "bottom" ? 20 : 0,
+            }}
+            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+            exit={{
+              opacity: 0,
+              scale: 0.93,
+              x: step.arrowDirection === "left" ? 20 : step.arrowDirection === "right" ? -20 : 0,
+              y: step.arrowDirection === "top" ? -20 : step.arrowDirection === "bottom" ? 20 : 0,
+            }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="relative rounded-3xl border border-[#064E3B]/25 dark:border-white/20 bg-white/95 dark:bg-[#0B1D17]/95 backdrop-blur-3xl p-5 sm:p-6 shadow-[0_25px_60px_-15px_rgba(6,78,59,0.35)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9)] text-[#064E3B] dark:text-[#ECFDF5] space-y-3.5"
           >
-            {/* Directional Pointing Arrow (Industrial Tooltip Bevel) */}
             {step.arrowDirection === "top" && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                <div
-                  className="w-0 h-0 border-x-8 border-x-transparent border-b-12 border-b-white/95 dark:border-b-[#0B1D17]/95 drop-shadow-sm"
-                  style={{ borderBottomColor: undefined }}
-                />
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                <span className="absolute -top-3 h-3.5 w-3.5 rounded-full bg-emerald-500/80 animate-ping" />
+                <div className="w-0 h-0 border-x-8 border-x-transparent border-b-14 border-b-white/95 dark:border-b-[#0B1D17]/95 drop-shadow-md" />
               </div>
             )}
 
             {step.arrowDirection === "bottom" && (
-              <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex flex-col items-center">
-                <div className="w-0 h-0 border-x-8 border-x-transparent border-t-12 border-t-white/95 dark:border-t-[#0B1D17]/95 drop-shadow-sm" />
+              <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 flex flex-col items-center">
+                <span className="absolute -bottom-3 h-3.5 w-3.5 rounded-full bg-emerald-500/80 animate-ping" />
+                <div className="w-0 h-0 border-x-8 border-x-transparent border-t-14 border-t-white/95 dark:border-t-[#0B1D17]/95 drop-shadow-md" />
               </div>
             )}
 
-            {/* Header: Badge & Target Section Label */}
+            {step.arrowDirection === "left" && (
+              <div className="absolute top-1/2 -translate-y-1/2 -left-3.5 flex items-center">
+                <span className="absolute -left-3 h-3.5 w-3.5 rounded-full bg-emerald-500/80 animate-ping" />
+                <div className="w-0 h-0 border-y-8 border-y-transparent border-r-14 border-r-white/95 dark:border-r-[#0B1D17]/95 drop-shadow-md" />
+              </div>
+            )}
+
+            {step.arrowDirection === "right" && (
+              <div className="absolute top-1/2 -translate-y-1/2 -right-3.5 flex items-center">
+                <span className="absolute -right-3 h-3.5 w-3.5 rounded-full bg-emerald-500/80 animate-ping" />
+                <div className="w-0 h-0 border-y-8 border-y-transparent border-l-14 border-l-white/95 dark:border-l-[#0B1D17]/95 drop-shadow-md" />
+              </div>
+            )}
+
             <div className="flex items-start justify-between gap-3 border-b border-[#064E3B]/15 dark:border-white/10 pb-3">
               <div className="flex items-center gap-2.5">
                 <div
@@ -289,36 +312,33 @@ export default function Aether3DSystemTour({
                 </div>
                 <div>
                   <span
-                    className="block text-[11px] font-bold uppercase tracking-wider leading-none"
+                    className="block text-[10.5px] font-bold uppercase tracking-wider leading-none"
                     style={{ color: step.accentColor }}
                   >
                     {step.badge}
                   </span>
-                  <h3 className="font-serif text-lg font-bold tracking-tight text-[#064E3B] dark:text-[#ECFDF5] mt-1 leading-tight">
+                  <h3 className="font-serif text-base sm:text-lg font-bold tracking-tight text-[#064E3B] dark:text-[#ECFDF5] mt-1 leading-tight">
                     {step.title}
                   </h3>
                 </div>
               </div>
 
-              <span className="rounded-full bg-[#F9FBF9] dark:bg-[#132D26] border border-[#064E3B]/15 dark:border-white/10 px-2.5 py-1 text-[10.5px] font-mono font-bold text-[#064E3B]/70 dark:text-[#A7F3D0]/70">
+              <span className="rounded-full bg-[#F9FBF9] dark:bg-[#132D26] border border-[#064E3B]/15 dark:border-white/10 px-2.5 py-0.5 text-[10.5px] font-mono font-bold text-[#064E3B]/70 dark:text-[#A7F3D0]/70 shrink-0">
                 {step.stepNumber}/6
               </span>
             </div>
 
-            {/* Target Area Indicator */}
-            <div className="flex items-center gap-1.5 rounded-xl bg-[#F9FBF9] dark:bg-[#132D26] border border-[#064E3B]/10 dark:border-white/5 px-3 py-1.5 text-xs text-[#064E3B]/80 dark:text-[#A7F3D0]">
+            <div className="flex items-center gap-1.5 rounded-xl bg-[#F9FBF9] dark:bg-[#132D26] border border-[#064E3B]/10 dark:border-white/5 px-2.5 py-1 text-[11.5px] text-[#064E3B]/80 dark:text-[#A7F3D0]">
               <Compass className="w-3.5 h-3.5 shrink-0" style={{ color: step.accentColor }} />
               <span className="font-medium truncate">
                 Focus: <strong>{step.focusLabel}</strong>
               </span>
             </div>
 
-            {/* Description Body */}
-            <p className="text-xs sm:text-sm text-[#064E3B]/85 dark:text-[#ECFDF5]/85 leading-relaxed">
+            <p className="text-xs text-[#064E3B]/85 dark:text-[#ECFDF5]/85 leading-relaxed">
               {step.description}
             </p>
 
-            {/* Feature Highlights List */}
             <div className="space-y-1.5 pt-0.5">
               {step.highlights.map((item, idx) => (
                 <div key={idx} className="flex items-start gap-2 text-xs text-[#064E3B]/90 dark:text-[#ECFDF5]/90">
@@ -331,9 +351,7 @@ export default function Aether3DSystemTour({
               ))}
             </div>
 
-            {/* Bottom Controls: Step Dots & Next / Back / Skip Buttons */}
-            <div className="flex items-center justify-between border-t border-[#064E3B]/15 dark:border-white/10 pt-4 gap-3">
-              {/* Step Dots */}
+            <div className="flex items-center justify-between border-t border-[#064E3B]/15 dark:border-white/10 pt-3.5 gap-3">
               <div className="flex items-center gap-1.5">
                 {TOUR_STEPS.map((_, idx) => (
                   <button
@@ -350,14 +368,13 @@ export default function Aether3DSystemTour({
                 ))}
               </div>
 
-              {/* Action Buttons */}
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleComplete}
-                  className="rounded-2xl px-3 py-1.5 text-xs font-semibold text-[#064E3B]/70 dark:text-white/60 hover:text-[#064E3B] dark:hover:text-white transition-colors cursor-pointer"
+                  className="rounded-2xl px-2.5 py-1.5 text-xs font-semibold text-[#064E3B]/70 dark:text-white/60 hover:text-[#064E3B] dark:hover:text-white transition-colors cursor-pointer"
                 >
-                  Skip Tour
+                  Skip
                 </button>
 
                 {currentStepIndex > 0 && (
@@ -374,10 +391,10 @@ export default function Aether3DSystemTour({
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] text-white dark:text-[#042F24] px-4.5 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-soft hover:scale-105 active:scale-95"
+                  className="inline-flex items-center gap-1 rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] text-white dark:text-[#042F24] px-4 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-soft hover:scale-105 active:scale-95"
                 >
                   <span>
-                    {currentStepIndex === TOUR_STEPS.length - 1 ? "Finish & Start" : "Next Page"}
+                    {currentStepIndex === TOUR_STEPS.length - 1 ? "Finish" : "Next"}
                   </span>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </button>
