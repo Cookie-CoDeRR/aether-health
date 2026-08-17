@@ -259,10 +259,10 @@ function FloatingDockContent({
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="pointer-events-auto rounded-full p-1 sm:p-1.5 bg-white/20 dark:bg-white/5 backdrop-blur-xl border border-white/40 dark:border-white/10 shadow-[0_16px_40px_-8px_rgba(6,78,59,0.2),0_0_0_1px_rgba(255,255,255,0.4)_inset] dark:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.08)_inset]"
+        className="pointer-events-auto rounded-full p-1 sm:p-1.5 bg-white/10 dark:bg-white/[0.03] backdrop-blur-[2px] border border-white/30 dark:border-white/10 shadow-[0_14px_38px_-8px_rgba(6,78,59,0.18)] dark:shadow-[0_20px_50px_-10px_rgba(0,0,0,0.7)]"
       >
-        {/* Inner Capsule with Convex In-to-Out Elevated Lens Curve & High Transparency */}
-        <div className="flex items-center justify-between gap-1.5 sm:gap-2.5 rounded-full bg-gradient-to-b from-white/70 via-white/45 to-white/60 dark:from-[#0F241E]/70 dark:via-[#0B1D17]/45 dark:to-[#081511]/60 backdrop-blur-2xl border border-white/60 dark:border-white/15 px-2 py-1.5 sm:px-3 sm:py-2 shadow-[inset_0_1px_1.5px_rgba(255,255,255,0.9),inset_0_-1.5px_2px_rgba(6,78,59,0.06),0_6px_16px_-4px_rgba(6,78,59,0.12)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_-1.5px_2px_rgba(0,0,0,0.5),0_8px_20px_-4px_rgba(0,0,0,0.4)] text-[#064E3B] dark:text-[#ECFDF5] transition-colors duration-200">
+        {/* Inner Capsule with High Optical Transmission & Convex Outward Curved Highlight */}
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2.5 rounded-full bg-gradient-to-b from-white/35 via-white/18 to-white/28 dark:from-[#0F241E]/40 dark:via-[#0B1D17]/20 dark:to-[#081511]/30 backdrop-blur-[5px] border border-white/40 dark:border-white/15 px-2 py-1.5 sm:px-3 sm:py-2 shadow-[inset_0_1px_1px_rgba(255,255,255,0.75),inset_0_-1px_1.5px_rgba(6,78,59,0.05),0_6px_16px_-4px_rgba(6,78,59,0.1)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),inset_0_-1px_1.5px_rgba(0,0,0,0.4),0_8px_20px_-4px_rgba(0,0,0,0.35)] text-[#064E3B] dark:text-[#ECFDF5] transition-colors duration-200">
           {/* Navigation Action Icons (Left side) */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {navItems.map((item) => {
@@ -284,8 +284,8 @@ function FloatingDockContent({
                   onMouseLeave={() => setHoveredItem(null)}
                   className={`relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all duration-150 ${
                     isActive
-                      ? "bg-[#064E3B]/12 dark:bg-[#10B981]/25 text-[#064E3B] dark:text-[#10B981] ring-1 ring-[#064E3B]/25 dark:ring-[#10B981]/35 font-bold shadow-2xs"
-                      : "text-[#064E3B]/75 dark:text-[#A7F3D0]/75 hover:bg-white/40 dark:hover:bg-white/10 hover:text-[#064E3B] dark:hover:text-[#ECFDF5] hover:scale-105 active:scale-95"
+                      ? "bg-[#064E3B]/15 dark:bg-[#10B981]/25 text-[#064E3B] dark:text-[#10B981] ring-1 ring-[#064E3B]/25 dark:ring-[#10B981]/35 font-bold shadow-2xs"
+                      : "text-[#064E3B]/80 dark:text-[#A7F3D0]/80 hover:bg-white/30 dark:hover:bg-white/10 hover:text-[#064E3B] dark:hover:text-[#ECFDF5] hover:scale-105 active:scale-95"
                   }`}
                 >
                   <span className="scale-85 sm:scale-100">{item.icon}</span>
@@ -347,7 +347,7 @@ function FloatingDockContent({
                 onClick={handleInputClick}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Ask symptoms or navigate..."
-                className="w-full h-8 sm:h-10 rounded-full bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/10 pl-7 sm:pl-9 pr-10 sm:pr-16 text-[11.5px] sm:text-xs text-[#064E3B] dark:text-[#ECFDF5] placeholder-[#064E3B]/50 dark:placeholder-white/40 focus:bg-white/70 dark:focus:bg-[#132D26]/70 focus:outline-none focus:border-[#064E3B]/40 dark:focus:border-[#10B981]/50 focus:ring-1 focus:ring-[#064E3B]/15 dark:focus:ring-[#10B981]/25 transition-all truncate shadow-inner"
+                className="w-full h-8 sm:h-10 rounded-full bg-white/25 dark:bg-white/[0.04] border border-white/35 dark:border-white/10 pl-7 sm:pl-9 pr-10 sm:pr-16 text-[11.5px] sm:text-xs text-[#064E3B] dark:text-[#ECFDF5] placeholder-[#064E3B]/50 dark:placeholder-white/40 focus:bg-white/60 dark:focus:bg-[#132D26]/60 focus:outline-none focus:border-[#064E3B]/40 dark:focus:border-[#10B981]/50 focus:ring-1 focus:ring-[#064E3B]/15 dark:focus:ring-[#10B981]/25 transition-all truncate shadow-inner backdrop-blur-[2px]"
               />
 
               {/* Voice microphone button & shortcut tag */}
@@ -368,7 +368,7 @@ function FloatingDockContent({
                     <Mic className="w-3.5 h-3.5" />
                   )}
                 </button>
-                <kbd className="hidden md:inline-flex items-center rounded-md border border-white/50 dark:border-white/10 bg-white/40 dark:bg-[#132D26]/50 px-1.5 py-0.5 text-[10px] font-mono text-[#064E3B]/60 dark:text-white/50 shadow-2xs">
+                <kbd className="hidden md:inline-flex items-center rounded-md border border-white/40 dark:border-white/10 bg-white/30 dark:bg-[#132D26]/40 px-1.5 py-0.5 text-[10px] font-mono text-[#064E3B]/60 dark:text-white/50 shadow-2xs">
                   ⌘K
                 </kbd>
               </div>

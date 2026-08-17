@@ -328,7 +328,7 @@ export default function AmbientNatureOverlay() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 select-none opacity-95 dark:opacity-90 transition-opacity duration-300"
+      className="fixed inset-0 pointer-events-none z-30 select-none opacity-95 dark:opacity-90 transition-opacity duration-300"
       aria-hidden="true"
     />
   );
