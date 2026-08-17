@@ -38,17 +38,15 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
       status: "ok",
       urgencyLevel: "high_critical",
       summary: "High-critical symptoms identified: acute emergency protocols indicated.",
-      message: `### Clinical Consultant Assessment — Emergency Urgency
-
-Your reported symptoms (**${symptoms}**) indicate potential acute cardiovascular or respiratory distress requiring **immediate medical evaluation**.
-
-#### Clinical Rationale & Risk Factors
-- **Primary Concern**: Sudden onset chest discomfort, shortness of breath, or neurological deficits can signal acute myocardial ischemia, pulmonary embolism, or cerebrovascular emergency.
-- **Patient History Warning**: Past medical records indicate a history of seasonal chest tightness. Acute chest discomfort combined with respiratory symptoms requires immediate triage.
+      message: `Your reported symptoms (**${symptoms}**) could indicate a serious cardiovascular or respiratory emergency that needs **immediate medical attention**.
 
 #### Immediate Recommended Actions
-1. **Do not drive yourself.** Call local emergency medical services or go immediately to the nearest Emergency Room.
-2. Rest in a comfortable position while awaiting emergency responders.`,
+- **Do not drive yourself.** Call local emergency services (108 / 112 / 911) or have someone take you to the nearest Emergency Room right away.
+- Sit upright in a comfortable position and take slow, calm breaths while awaiting emergency help.
+
+#### Clinical Breakdown & Lab History
+- **Primary Clinical Concern**: Sudden onset chest discomfort, breathing difficulties, or acute weakness require immediate evaluation to rule out acute cardiac or pulmonary events.
+- **Cross-Referenced Patient Context**: Medical history notes a prior episode of seasonal chest tightness. Given current acute symptoms, urgent evaluation is strongly advised.`,
       patientRecordContext: [
         "Allergy: Penicillin & Amoxicillin class antibiotics",
         "Baseline History: Previous episode of seasonal chest tightness",
@@ -79,24 +77,27 @@ Your reported symptoms (**${symptoms}**) indicate potential acute cardiovascular
       summary: isStomach
         ? "Moderate abdominal discomfort evaluated against patient baseline lab markers."
         : "Moderate systemic/respiratory symptoms logged requiring clinical evaluation.",
-      message: `### Clinical Consultant Assessment — Moderate Priority
+      message: `It sounds like you're experiencing uncomfortable **${symptoms}**. This is commonly related to ${
+        isStomach
+          ? "stomach irritation, indigestion, or a mild digestive upset."
+          : "a common viral infection or upper respiratory inflammation."
+      } While usually manageable, having a doctor examine you within the next 24 to 48 hours is recommended.
 
-Based on your described symptoms (**"${symptoms}"**), your condition requires structured clinical evaluation to determine the underlying cause and prevent progression.
+#### Immediate Recommended Actions
+- **Stay well-hydrated**: Sip warm water, clear broths, or oral hydration fluids throughout the day.
+- **Gentle diet**: Stick to light, non-greasy foods (bananas, rice, toast) and avoid caffeine or spicy items.
+- **Rest**: Give your body adequate rest and monitor how your symptoms develop over the next 24 hours.
 
-#### Clinical Breakdown & Potential Causes
+#### Clinical Breakdown & Lab History
 - **Diagnostic Considerations**: ${
         isStomach
-          ? "Abdominal pain may stem from acute gastritis, indigestion, peptic irritation, or localized intestinal inflammation."
-          : "Fever and respiratory symptoms suggest viral or bacterial upper tract infection."
+          ? "Symptoms are consistent with acute gastritis, gastroesophageal reflux, or localized bowel irritation."
+          : "Fever and cough indicate typical viral upper airway response."
       }
-- **Patient History Context**:
-  - 🩸 **Lab Report Context**: Your recent CBC Blood Panel showed a **slightly elevated WBC count (11.2 x10^3/µL)**, which indicates an active mild inflammatory or immune response in your body.
-  - ⚠️ **Allergy Alert**: You have a **known severe allergy to Penicillin & Amoxicillin**. Any antibiotic or anti-inflammatory prescription must avoid the penicillin class.
-
-#### Recommended Next Steps & Timeline
-1. **Schedule a Primary Care / Internal Medicine Consultation**: We recommend consulting a general practitioner or gastroenterologist within **24 to 48 hours**.
-2. **Supportive Self-Care**: Stay well hydrated with room-temperature fluids. Avoid heavy, fatty, acidic, or highly seasoned foods.
-3. **Monitor Red Flag Warning Signs**: Seek urgent emergency care if you experience severe localized pain in the lower right abdomen, high persistent fever (>38.5°C), repeated vomiting, or dark blood in stool.`,
+- **Lab & Allergy Cross-Reference**:
+  - 🩸 **CBC Blood Panel**: Your recent lab report noted a **slightly elevated WBC count (11.2 x10^3/µL)**, reflecting mild active inflammation.
+  - ⚠️ **Allergy Reminder**: You have a documented **severe allergy to Penicillin & Amoxicillin**. Avoid any antibiotic or pain medications containing penicillin derivatives.
+- **Red Flag Signs**: Seek prompt urgent care if pain becomes localized to the lower right abdomen, fever rises above 38.5°C, or you experience persistent vomiting.`,
       patientRecordContext: [
         "CBC Lab Report (Feb 2026): WBC 11.2 x10^3/µL (Slightly Elevated Inflammatory Marker)",
         "Drug Allergy: Severe allergy to Penicillin and Amoxicillin class antibiotics",
@@ -114,19 +115,18 @@ Based on your described symptoms (**"${symptoms}"**), your condition requires st
     status: "ok",
     urgencyLevel: "low",
     summary: "Mild non-acute symptoms logged with routine supportive advice.",
-    message: `### Clinical Consultant Assessment — Low Urgency
+    message: `Your reported symptoms (**"${symptoms}"**) appear mild and can generally be managed safely with home care and rest.
 
-Your reported symptoms (**"${symptoms}"**) appear mild and non-acute at present.
+#### Immediate Recommended Actions
+- **Hydrate & Rest**: Drink plenty of water (around 2 to 2.5 liters daily) and get a solid night of rest.
+- **Take brief breaks**: If working on screens or feeling fatigue, take 10-minute relaxation breaks in a quiet space.
+- **Observe**: If symptoms persist for more than 3 consecutive days, check in with a general doctor.
 
-#### Clinical Guidance & Patient Context
-- **Symptom Impression**: Symptoms suggest mild fatigue, tension, or low-grade hydration/environmental strain.
-- **Patient Baseline Context**:
-  - ⚠️ **Allergy Reminder**: Remember that your health record lists a **severe allergy to Penicillin and Amoxicillin**. Always verify active ingredients before taking any medication.
-  - 🩸 **Baseline Lab Status**: Your hemoglobin (13.5 g/dL) and creatinine (0.9 mg/dL) are within normal baseline ranges.
-
-#### Recommended Action Plan
-1. Ensure adequate hydration (2.5L water daily) and rest.
-2. If symptoms persist for more than 3 consecutive days or worsen, schedule a primary care consultation.`,
+#### Clinical Breakdown & Lab History
+- **Clinical Impression**: Mild tension, temporary fatigue, or environmental strain.
+- **Patient Context Reminders**:
+  - ⚠️ **Allergy Alert**: Always remember your recorded **Penicillin / Amoxicillin allergy** when selecting any over-the-counter medications.
+  - 🩸 **Baseline Markers**: Past lab markers (Hemoglobin 13.5 g/dL, Creatinine 0.9 mg/dL) remain well within normal healthy baselines.`,
     patientRecordContext: [
       "Drug Allergy: Severe allergy to Penicillin and Amoxicillin class antibiotics",
       "CBC Lab Report: Hemoglobin 13.5 g/dL (Normal Baseline)",
@@ -153,16 +153,18 @@ export async function runGeminiTriageChat(
 
     if (rawApiKey && !rawApiKey.includes("your") && !rawApiKey.includes("Dummy")) {
       try {
-        const preprompt = `System: You are AETHER Health Triage AI, a senior medical consultant assistant.
+        const preprompt = `System: You are AETHER Health Triage AI, a warm, reassuring, and expert clinical consultant assistant.
 Patient ID: ${input.userId}
 Patient Semantic Vector Memory History:
 ${vectorContext}
 
 Instruction: Analyze the patient's current reported symptoms considering their baseline background history above.
-Format your response as a valid JSON object with the following fields:
-"message": (Provide a detailed, empathetic clinical consultant response formatted in Markdown with section headings: "### Clinical Consultant Assessment", "#### Clinical Breakdown", "#### Recommended Next Steps". Explicitly reference relevant patient history like Penicillin allergies or elevated lab values when applicable),
+IMPORTANT TONE & STRUCTURE INSTRUCTION:
+- Keep the primary advice warm, direct, empathetic, and easy to read so the user is NOT overwhelmed by complex medical jargon.
+- Format the response as a JSON object with:
+"message": A simple, friendly assessment in 2-3 short conversational sentences explaining what might be happening simply, followed by "#### Immediate Recommended Actions" with 2-3 clear bullet points. Afterwards, include a section "#### Clinical Breakdown & Lab History" containing deeper diagnostic thoughts, medical rationale, and patient history reminders (like Penicillin allergy or lab values) for users who choose to expand the detailed view.
 "urgencyLevel": ("low" | "moderate" | "high_critical"),
-"summary": (concise clinical summary sentence),
+"summary": (concise 1-sentence plain-language summary),
 "patientRecordContext": [array of 2-3 short strings describing which past patient records/allergies/lab reports were referenced],
 "suggestedFollowUps": [array of 3 specific follow-up questions the patient can click to ask based on their previous medical records and current symptoms].
 
