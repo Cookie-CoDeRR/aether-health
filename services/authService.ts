@@ -76,7 +76,14 @@ export async function signOutUser(): Promise<void> {
     if (typeof window !== "undefined") {
       localStorage.removeItem("aether_auth_active");
       localStorage.removeItem("aether_user_profile");
+      localStorage.removeItem("aether_user_name");
       localStorage.removeItem("aether_user_email");
+      localStorage.removeItem("aether_triage_chat_messages");
+      localStorage.removeItem("aether_medical_history");
+      localStorage.removeItem("aether_uploaded_reports");
+      localStorage.removeItem("aether_medications");
+      localStorage.removeItem("aether_timeline_events");
+      localStorage.removeItem("aether_onboarding_completed");
     }
   } catch (error: any) {
     console.error("Firebase Sign-Out Error:", error);

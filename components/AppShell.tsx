@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import FloatingDock from "./FloatingDock";
 import InteractiveSpotlight from "./InteractiveSpotlight";
 import AmbientNatureOverlay from "./AmbientNatureOverlay";
+import Aether3DSystemTour from "./guide/Aether3DSystemTour";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -14,8 +15,28 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  // One-time auto trigger on first login/arrival on interior pages + event listener
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hasSeenTour = localStorage.getItem("aether_onboarding_completed");
+      if (!hasSeenTour && pathname !== "/") {
+        // Small delay for smooth entry animation
+        const timer = setTimeout(() => setIsTourOpen(true), 600);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [pathname]);
+
+  // Global listener to open 3D guide on demand from anywhere (e.g. Settings, Header)
+  useEffect(() => {
+    const handleOpenTour = () => setIsTourOpen(true);
+    window.addEventListener("aether-open-guide", handleOpenTour);
+    return () => window.removeEventListener("aether-open-guide", handleOpenTour);
+  }, []);
 
   const handleOpenTriagePrompt = (initialQuery?: string) => {
     if (pathname === "/triage") {
@@ -90,6 +111,12 @@ export default function AppShell({ children }: AppShellProps) {
           onOpenTriagePrompt={handleOpenTriagePrompt}
         />
       )}
+
+      {/* 3D System Onboarding Guide Tour (One-time auto trigger on sign up/first login + revisitable) */}
+      <Aether3DSystemTour
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+      />
     </div>
   );
 }

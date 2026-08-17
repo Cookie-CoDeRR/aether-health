@@ -32,6 +32,18 @@ export default function AuthModal({
     setAuthError(null);
     setIsGoogleSubmitting(true);
     try {
+      if (typeof window !== "undefined" && tab === "signup") {
+        // Clear any old records so new user starts completely fresh with a new template
+        localStorage.removeItem("aether_triage_chat_messages");
+        localStorage.removeItem("aether_uploaded_reports");
+        localStorage.removeItem("aether_medications");
+        localStorage.removeItem("aether_timeline_events");
+        localStorage.removeItem("aether_onboarding_completed");
+        localStorage.setItem(
+          "aether_medical_history",
+          "New patient profile created. Please add your known allergies, chronic conditions, or past medical notes in Settings."
+        );
+      }
       await signInWithGmail();
       if (typeof window !== "undefined") {
         localStorage.setItem("aether_auth_active", "true");
@@ -59,6 +71,16 @@ export default function AuthModal({
     setIsSubmitting(true);
     await new Promise((r) => setTimeout(r, 400));
     if (typeof window !== "undefined") {
+      // Clear past records so new user starts completely fresh with clean template
+      localStorage.removeItem("aether_triage_chat_messages");
+      localStorage.removeItem("aether_uploaded_reports");
+      localStorage.removeItem("aether_medications");
+      localStorage.removeItem("aether_timeline_events");
+      localStorage.removeItem("aether_onboarding_completed"); // Fires 3D guide tour!
+      
+      const newTemplateHistory =
+        "New patient profile created. Please add your known allergies, chronic conditions, or past medical notes in Settings.";
+      localStorage.setItem("aether_medical_history", newTemplateHistory);
       localStorage.setItem("aether_auth_active", "true");
       if (email) {
         localStorage.setItem("aether_user_email", email);

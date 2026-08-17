@@ -131,8 +131,18 @@ export default function SettingsPage() {
           </h1>
         </div>
 
-        {/* User Identity & Sign Out Actions */}
+        {/* User Identity, 3D Guide & Sign Out Actions */}
         <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("aether-open-guide"))}
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0F241E] hover:bg-[#F9FBF9] dark:hover:bg-white/10 px-3.5 py-1.5 text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] transition-all shadow-2xs cursor-pointer min-tap-target"
+            title="Explore 3D Interactive Page Guide"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
+            <span className="hidden sm:inline">3D Guide</span>
+          </button>
+
           <div className="inline-flex items-center gap-2.5 rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/10 px-3.5 py-1.5 text-xs shadow-2xs">
             {userPhoto ? (
               <img src={userPhoto} alt={userName} className="h-6 w-6 rounded-full object-cover border border-[#064E3B]/30" />
@@ -250,6 +260,34 @@ export default function SettingsPage() {
                     Bright crisp ivory canvas with organic botanical branch styling.
                   </span>
                 </div>
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive 3D System Guide Replay Card */}
+          <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-6 space-y-4 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 text-[#064E3B] dark:text-[#10B981] shadow-xs">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-serif text-base font-bold text-[#064E3B] dark:text-[#ECFDF5]">
+                    Interactive 3D System Tour
+                  </h3>
+                  <p className="text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70 mt-0.5">
+                    Explore what each page and feature in Aether does with interactive 3D telemetry
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent("aether-open-guide"))}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] text-white dark:text-[#042F24] font-bold text-xs px-5 py-2.5 transition-all shadow-soft hover:scale-105 active:scale-95 cursor-pointer min-tap-target shrink-0"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Replay 3D Tour</span>
               </button>
             </div>
           </div>
