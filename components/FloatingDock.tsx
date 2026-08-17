@@ -259,127 +259,129 @@ function FloatingDockContent({
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="pointer-events-auto flex items-center justify-between gap-1.5 sm:gap-2.5 rounded-full bg-white/95 dark:bg-[#0B1D17]/95 backdrop-blur-2xl border border-[#064E3B]/25 dark:border-white/15 px-2 py-1.5 sm:px-3 sm:py-2 shadow-2xl ring-1 ring-[#064E3B]/10 dark:ring-white/10 text-[#064E3B] dark:text-[#ECFDF5] transition-colors duration-200"
+        className="pointer-events-auto rounded-full p-1.5 sm:p-2 bg-white/45 dark:bg-[#064E3B]/25 backdrop-blur-2xl border border-white/70 dark:border-white/20 shadow-[0_20px_50px_-10px_rgba(6,78,59,0.28)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] ring-1 ring-[#064E3B]/10 dark:ring-white/10"
       >
-        {/* Navigation Action Icons (Left side) */}
-        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-          {navItems.map((item) => {
-            // Strictly check distinct active state for discovery vs doctors tab
-            let isActive = false;
-            if (item.id === "discovery") {
-              isActive = pathname === "/discovery" && currentTab !== "doctors";
-            } else if (item.id === "doctors") {
-              isActive =
-                (pathname === "/discovery" && currentTab === "doctors") ||
-                pathname === "/doctors";
-            } else if (item.href) {
-              isActive = pathname === item.href;
-            }
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2.5 rounded-full bg-white/95 dark:bg-[#0B1D17]/95 backdrop-blur-3xl border border-[#064E3B]/20 dark:border-white/15 px-2 py-1.5 sm:px-3 sm:py-2 shadow-sm text-[#064E3B] dark:text-[#ECFDF5] transition-colors duration-200">
+          {/* Navigation Action Icons (Left side) */}
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+            {navItems.map((item) => {
+              // Strictly check distinct active state for discovery vs doctors tab
+              let isActive = false;
+              if (item.id === "discovery") {
+                isActive = pathname === "/discovery" && currentTab !== "doctors";
+              } else if (item.id === "doctors") {
+                isActive =
+                  (pathname === "/discovery" && currentTab === "doctors") ||
+                  pathname === "/doctors";
+              } else if (item.href) {
+                isActive = pathname === item.href;
+              }
 
-            const ButtonContent = (
-              <div
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
-                className={`relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all duration-150 ${
-                  isActive
-                    ? "bg-[#064E3B]/10 dark:bg-[#10B981]/20 text-[#064E3B] dark:text-[#10B981] ring-1 ring-[#064E3B]/30 dark:ring-[#10B981]/40 font-bold shadow-2xs"
-                    : "text-[#064E3B]/70 dark:text-[#A7F3D0]/70 hover:bg-[#064E3B]/5 dark:hover:bg-white/10 hover:text-[#064E3B] dark:hover:text-[#ECFDF5] hover:scale-105 active:scale-95"
-                }`}
-              >
-                <span className="scale-85 sm:scale-100">{item.icon}</span>
+              const ButtonContent = (
+                <div
+                  onMouseEnter={() => setHoveredItem(item.id)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  className={`relative flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full transition-all duration-150 ${
+                    isActive
+                      ? "bg-[#064E3B]/10 dark:bg-[#10B981]/20 text-[#064E3B] dark:text-[#10B981] ring-1 ring-[#064E3B]/30 dark:ring-[#10B981]/40 font-bold shadow-2xs"
+                      : "text-[#064E3B]/70 dark:text-[#A7F3D0]/70 hover:bg-[#064E3B]/5 dark:hover:bg-white/10 hover:text-[#064E3B] dark:hover:text-[#ECFDF5] hover:scale-105 active:scale-95"
+                  }`}
+                >
+                  <span className="scale-85 sm:scale-100">{item.icon}</span>
 
-                {/* Animated Tooltip on Hover */}
-                <AnimatePresence>
-                  {hoveredItem === item.id && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 8, scale: 0.9 }}
-                      animate={{ opacity: 1, y: -38, scale: 1 }}
-                      exit={{ opacity: 0, y: 8, scale: 0.9 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute whitespace-nowrap rounded-lg bg-[#064E3B] dark:bg-[#10B981] px-2.5 py-1 text-[11px] font-medium text-white dark:text-[#042F24] shadow-xl pointer-events-none"
-                    >
-                      {item.label}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-
-            if (item.href) {
-              return (
-                <Link key={item.id} href={item.href}>
-                  {ButtonContent}
-                </Link>
+                  {/* Animated Tooltip on Hover */}
+                  <AnimatePresence>
+                    {hoveredItem === item.id && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8, scale: 0.9 }}
+                        animate={{ opacity: 1, y: -38, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.9 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute whitespace-nowrap rounded-lg bg-[#064E3B] dark:bg-[#10B981] px-2.5 py-1 text-[11px] font-medium text-white dark:text-[#042F24] shadow-xl pointer-events-none"
+                      >
+                        {item.label}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               );
-            }
 
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={item.onClick}
-                aria-label={item.label}
-              >
-                {ButtonContent}
-              </button>
-            );
-          })}
-        </div>
+              if (item.href) {
+                return (
+                  <Link key={item.id} href={item.href}>
+                    {ButtonContent}
+                  </Link>
+                );
+              }
 
-        {/* Vertical Divider */}
-        <div className="h-5 sm:h-6 w-[1px] bg-[#064E3B]/20 dark:bg-white/15 shrink-0" />
-
-        {/* Integrated Search / Prompt Capsule Bar (Right side) */}
-        <form
-          onSubmit={handleSubmit}
-          className="flex-1 flex items-center gap-1.5 sm:gap-2 min-w-0"
-        >
-          <div className="relative flex-1 flex items-center min-w-0 group">
-            <span className="absolute left-2.5 sm:left-3 flex items-center justify-center pointer-events-none text-[#064E3B]/70 dark:text-[#10B981]">
-              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            </span>
-
-            <input
-              type="text"
-              value={inputValue}
-              onClick={handleInputClick}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Ask symptoms or navigate..."
-              className="w-full h-8 sm:h-10 rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 pl-7 sm:pl-9 pr-10 sm:pr-16 text-[11.5px] sm:text-xs text-[#064E3B] dark:text-[#ECFDF5] placeholder-[#064E3B]/50 dark:placeholder-white/40 focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981] focus:ring-1 focus:ring-[#064E3B]/20 dark:focus:ring-[#10B981]/30 transition-all truncate"
-            />
-
-            {/* Voice microphone button & shortcut tag */}
-            <div className="absolute right-1.5 sm:right-2 flex items-center gap-1">
-              <button
-                type="button"
-                onClick={toggleVoiceInput}
-                className={`p-1 rounded-full transition-colors ${
-                  isListening
-                    ? "bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] animate-pulse"
-                    : "text-[#064E3B]/60 dark:text-white/60 hover:text-[#064E3B] dark:hover:text-white"
-                }`}
-                title={isListening ? "Listening..." : "Voice input"}
-              >
-                {isListening ? (
-                  <MicOff className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                ) : (
-                  <Mic className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                )}
-              </button>
-              <kbd className="hidden md:inline-flex items-center rounded-md border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#132D26] px-1.5 py-0.5 text-[10px] font-mono text-[#064E3B]/60 dark:text-white/50 shadow-2xs">
-                ⌘K
-              </kbd>
-            </div>
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={item.onClick}
+                  aria-label={item.label}
+                >
+                  {ButtonContent}
+                </button>
+              );
+            })}
           </div>
 
-          <button
-            type="submit"
-            aria-label="Send symptom assessment or navigate"
-            className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] text-white dark:text-[#042F24] font-bold transition-all shadow-md hover:scale-105 active:scale-95 min-tap-target"
+          {/* Vertical Divider */}
+          <div className="h-5 sm:h-6 w-[1px] bg-[#064E3B]/20 dark:bg-white/15 shrink-0" />
+
+          {/* Integrated Search / Prompt Capsule Bar (Right side) */}
+          <form
+            onSubmit={handleSubmit}
+            className="flex-1 flex items-center gap-1.5 sm:gap-2 min-w-0"
           >
-            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white dark:text-[#042F24] stroke-[2.5]" />
-          </button>
-        </form>
+            <div className="relative flex-1 flex items-center min-w-0 group">
+              <span className="absolute left-2.5 sm:left-3 flex items-center justify-center pointer-events-none text-[#064E3B]/70 dark:text-[#10B981]">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              </span>
+
+              <input
+                type="text"
+                value={inputValue}
+                onClick={handleInputClick}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Ask symptoms or navigate..."
+                className="w-full h-8 sm:h-10 rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 pl-7 sm:pl-9 pr-10 sm:pr-16 text-[11.5px] sm:text-xs text-[#064E3B] dark:text-[#ECFDF5] placeholder-[#064E3B]/50 dark:placeholder-white/40 focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981] focus:ring-1 focus:ring-[#064E3B]/20 dark:focus:ring-[#10B981]/30 transition-all truncate"
+              />
+
+              {/* Voice microphone button & shortcut tag */}
+              <div className="absolute right-1.5 sm:right-2 flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={toggleVoiceInput}
+                  className={`p-1 rounded-full transition-colors ${
+                    isListening
+                      ? "bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] animate-pulse"
+                      : "text-[#064E3B]/60 dark:text-white/60 hover:text-[#064E3B] dark:hover:text-white"
+                  }`}
+                  title={isListening ? "Listening..." : "Voice input"}
+                >
+                  {isListening ? (
+                    <MicOff className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  ) : (
+                    <Mic className="w-3.5 h-3.5" />
+                  )}
+                </button>
+                <kbd className="hidden md:inline-flex items-center rounded-md border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#132D26] px-1.5 py-0.5 text-[10px] font-mono text-[#064E3B]/60 dark:text-white/50 shadow-2xs">
+                  ⌘K
+                </kbd>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              aria-label="Send symptom assessment or navigate"
+              className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] text-white dark:text-[#042F24] font-bold transition-all shadow-md hover:scale-105 active:scale-95 min-tap-target"
+            >
+              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white dark:text-[#042F24] stroke-[2.5]" />
+            </button>
+          </form>
+        </div>
       </motion.div>
     </div>
   );

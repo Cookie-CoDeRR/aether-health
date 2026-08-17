@@ -209,7 +209,7 @@ function DiscoveryContent() {
   };
 
   return (
-    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto text-[#064E3B] dark:text-[#ECFDF5] w-full pb-28 transition-colors">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto text-[#064E3B] dark:text-[#ECFDF5] w-full pb-44 sm:pb-52 transition-colors">
       {/* Top Header & Patient Context */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#064E3B]/15 dark:border-white/10 pb-4">
         <div>

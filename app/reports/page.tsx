@@ -79,7 +79,7 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto text-[#064E3B] dark:text-[#ECFDF5] w-full pb-28 transition-colors">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto text-[#064E3B] dark:text-[#ECFDF5] w-full pb-44 sm:pb-52 transition-colors">
       {/* Header & Section Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#064E3B]/15 dark:border-white/10 pb-4 gap-4">
         <div>
