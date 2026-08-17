@@ -224,25 +224,25 @@ function FloatingDockContent({
     {
       id: "menu",
       label: "Navigation Menu",
-      icon: <Menu className="w-4 h-4 text-[#064E3B]" />,
+      icon: <Menu className="w-4 h-4" />,
       onClick: onToggleMenu,
     },
     {
       id: "discovery",
       label: "Hospital Radar",
-      icon: <MapPin className="w-4 h-4 text-[#064E3B]" />,
+      icon: <MapPin className="w-4 h-4" />,
       href: "/discovery?tab=hospitals",
     },
     {
       id: "medicines",
       label: "Medication Tracker",
-      icon: <Pill className="w-4 h-4 text-[#064E3B]" />,
+      icon: <Pill className="w-4 h-4" />,
       href: "/medicines",
     },
     {
       id: "doctors",
       label: "Doctor Consultations",
-      icon: <Stethoscope className="w-4 h-4 text-[#064E3B]" />,
+      icon: <Stethoscope className="w-4 h-4" />,
       href: "/discovery?tab=doctors",
     },
   ];
