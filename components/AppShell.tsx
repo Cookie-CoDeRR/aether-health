@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import FloatingDock from "./FloatingDock";
@@ -99,8 +100,22 @@ export default function AppShell({ children }: AppShellProps) {
           sidebarOpen={sidebarOpen}
           pageTitle={pageTitle}
         />
-        <div className="flex flex-1 min-h-0 h-full overflow-hidden flex-col">
-          {children}
+        <div className="flex flex-1 min-h-0 h-full overflow-hidden flex-col relative">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0, y: 8, filter: "blur(3px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={{ opacity: 0, y: -6, filter: "blur(2px)" }}
+              transition={{
+                duration: 0.28,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="flex-1 flex flex-col h-full min-h-0 overflow-hidden"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
 
