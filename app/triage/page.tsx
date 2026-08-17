@@ -416,21 +416,21 @@ function TriageContent() {
         <TodayMedicationsCard userId={ACTIVE_PATIENT_USER_ID} />
 
         {/* Health History & Allergies Card */}
-        <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-4.5 space-y-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs">
-          <div className="flex items-center justify-between">
+        <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-5 space-y-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs overflow-hidden">
+          <div className="flex items-center justify-between gap-2 border-b border-[#064E3B]/10 dark:border-white/10 pb-2.5">
             <div className="flex items-center gap-2 font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5]">
-              <ShieldCheck className="w-4 h-4 text-[#064E3B] dark:text-[#10B981]" />
+              <ShieldCheck className="w-4 h-4 text-[#064E3B] dark:text-[#10B981] shrink-0" />
               <span>History & Allergies</span>
             </div>
             <button
               onClick={() => setIsRecordsModalOpen(true)}
-              className="text-[11px] font-bold text-[#064E3B] dark:text-[#10B981] hover:underline cursor-pointer"
+              className="text-[11px] font-bold text-[#064E3B] dark:text-[#10B981] hover:underline cursor-pointer shrink-0"
             >
               Edit History
             </button>
           </div>
 
-          <p className="text-[11.5px] text-[#064E3B]/75 dark:text-[#A7F3D0]/75 leading-snug">
+          <p className="text-xs text-[#064E3B]/80 dark:text-[#A7F3D0]/80 leading-relaxed">
             Penicillin allergy guard enabled. Baseline records are automatically cross-referenced during triage.
           </p>
         </div>
