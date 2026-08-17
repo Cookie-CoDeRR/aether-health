@@ -27,22 +27,10 @@ interface AmbientPollen {
   swayOffset: number;
 }
 
-interface CursorDust {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  radius: number;
-  life: number;
-  maxLife: number;
-  opacity: number;
-}
-
 export default function AmbientNatureOverlay() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const leavesRef = useRef<DriftingLeaf[]>([]);
   const pollenRef = useRef<AmbientPollen[]>([]);
-  const cursorDustRef = useRef<CursorDust[]>([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -118,42 +106,23 @@ export default function AmbientNatureOverlay() {
       }
     }, 11000);
 
-    // Subtle cursor dust emission on mousemove
-    let lastMoveTime = 0;
-    const handleMouseMove = (e: MouseEvent) => {
-      const now = performance.now();
-      if (now - lastMoveTime > 50 && cursorDustRef.current.length < 16) {
-        lastMoveTime = now;
-        cursorDustRef.current.push({
-          x: e.clientX + (Math.random() - 0.5) * 6,
-          y: e.clientY + (Math.random() - 0.5) * 6,
-          vx: (Math.random() - 0.5) * 0.4,
-          vy: -0.3 - Math.random() * 0.4,
-          radius: 0.9 + Math.random() * 1.0,
-          life: 0,
-          maxLife: 20 + Math.floor(Math.random() * 10),
-          opacity: 0.45 + Math.random() * 0.25,
-        });
-      }
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-
     // Draw Corner Botanical Grass Tufts (Bottom-Left & Bottom-Right)
-    const drawCornerGrass = (time: number) => {
+    const drawCornerGrass = (time: number, isDark: boolean) => {
       ctx.save();
       ctx.lineCap = "round";
 
       // 1. Bottom-Left Corner Grass Cluster
-      const leftBlades = 10;
+      const leftBlades = 12;
       for (let i = 0; i < leftBlades; i++) {
-        const bladeX = (i / leftBlades) * 110;
-        const bladeHeight = 24 + (i % 3) * 14 + Math.sin(i * 1.2) * 8;
-        const sway = Math.sin(time * 1.2 + i * 0.4) * 6;
+        const bladeX = (i / leftBlades) * 130;
+        const bladeHeight = 28 + (i % 3) * 16 + Math.sin(i * 1.2) * 10;
+        const sway = Math.sin(time * 1.2 + i * 0.4) * 8;
 
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(6, 78, 59, ${0.12 + (i % 2) * 0.08})`;
-        ctx.lineWidth = 1.3;
+        ctx.strokeStyle = isDark
+          ? `rgba(167, 243, 208, ${0.55 + (i % 2) * 0.3})`
+          : `rgba(6, 78, 59, ${0.22 + (i % 2) * 0.15})`;
+        ctx.lineWidth = isDark ? 1.6 : 1.5;
         ctx.moveTo(bladeX, height);
         ctx.quadraticCurveTo(
           bladeX + sway * 0.4,
@@ -168,19 +137,21 @@ export default function AmbientNatureOverlay() {
       ctx.beginPath();
       ctx.ellipse(32, height - 6, 8, 4, 0.2, 0, Math.PI * 2);
       ctx.ellipse(68, height - 8, 11, 5, -0.15, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(6, 78, 59, 0.1)";
+      ctx.fillStyle = isDark ? "rgba(167, 243, 208, 0.4)" : "rgba(6, 78, 59, 0.18)";
       ctx.fill();
 
       // 2. Bottom-Right Corner Grass Cluster
-      const rightBlades = 9;
+      const rightBlades = 11;
       for (let i = 0; i < rightBlades; i++) {
-        const bladeX = width - ((i / rightBlades) * 100);
-        const bladeHeight = 22 + (i % 3) * 12 + Math.cos(i * 1.4) * 7;
-        const sway = Math.sin(time * 1.1 + i * 0.5) * 5;
+        const bladeX = width - ((i / rightBlades) * 120);
+        const bladeHeight = 26 + (i % 3) * 14 + Math.cos(i * 1.4) * 9;
+        const sway = Math.sin(time * 1.1 + i * 0.5) * 7;
 
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(6, 78, 59, ${0.11 + (i % 2) * 0.07})`;
-        ctx.lineWidth = 1.3;
+        ctx.strokeStyle = isDark
+          ? `rgba(167, 243, 208, ${0.52 + (i % 2) * 0.28})`
+          : `rgba(6, 78, 59, ${0.2 + (i % 2) * 0.14})`;
+        ctx.lineWidth = isDark ? 1.6 : 1.5;
         ctx.moveTo(bladeX, height);
         ctx.quadraticCurveTo(
           bladeX + sway * 0.4,
@@ -195,16 +166,16 @@ export default function AmbientNatureOverlay() {
     };
 
     // Draw Top-Right Corner Branch & Leaves
-    const drawTopCornerFoliage = (time: number) => {
+    const drawTopCornerFoliage = (time: number, isDark: boolean) => {
       ctx.save();
-      ctx.strokeStyle = "#064E3B";
-      ctx.fillStyle = "#064E3B";
+      ctx.strokeStyle = isDark ? "#6EE7B7" : "#064E3B";
+      ctx.fillStyle = isDark ? "#6EE7B7" : "#064E3B";
       ctx.lineCap = "round";
 
       // Top-right subtle twig
       ctx.beginPath();
-      ctx.globalAlpha = 0.16;
-      ctx.lineWidth = 3.5;
+      ctx.globalAlpha = isDark ? 0.75 : 0.28;
+      ctx.lineWidth = 3.8;
       ctx.moveTo(width + 10, -5);
       ctx.bezierCurveTo(
         width - 40,
@@ -218,8 +189,8 @@ export default function AmbientNatureOverlay() {
 
       // Sub-twig fork
       ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.12;
+      ctx.lineWidth = 2.4;
+      ctx.globalAlpha = isDark ? 0.65 : 0.22;
       ctx.moveTo(width - 65, 30);
       ctx.quadraticCurveTo(width - 95, 55, width - 110, 65);
       ctx.stroke();
@@ -233,19 +204,19 @@ export default function AmbientNatureOverlay() {
       ];
 
       leafNodes.forEach((node, idx) => {
-        const sway = Math.sin(time * 1.3 + idx) * 0.15;
+        const sway = Math.sin(time * 1.3 + idx) * 0.18;
         ctx.save();
         ctx.translate(node.x, node.y);
         ctx.rotate(node.angle + sway);
-        ctx.scale(0.85, 0.85);
+        ctx.scale(0.95, 0.95);
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.bezierCurveTo(8, -7, 8, -18, 0, -24);
-        ctx.bezierCurveTo(-8, -18, -8, -7, 0, 0);
-        ctx.fillStyle = "rgba(6, 78, 59, 0.28)";
-        ctx.strokeStyle = "#064E3B";
-        ctx.lineWidth = 1.1;
+        ctx.bezierCurveTo(9, -8, 9, -20, 0, -26);
+        ctx.bezierCurveTo(-9, -20, -9, -8, 0, 0);
+        ctx.fillStyle = isDark ? "rgba(167, 243, 208, 0.65)" : "rgba(6, 78, 59, 0.45)";
+        ctx.strokeStyle = isDark ? "#D1FAE5" : "#064E3B";
+        ctx.lineWidth = 1.4;
         ctx.fill();
         ctx.stroke();
 
@@ -256,15 +227,15 @@ export default function AmbientNatureOverlay() {
     };
 
     // Draw Drifting Leaves
-    const drawDriftingLeaves = (time: number) => {
+    const drawDriftingLeaves = (time: number, isDark: boolean) => {
       ctx.save();
       const leaves = leavesRef.current;
       for (let i = leaves.length - 1; i >= 0; i--) {
         const l = leaves[i];
         l.life++;
-        l.x += l.vx + Math.sin(time * l.swaySpeed + l.swayOffset) * 1.6;
+        l.x += l.vx + Math.sin(time * l.swaySpeed + l.swayOffset) * 1.8;
         l.y += l.vy;
-        l.rotation += l.angularVelocity + Math.sin(time * 2) * 0.02;
+        l.rotation += l.angularVelocity + Math.sin(time * 2) * 0.03;
 
         const progress = l.life / l.maxLife;
         const currentOpacity = l.opacity * (progress > 0.8 ? (1 - progress) * 5 : 1);
@@ -281,19 +252,25 @@ export default function AmbientNatureOverlay() {
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.bezierCurveTo(8, -8, 9, -20, 0, -26);
-        ctx.bezierCurveTo(-9, -20, -8, -8, 0, 0);
-        ctx.fillStyle = `rgba(6, 78, 59, ${currentOpacity * 0.85})`;
-        ctx.strokeStyle = `rgba(6, 78, 59, ${currentOpacity})`;
-        ctx.lineWidth = 1.2;
+        ctx.bezierCurveTo(9, -9, 10, -22, 0, -28);
+        ctx.bezierCurveTo(-10, -22, -9, -9, 0, 0);
+        ctx.fillStyle = isDark
+          ? `rgba(167, 243, 208, ${currentOpacity * 0.85})`
+          : `rgba(6, 78, 59, ${currentOpacity * 0.85})`;
+        ctx.strokeStyle = isDark
+          ? `rgba(209, 250, 229, ${currentOpacity * 0.95})`
+          : `rgba(6, 78, 59, ${currentOpacity})`;
+        ctx.lineWidth = 1.4;
         ctx.fill();
         ctx.stroke();
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(0, -22);
-        ctx.strokeStyle = `rgba(6, 78, 59, ${currentOpacity * 0.6})`;
-        ctx.lineWidth = 0.8;
+        ctx.lineTo(0, -24);
+        ctx.strokeStyle = isDark
+          ? `rgba(255, 255, 255, ${currentOpacity * 0.9})`
+          : `rgba(6, 78, 59, ${currentOpacity * 0.7})`;
+        ctx.lineWidth = 1.0;
         ctx.stroke();
 
         ctx.restore();
@@ -301,48 +278,25 @@ export default function AmbientNatureOverlay() {
       ctx.restore();
     };
 
-    // Draw Ambient Pollen
-    const drawPollen = (time: number) => {
+    // Draw Ambient Pollen / Spores
+    const drawPollen = (time: number, isDark: boolean) => {
       ctx.save();
+
       pollenRef.current.forEach((p) => {
         p.y -= p.speedY;
-        p.x += Math.sin(time * 0.8 + p.swayOffset) * 0.35 + p.speedX;
+        p.x += Math.sin(time * 0.8 + p.swayOffset) * 0.45 + p.speedX;
 
         if (p.y < -10) p.y = height + 10;
         if (p.x < -10) p.x = width + 10;
         if (p.x > width + 10) p.x = -10;
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(6, 78, 59, ${p.opacity})`;
+        ctx.arc(p.x, p.y, isDark ? p.radius * 1.1 : p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = isDark
+          ? `rgba(167, 243, 208, ${Math.min(0.7, p.opacity * 2.2)})`
+          : `rgba(6, 78, 59, ${Math.min(1, p.opacity * 2.2)})`;
         ctx.fill();
       });
-      ctx.restore();
-    };
-
-    // Draw Cursor Dust Trail
-    const drawCursorDust = () => {
-      ctx.save();
-      const dust = cursorDustRef.current;
-      for (let i = dust.length - 1; i >= 0; i--) {
-        const d = dust[i];
-        d.life++;
-        d.x += d.vx;
-        d.y += d.vy;
-
-        const progress = d.life / d.maxLife;
-        const currentOpacity = d.opacity * (1 - progress);
-
-        if (d.life >= d.maxLife || currentOpacity <= 0) {
-          dust.splice(i, 1);
-          continue;
-        }
-
-        ctx.beginPath();
-        ctx.arc(d.x, d.y, d.radius * (1 - progress * 0.4), 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(6, 78, 59, ${currentOpacity * 0.7})`;
-        ctx.fill();
-      }
       ctx.restore();
     };
 
@@ -352,11 +306,12 @@ export default function AmbientNatureOverlay() {
       time += 0.025;
       ctx.clearRect(0, 0, width, height);
 
-      drawCornerGrass(time);
-      drawTopCornerFoliage(time);
-      drawPollen(time);
-      drawDriftingLeaves(time);
-      drawCursorDust();
+      const isDark = document.documentElement.classList.contains("dark");
+
+      drawCornerGrass(time, isDark);
+      drawTopCornerFoliage(time, isDark);
+      drawPollen(time, isDark);
+      drawDriftingLeaves(time, isDark);
 
       animationFrameId = requestAnimationFrame(render);
     };
@@ -365,7 +320,6 @@ export default function AmbientNatureOverlay() {
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
       clearInterval(leafInterval);
       cancelAnimationFrame(animationFrameId);
     };
@@ -374,7 +328,7 @@ export default function AmbientNatureOverlay() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0 select-none opacity-90"
+      className="fixed inset-0 pointer-events-none z-0 select-none opacity-95 dark:opacity-90 transition-opacity duration-300"
       aria-hidden="true"
     />
   );

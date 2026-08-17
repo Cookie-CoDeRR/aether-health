@@ -33,10 +33,10 @@ export default function AppShell({ children }: AppShellProps) {
     }
   };
 
-  // Root landing / greet page is standalone full-screen view (NO floating dock)
+  // Root landing / greet page is standalone full-screen view (NO floating dock) - strictly isolated in light theme
   if (pathname === "/") {
     return (
-      <div className="relative min-h-screen bg-white text-[#064E3B] font-sans antialiased overflow-x-hidden">
+      <div className="light relative min-h-screen bg-white text-[#064E3B] font-sans antialiased overflow-x-hidden">
         <InteractiveSpotlight />
         <div className="relative z-10">{children}</div>
       </div>
@@ -57,11 +57,11 @@ export default function AppShell({ children }: AppShellProps) {
     pageTitle = "System Operations";
   }
 
-  // Floating dock is everywhere EXCEPT greet page ("/") and profile page ("/settings")
-  const showFloatingDock = pathname !== "/" && pathname !== "/settings";
+  // Floating dock is shown on all screens EXCEPT root greet page ("/")
+  const showFloatingDock = pathname !== "/";
 
   return (
-    <div className="relative flex h-screen max-h-screen w-full bg-white text-[#064E3B] font-sans antialiased overflow-hidden selection:bg-[#064E3B] selection:text-white">
+    <div className="relative flex h-screen max-h-screen w-full bg-white dark:bg-[#081511] text-[#064E3B] dark:text-[#ECFDF5] font-sans antialiased overflow-hidden selection:bg-[#064E3B] selection:text-white dark:selection:bg-[#10B981] dark:selection:text-[#042F24] transition-colors duration-200">
       {/* Ambient Nature Atmosphere Layer (Corner Grass, Top Twig, Pollen & Wind-Blown Leaves) */}
       <AmbientNatureOverlay />
 

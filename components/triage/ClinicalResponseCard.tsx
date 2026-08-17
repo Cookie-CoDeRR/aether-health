@@ -26,28 +26,28 @@ export default function ClinicalResponseCard({
   const paragraphs = cleanText.split(/\n\n+/).filter((p) => p.trim().length > 0);
 
   return (
-    <div className="space-y-4 text-sm leading-relaxed text-[#064E3B]">
+    <div className="space-y-4 text-sm leading-relaxed text-[#064E3B] dark:text-[#ECFDF5]">
       {/* Top Banner & Urgency Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#064E3B]/15 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#064E3B]/15 dark:border-white/10 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#064E3B] text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24]">
             <Stethoscope className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-serif text-base font-bold text-[#064E3B]">
+            <h3 className="font-serif text-base font-bold text-[#064E3B] dark:text-[#ECFDF5]">
               Clinical Care Summary
             </h3>
-            <p className="text-[11px] text-[#064E3B]/70 font-medium">
+            <p className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium">
               Assessed by Aether Health Assistant
             </p>
           </div>
         </div>
 
-        <span className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs border border-[#064E3B]/30 bg-[#F9FBF9] text-[#064E3B]">
+        <span className="rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs border border-[#064E3B]/30 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] text-[#064E3B] dark:text-[#ECFDF5]">
           {urgencyLevel === "high_critical" ? (
-            <AlertTriangle className="w-3.5 h-3.5" />
+            <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
           ) : (
-            <CheckCircle2 className="w-3.5 h-3.5" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
           )}
           <span>
             {urgencyLevel === "high_critical"
@@ -61,17 +61,17 @@ export default function ClinicalResponseCard({
 
       {/* Applied Patient Records Context Pill */}
       {patientRecordContext && patientRecordContext.length > 0 && (
-        <div className="rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] p-3.5 space-y-2 text-xs">
+        <div className="rounded-xl border border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-3.5 space-y-2 text-xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 font-bold text-[#064E3B]">
-              <FileText className="w-4 h-4 text-[#064E3B]" />
+            <div className="flex items-center gap-1.5 font-bold text-[#064E3B] dark:text-[#ECFDF5]">
+              <FileText className="w-4 h-4 text-[#064E3B] dark:text-[#10B981]" />
               <span>Cross-Referenced Medical History ({patientRecordContext.length})</span>
             </div>
 
             {onOpenManageRecords && (
               <button
                 onClick={onOpenManageRecords}
-                className="rounded-lg bg-white border border-[#064E3B]/25 hover:bg-[#064E3B] hover:text-white text-[#064E3B] font-bold px-2.5 py-1 text-[11px] transition-all shadow-2xs"
+                className="rounded-lg bg-white dark:bg-[#132D26] border border-[#064E3B]/25 dark:border-white/15 hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] text-[#064E3B] dark:text-[#ECFDF5] font-bold px-2.5 py-1 text-[11px] transition-all shadow-2xs"
               >
                 Manage History
               </button>
@@ -82,7 +82,7 @@ export default function ClinicalResponseCard({
             {patientRecordContext.map((item, idx) => (
               <span
                 key={idx}
-                className="rounded-full border border-[#064E3B]/20 bg-white px-2.5 py-0.5 text-[11px] text-[#064E3B] font-semibold"
+                className="rounded-full border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#132D26] px-2.5 py-0.5 text-[11px] text-[#064E3B] dark:text-[#A7F3D0] font-semibold"
               >
                 {item}
               </span>
@@ -108,12 +108,12 @@ export default function ClinicalResponseCard({
             return (
               <div
                 key={idx}
-                className="rounded-xl border border-[#064E3B]/15 bg-[#F9FBF9] p-4 space-y-2"
+                className="rounded-xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-4 space-y-2"
               >
-                <h4 className="font-bold text-sm text-[#064E3B] border-b border-[#064E3B]/15 pb-1.5">
+                <h4 className="font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5] border-b border-[#064E3B]/15 dark:border-white/10 pb-1.5">
                   {headingTitle}
                 </h4>
-                <div className="text-xs text-[#064E3B]/85 leading-relaxed whitespace-pre-wrap">
+                <div className="text-xs text-[#064E3B]/85 dark:text-[#ECFDF5]/85 leading-relaxed whitespace-pre-wrap">
                   {bodyLines}
                 </div>
               </div>
@@ -121,8 +121,8 @@ export default function ClinicalResponseCard({
           }
 
           return (
-            <p key={idx} className="text-xs sm:text-[13.5px] text-[#064E3B]/90 leading-relaxed">
-              {p.replace(/\*\*/g, "")}
+            <p key={idx} className="whitespace-pre-wrap leading-relaxed">
+              {p}
             </p>
           );
         })}

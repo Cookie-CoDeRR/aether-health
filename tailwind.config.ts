@@ -23,6 +23,17 @@ const config: Config = {
           border: "rgba(6, 78, 59, 0.12)",
           hover: "rgba(6, 78, 59, 0.04)",
         },
+        dark: {
+          bg: "#081511",
+          surface: "#0B1D17",
+          card: "#0F241E",
+          cardHover: "#132D26",
+          border: "rgba(255, 255, 255, 0.08)",
+          borderSubtle: "rgba(16, 185, 129, 0.15)",
+          text: "#ECFDF5",
+          textMuted: "#6EE7B7",
+          textSubtle: "rgba(236, 253, 245, 0.6)",
+        },
       },
       fontFamily: {
         serif: ["Newsreader", "Georgia", "serif"],

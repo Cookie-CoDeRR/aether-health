@@ -253,8 +253,8 @@ export default function TriageNatureBackground() {
       ctx.restore();
     };
 
-    // Draw Leaping Ink Fish
-    const drawFish = () => {
+    // Draw Leaping Ink / Clean Bioluminescent Fish
+    const drawFish = (isDark: boolean) => {
       const f = fishRef.current;
       if (!f.active) return;
 
@@ -270,9 +270,9 @@ export default function TriageNatureBackground() {
       ctx.rotate(angle);
       ctx.scale(f.scale * direction, f.scale);
 
-      ctx.fillStyle = "rgba(6, 78, 59, 0.85)";
-      ctx.strokeStyle = "#064E3B";
-      ctx.lineWidth = 1.2;
+      ctx.fillStyle = isDark ? "rgba(52, 211, 153, 0.95)" : "rgba(6, 78, 59, 0.85)";
+      ctx.strokeStyle = isDark ? "#A7F3D0" : "#064E3B";
+      ctx.lineWidth = 1.4;
 
       ctx.beginPath();
       ctx.moveTo(13, 0);
@@ -287,29 +287,32 @@ export default function TriageNatureBackground() {
       ctx.lineTo(-20, -5);
       ctx.quadraticCurveTo(-17, 0, -20, 5);
       ctx.closePath();
-      ctx.fillStyle = "rgba(6, 78, 59, 0.65)";
+      ctx.fillStyle = isDark ? "rgba(110, 231, 183, 0.8)" : "rgba(6, 78, 59, 0.65)";
       ctx.fill();
       ctx.stroke();
 
       // Eye
-      ctx.fillStyle = "#FFFFFF";
+      ctx.fillStyle = isDark ? "#ECFDF5" : "#FFFFFF";
       ctx.beginPath();
-      ctx.arc(8, -1.8, 1.2, 0, Math.PI * 2);
+      ctx.arc(8, -1.8, 1.4, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.restore();
     };
 
     // Draw Water Ripples
-    const drawRipples = () => {
+    const drawRipples = (isDark: boolean) => {
       ctx.save();
+
       ripplesRef.current.forEach((r, idx) => {
         r.radius += 0.7;
         r.opacity *= 0.94;
 
         ctx.beginPath();
-        ctx.strokeStyle = `rgba(6, 78, 59, ${r.opacity})`;
-        ctx.lineWidth = 1.1;
+        ctx.strokeStyle = isDark
+          ? `rgba(167, 243, 208, ${r.opacity * 1.2})`
+          : `rgba(6, 78, 59, ${r.opacity})`;
+        ctx.lineWidth = isDark ? 1.4 : 1.1;
         ctx.ellipse(r.x, r.y, r.radius, r.radius * 0.35, 0, 0, Math.PI * 2);
         ctx.stroke();
 
@@ -321,10 +324,11 @@ export default function TriageNatureBackground() {
     };
 
     // Draw Small Wind Gust Streaks
-    const drawWind = () => {
+    const drawWind = (isDark: boolean) => {
       ctx.save();
-      ctx.strokeStyle = "rgba(6, 78, 59, 0.35)";
-      ctx.lineWidth = 1.1;
+
+      ctx.strokeStyle = isDark ? "rgba(167, 243, 208, 0.45)" : "rgba(6, 78, 59, 0.35)";
+      ctx.lineWidth = isDark ? 1.4 : 1.1;
 
       for (let i = windRef.current.length - 1; i >= 0; i--) {
         const w = windRef.current[i];
@@ -353,7 +357,7 @@ export default function TriageNatureBackground() {
     };
 
     // Draw Drifting Leaves
-    const drawLeaves = (time: number) => {
+    const drawLeaves = (time: number, isDark: boolean) => {
       ctx.save();
       const leaves = leavesRef.current;
       for (let i = leaves.length - 1; i >= 0; i--) {
@@ -381,17 +385,23 @@ export default function TriageNatureBackground() {
         ctx.moveTo(0, 0);
         ctx.bezierCurveTo(8, -8, 9, -20, 0, -26);
         ctx.bezierCurveTo(-9, -20, -8, -8, 0, 0);
-        ctx.fillStyle = `rgba(6, 78, 59, ${currentOpacity * 0.75})`;
-        ctx.strokeStyle = `rgba(6, 78, 59, ${currentOpacity})`;
-        ctx.lineWidth = 1.2;
+        ctx.fillStyle = isDark
+          ? `rgba(167, 243, 208, ${currentOpacity * 0.85})`
+          : `rgba(6, 78, 59, ${currentOpacity * 0.75})`;
+        ctx.strokeStyle = isDark
+          ? `rgba(209, 250, 229, ${currentOpacity * 0.95})`
+          : `rgba(6, 78, 59, ${currentOpacity})`;
+        ctx.lineWidth = 1.3;
         ctx.fill();
         ctx.stroke();
 
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(0, -22);
-        ctx.strokeStyle = `rgba(6, 78, 59, ${currentOpacity * 0.6})`;
-        ctx.lineWidth = 0.8;
+        ctx.strokeStyle = isDark
+          ? `rgba(255, 255, 255, ${currentOpacity * 0.85})`
+          : `rgba(6, 78, 59, ${currentOpacity * 0.6})`;
+        ctx.lineWidth = 0.9;
         ctx.stroke();
 
         ctx.restore();
@@ -405,7 +415,9 @@ export default function TriageNatureBackground() {
       time += 0.025;
       ctx.clearRect(0, 0, width, height);
 
-      // 1. Spores
+      const isDark = document.documentElement.classList.contains("dark");
+
+      // 1. Spores / Calm non-glowing particles
       sporesRef.current.forEach((spore) => {
         spore.y -= spore.speedY;
         spore.x += Math.sin(time * 0.8 + spore.swayOffset) * 0.35 + spore.speedX;
@@ -414,17 +426,18 @@ export default function TriageNatureBackground() {
         if (spore.x > width + 10) spore.x = -10;
 
         ctx.beginPath();
-        ctx.arc(spore.x, spore.y, spore.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(6, 78, 59, ${spore.opacity})`;
+        ctx.arc(spore.x, spore.y, isDark ? spore.radius * 1.1 : spore.radius, 0, Math.PI * 2);
+        ctx.fillStyle = isDark
+          ? `rgba(167, 243, 208, ${Math.min(0.6, spore.opacity * 2.2)})`
+          : `rgba(6, 78, 59, ${spore.opacity})`;
         ctx.fill();
       });
 
       drawGrassAndPebbles(time);
-      drawRipples();
-      drawFish();
-      drawWind();
-      drawLeaves(time);
-
+      drawRipples(isDark);
+      drawFish(isDark);
+      drawWind(isDark);
+      drawLeaves(time, isDark);
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -446,7 +459,7 @@ export default function TriageNatureBackground() {
     >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 pointer-events-auto cursor-default"
+        className="absolute inset-0 pointer-events-auto cursor-default opacity-95 dark:opacity-95 transition-opacity duration-300"
       />
     </div>
   );

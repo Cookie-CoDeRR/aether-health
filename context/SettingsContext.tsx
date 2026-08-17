@@ -48,10 +48,25 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const savedName = localStorage.getItem("aether_user_name");
     const savedHistory = localStorage.getItem("aether_medical_history");
 
+    const applyTheme = (t: "dark" | "light") => {
+      if (t === "dark") {
+        document.documentElement.classList.add("dark");
+        document.documentElement.classList.remove("light");
+        document.body.classList.add("dark");
+        document.body.classList.remove("light");
+      } else {
+        document.documentElement.classList.add("light");
+        document.documentElement.classList.remove("dark");
+        document.body.classList.add("light");
+        document.body.classList.remove("dark");
+      }
+    };
+
     if (savedTheme) {
       setThemeState(savedTheme);
-      document.documentElement.classList.toggle("light", savedTheme === "light");
-      document.body.classList.toggle("light", savedTheme === "light");
+      applyTheme(savedTheme);
+    } else {
+      applyTheme("dark");
     }
     if (savedLang) {
       setLanguageState(savedLang);
@@ -86,8 +101,17 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const setTheme = (newTheme: "dark" | "light") => {
     setThemeState(newTheme);
     localStorage.setItem("aether_theme", newTheme);
-    document.documentElement.classList.toggle("light", newTheme === "light");
-    document.body.classList.toggle("light", newTheme === "light");
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      document.documentElement.classList.remove("light");
+      document.body.classList.add("dark");
+      document.body.classList.remove("light");
+    } else {
+      document.documentElement.classList.add("light");
+      document.documentElement.classList.remove("dark");
+      document.body.classList.add("light");
+      document.body.classList.remove("dark");
+    }
   };
 
   const setLanguage = (newLang: SupportedLanguage) => {

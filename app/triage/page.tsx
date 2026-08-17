@@ -155,7 +155,7 @@ function TriageContent() {
   const firstName = userName ? userName.split(" ")[0] : "Alex";
 
   return (
-    <div className="relative flex flex-1 h-full min-h-0 divide-x divide-[#064E3B]/15 font-sans text-[#064E3B] bg-transparent overflow-hidden">
+    <div className="relative flex flex-1 h-full min-h-0 divide-x divide-[#064E3B]/15 dark:divide-white/10 font-sans text-[#064E3B] dark:text-[#ECFDF5] bg-transparent overflow-hidden">
       {/* Patient Record Management Modal */}
       <PatientRecordsModal
         userId={ACTIVE_PATIENT_USER_ID}
@@ -170,15 +170,15 @@ function TriageContent() {
 
         {/* Top Control Bar (Visible when conversation is active) */}
         {messages.length > 0 && (
-          <div className="relative z-10 shrink-0 flex items-center justify-between px-6 py-3 border-b border-[#064E3B]/15 bg-[#F9FBF9]/90 backdrop-blur-xs text-xs">
-            <div className="flex items-center gap-2 font-bold text-[#064E3B]">
-              <Sparkles className="w-4 h-4 text-[#064E3B]" />
+          <div className="relative z-10 shrink-0 flex items-center justify-between px-6 py-3 border-b border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9]/90 dark:bg-[#0B1D17]/90 backdrop-blur-xs text-xs">
+            <div className="flex items-center gap-2 font-bold text-[#064E3B] dark:text-[#ECFDF5]">
+              <Sparkles className="w-4 h-4 text-[#064E3B] dark:text-[#10B981]" />
               <span>Active Consultation • Aether Clinical AI</span>
             </div>
 
             <button
               onClick={handleResetChat}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#064E3B]/20 bg-white px-3 py-1.5 font-bold text-[#064E3B] hover:bg-[#064E3B]/5 transition-all shadow-2xs"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0F241E] px-3 py-1.5 font-bold text-[#064E3B] dark:text-[#ECFDF5] hover:bg-[#064E3B]/5 dark:hover:bg-white/10 transition-all shadow-2xs min-tap-target cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>New Assessment</span>
@@ -193,45 +193,45 @@ function TriageContent() {
             <div className="max-w-2xl mx-auto space-y-7 py-4 animate-fade-in">
               {/* Header Badge & Patient Greeting */}
               <div className="space-y-3 text-center sm:text-left">
-                <div className="inline-flex items-center gap-2 rounded-full bg-[#F9FBF9] border border-[#064E3B]/25 px-3.5 py-1 text-xs font-bold text-[#064E3B] shadow-2xs">
-                  <Sparkles className="w-3.5 h-3.5 text-[#064E3B]" />
+                <div className="inline-flex items-center gap-2 rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/25 dark:border-white/15 px-3.5 py-1 text-xs font-bold text-[#064E3B] dark:text-[#A7F3D0] shadow-2xs">
+                  <Sparkles className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
                   <span>Clinical Health Assistant • Real-Time Triage</span>
                 </div>
 
-                <h1 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-[#064E3B] leading-[1.12]">
+                <h1 className="font-serif text-3xl sm:text-5xl font-bold tracking-tight text-[#064E3B] dark:text-[#ECFDF5] leading-[1.12]">
                   Hello {firstName}, <br />
                   <span>how are you feeling today?</span>
                 </h1>
 
-                <p className="text-xs sm:text-sm text-[#064E3B]/80 leading-relaxed max-w-lg font-normal">
+                <p className="text-xs sm:text-sm text-[#064E3B]/80 dark:text-[#A7F3D0]/80 leading-relaxed max-w-lg font-normal">
                   Ask any health doubt or describe what you feel in the bottom bar. Aether cross-checks your records and known allergies for immediate clinical care advice.
                 </p>
               </div>
 
               {/* Clean Inline Health Context Separator Line */}
-              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-semibold text-[#064E3B]">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 px-3 py-1 text-[11.5px]">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#064E3B]" />
+              <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs font-semibold text-[#064E3B] dark:text-[#ECFDF5]">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 px-3 py-1 text-[11.5px]">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
                   Penicillin Guard
                 </span>
-                <span className="text-[#064E3B]/30 font-bold">•</span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 px-3 py-1 text-[11.5px]">
-                  <FileText className="w-3.5 h-3.5 text-[#064E3B]" />
+                <span className="text-[#064E3B]/30 dark:text-white/20 font-bold">•</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 px-3 py-1 text-[11.5px]">
+                  <FileText className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
                   CBC Panel Normal
                 </span>
-                <span className="text-[#064E3B]/30 font-bold">•</span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 px-3 py-1 text-[11.5px]">
-                  <Pill className="w-3.5 h-3.5 text-[#064E3B]" />
+                <span className="text-[#064E3B]/30 dark:text-white/20 font-bold">•</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 px-3 py-1 text-[11.5px]">
+                  <Pill className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
                   2/3 Doses Taken
                 </span>
               </div>
 
               {/* Clean Divider Line */}
-              <div className="w-full h-[1px] bg-[#064E3B]/10 my-2" />
+              <div className="w-full h-[1px] bg-[#064E3B]/10 dark:bg-white/10 my-2" />
 
               {/* Concise 1-2 Word Quick Health Prompts */}
               <div className="space-y-3 pt-1">
-                <div className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/60">
+                <div className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/60 dark:text-white/50">
                   Quick Topics to Explore
                 </div>
 
@@ -240,7 +240,7 @@ function TriageContent() {
                     <button
                       key={idx}
                       onClick={() => handleSend(item.query)}
-                      className="group inline-flex items-center gap-1.5 rounded-full border border-[#064E3B]/20 bg-white hover:bg-[#064E3B] hover:text-white px-3.5 py-1.5 text-xs font-semibold text-[#064E3B] transition-all shadow-2xs hover:scale-105 active:scale-95"
+                      className="group inline-flex items-center gap-1.5 rounded-full border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0F241E] hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] px-3.5 py-1.5 text-xs font-semibold text-[#064E3B] dark:text-[#ECFDF5] transition-all shadow-2xs hover:scale-105 active:scale-95"
                     >
                       <span>{item.label}</span>
                       <span className="text-[10.5px] opacity-50 group-hover:opacity-100 transition-opacity">
@@ -264,8 +264,8 @@ function TriageContent() {
                     <div
                       className={`max-w-[96%] sm:max-w-[88%] rounded-2xl p-4 sm:p-5 text-sm leading-relaxed shadow-xs ${
                         msg.sender === "user"
-                          ? "bg-[#064E3B] text-white rounded-br-xs font-medium"
-                          : "bg-white text-[#064E3B] border border-[#064E3B]/20 rounded-bl-xs space-y-3"
+                          ? "bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] rounded-br-xs font-medium"
+                          : "bg-white dark:bg-[#0B1D17] text-[#064E3B] dark:text-[#ECFDF5] border border-[#064E3B]/20 dark:border-white/15 rounded-bl-xs space-y-3"
                       }`}
                     >
                       {msg.sender === "user" ? (
@@ -285,9 +285,9 @@ function TriageContent() {
                   {msg.sender === "ai" &&
                     msg.suggestedFollowUps &&
                     msg.suggestedFollowUps.length > 0 && (
-                      <div className="max-w-[96%] sm:max-w-[88%] rounded-2xl border border-[#064E3B]/20 bg-white p-4 space-y-2.5 shadow-xs">
-                        <div className="text-xs font-bold text-[#064E3B] flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-[#064E3B]" />
+                      <div className="max-w-[96%] sm:max-w-[88%] rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-4 space-y-2.5 shadow-xs">
+                        <div className="text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
                           <span>Helpful follow-up questions:</span>
                         </div>
                         <div className="flex flex-col gap-1.5">
@@ -295,7 +295,7 @@ function TriageContent() {
                             <button
                               key={idx}
                               onClick={() => handleSend(promptText)}
-                              className="text-left rounded-xl border border-[#064E3B]/15 bg-[#F9FBF9] hover:bg-[#064E3B] hover:text-white p-3 text-xs text-[#064E3B] font-semibold transition-all"
+                              className="text-left rounded-xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] p-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] font-semibold transition-all"
                             >
                               👉 {promptText}
                             </button>
@@ -308,22 +308,22 @@ function TriageContent() {
                   {msg.sender === "ai" &&
                     msg.specialties &&
                     msg.specialties.length > 0 && (
-                      <div className="max-w-[96%] sm:max-w-[88%] rounded-2xl border border-[#064E3B]/20 bg-white p-4 space-y-3 shadow-xs">
-                        <div className="text-sm font-bold text-[#064E3B] flex items-center gap-2">
-                          <Stethoscope className="w-4 h-4 text-[#064E3B]" />
+                      <div className="max-w-[96%] sm:max-w-[88%] rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-4 space-y-3 shadow-xs">
+                        <div className="text-sm font-bold text-[#064E3B] dark:text-[#ECFDF5] flex items-center gap-2">
+                          <Stethoscope className="w-4 h-4 text-[#064E3B] dark:text-[#10B981]" />
                           <span>Recommended Specialist Care:</span>
                         </div>
                         <div className="grid gap-2.5 sm:grid-cols-2">
                           {msg.specialties.map((spec, idx) => (
                             <div
                               key={idx}
-                              className="rounded-xl border border-[#064E3B]/15 bg-[#F9FBF9] p-3.5 space-y-1.5 flex flex-col justify-between"
+                              className="rounded-xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-3.5 space-y-1.5 flex flex-col justify-between"
                             >
                               <div>
-                                <div className="font-bold text-sm text-[#064E3B]">
+                                <div className="font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5]">
                                   {spec.specialty}
                                 </div>
-                                <p className="text-xs text-[#064E3B]/70 leading-snug mt-0.5">
+                                <p className="text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70 leading-snug mt-0.5">
                                   {spec.reasoning}
                                 </p>
                               </div>
@@ -331,7 +331,7 @@ function TriageContent() {
                                 href={`/discovery?specialty=${encodeURIComponent(
                                   spec.specialty
                                 )}`}
-                                className="inline-flex items-center gap-1 text-xs font-bold text-[#064E3B] hover:underline pt-1.5"
+                                className="inline-flex items-center gap-1 text-xs font-bold text-[#064E3B] dark:text-[#10B981] hover:underline pt-1.5"
                               >
                                 <span>Find {spec.specialty} Doctors</span>
                                 <ArrowRight className="w-3 h-3" />
@@ -347,12 +347,12 @@ function TriageContent() {
                     msg.urgencyLevel === "high_critical" &&
                     msg.emergencyGuidance &&
                     !msg.acknowledged && (
-                      <div className="rounded-2xl border border-[#064E3B]/30 bg-[#F9FBF9] p-5 space-y-3 text-xs text-[#064E3B] shadow-md">
-                        <div className="font-bold text-sm text-[#064E3B] flex items-center gap-2">
+                      <div className="rounded-2xl border border-rose-500/40 bg-rose-50 dark:bg-rose-950/40 p-5 space-y-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-md">
+                        <div className="font-bold text-sm text-rose-600 dark:text-rose-400 flex items-center gap-2">
                           <AlertTriangle className="w-5 h-5" />
                           <span>{msg.emergencyGuidance.title}</span>
                         </div>
-                        <p className="leading-relaxed text-[#064E3B]/80">
+                        <p className="leading-relaxed text-[#064E3B]/80 dark:text-rose-200">
                           {msg.emergencyGuidance.message}
                         </p>
                         <div className="flex flex-wrap gap-2 pt-1">
@@ -360,7 +360,7 @@ function TriageContent() {
                             <a
                               key={idx}
                               href={`tel:${num}`}
-                              className="rounded-xl bg-[#064E3B] text-white px-3.5 py-1.5 font-bold text-xs flex items-center gap-1 shadow-xs hover:bg-[#043327]"
+                              className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 font-bold text-xs flex items-center gap-1 shadow-xs"
                             >
                               <span>📞 Call {num}</span>
                             </a>
@@ -369,7 +369,7 @@ function TriageContent() {
                         <div className="pt-2 flex justify-end">
                           <button
                             onClick={() => handleAcknowledge(msg.id)}
-                            className="rounded-xl bg-[#064E3B] text-white font-bold px-4 py-2 text-xs transition-colors hover:bg-[#043327]"
+                            className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold px-4 py-2 text-xs transition-colors"
                           >
                             ✓ I Acknowledge & Understand
                           </button>
@@ -379,7 +379,7 @@ function TriageContent() {
 
                   {/* Medical Disclaimer */}
                   {msg.sender === "ai" && msg.disclaimer && (
-                    <p className="text-[11px] text-[#064E3B]/60 italic px-2">
+                    <p className="text-[11px] text-[#064E3B]/60 dark:text-white/40 italic px-2">
                       ℹ️ {msg.disclaimer}
                     </p>
                   )}
@@ -390,15 +390,15 @@ function TriageContent() {
 
           {isLoading && (
             <div className="flex justify-start max-w-3xl mx-auto py-2">
-              <div className="rounded-2xl bg-[#F9FBF9] border border-[#064E3B]/20 px-4 py-3 text-xs text-[#064E3B] flex items-center gap-2.5 shadow-xs font-semibold">
-                <div className="h-2 w-2 rounded-full bg-[#064E3B] animate-ping" />
+              <div className="rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 px-4 py-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] flex items-center gap-2.5 shadow-xs font-semibold">
+                <div className="h-2 w-2 rounded-full bg-[#064E3B] dark:bg-[#10B981] animate-ping" />
                 <span>Aether health assistant is evaluating symptoms...</span>
               </div>
             </div>
           )}
 
           {errorMessage && (
-            <div className="rounded-2xl border border-[#064E3B]/30 bg-[#F9FBF9] p-4 text-xs text-[#064E3B] font-bold flex justify-between items-center max-w-3xl mx-auto shadow-xs">
+            <div className="rounded-2xl border border-rose-500/40 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs text-rose-700 dark:text-rose-300 font-bold flex justify-between items-center max-w-3xl mx-auto shadow-xs">
               <span>{errorMessage}</span>
               <button onClick={() => setErrorMessage(null)} className="font-bold underline">
                 Dismiss
@@ -411,60 +411,60 @@ function TriageContent() {
       </section>
 
       {/* ---------- RIGHT RAIL: PERMANENTLY VISIBLE PATIENT CONTEXT (380px - 410px) ---------- */}
-      <aside className="hidden lg:flex w-[380px] xl:w-[410px] shrink-0 flex-col h-full min-h-0 bg-white p-6 space-y-5 overflow-y-auto border-l border-[#064E3B]/15 pb-28">
+      <aside className="hidden lg:flex w-[380px] xl:w-[410px] shrink-0 flex-col h-full min-h-0 bg-white dark:bg-[#0B1D17] p-6 space-y-5 overflow-y-auto border-l border-[#064E3B]/15 dark:border-white/10 pb-28 transition-colors">
         {/* Today's Active Medications Card */}
         <TodayMedicationsCard userId={ACTIVE_PATIENT_USER_ID} />
 
         {/* Resolved Conditions / Doctor Clearance Card */}
-        <div className="rounded-3xl border border-[#064E3B]/20 bg-[#F9FBF9] p-5 space-y-3 text-xs text-[#064E3B] shadow-xs">
+        <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-5 space-y-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-sm text-[#064E3B]">
-              <ShieldCheck className="w-4.5 h-4.5 text-[#064E3B]" />
+            <div className="flex items-center gap-2 font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5]">
+              <ShieldCheck className="w-4.5 h-4.5 text-[#064E3B] dark:text-[#10B981]" />
               <span>Health History & Allergies</span>
             </div>
-            <span className="text-[10.5px] font-bold bg-white border border-[#064E3B]/20 px-2 py-0.5 rounded-full">
+            <span className="text-[10.5px] font-bold bg-white dark:bg-[#132D26] border border-[#064E3B]/20 dark:border-white/15 text-[#064E3B] dark:text-[#10B981] px-2 py-0.5 rounded-full">
               Protected
             </span>
           </div>
 
-          <p className="text-xs text-[#064E3B]/80 leading-relaxed font-normal">
+          <p className="text-xs text-[#064E3B]/80 dark:text-[#A7F3D0]/80 leading-relaxed font-normal">
             Active penicillin allergy guard is enabled. Baseline conditions are automatically cross-referenced in triage.
           </p>
 
           <button
             onClick={() => setIsRecordsModalOpen(true)}
-            className="w-full rounded-2xl bg-white border border-[#064E3B]/25 hover:bg-[#064E3B] hover:text-white text-[#064E3B] py-2.5 px-4 font-bold transition-all text-xs shadow-2xs min-tap-target"
+            className="w-full rounded-2xl bg-white dark:bg-[#132D26] border border-[#064E3B]/25 dark:border-white/15 hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] text-[#064E3B] dark:text-[#ECFDF5] py-2.5 px-4 font-bold transition-all text-xs shadow-2xs min-tap-target"
           >
             Review & Edit History
           </button>
         </div>
 
         {/* Emergency Assistance Quick Card */}
-        <div className="rounded-3xl bg-[#F9FBF9] border border-[#064E3B]/20 p-5 space-y-3 text-xs text-[#064E3B] shadow-xs">
+        <div className="rounded-3xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/10 p-5 space-y-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-sm text-[#064E3B]">
+            <div className="flex items-center gap-2 font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5]">
               <span>🚨</span>
               <span>Emergency Ambulance</span>
             </div>
-            <span className="text-[10.5px] font-mono font-bold text-[#064E3B] bg-white border border-[#064E3B]/20 px-2 py-0.5 rounded-full">
+            <span className="text-[10.5px] font-mono font-bold text-[#064E3B] dark:text-[#10B981] bg-white dark:bg-[#132D26] border border-[#064E3B]/20 dark:border-white/15 px-2 py-0.5 rounded-full">
               24/7
             </span>
           </div>
 
-          <p className="text-xs text-[#064E3B]/80 leading-relaxed font-normal">
+          <p className="text-xs text-[#064E3B]/80 dark:text-[#A7F3D0]/80 leading-relaxed font-normal">
             For acute chest pain, trauma, or sudden breathing difficulty:
           </p>
 
           <div className="flex gap-2.5 pt-0.5">
             <a
               href="tel:108"
-              className="flex-1 text-center rounded-2xl bg-[#064E3B] text-white py-2.5 font-bold text-xs shadow-xs hover:bg-[#043327] transition-colors"
+              className="flex-1 text-center rounded-2xl bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] py-2.5 font-bold text-xs shadow-xs hover:bg-[#043327] dark:hover:bg-[#059669] transition-colors"
             >
               Call 108
             </a>
             <a
               href="tel:112"
-              className="flex-1 text-center rounded-2xl border border-[#064E3B] text-[#064E3B] bg-white py-2.5 font-bold text-xs shadow-xs hover:bg-[#064E3B]/5 transition-colors"
+              className="flex-1 text-center rounded-2xl border border-[#064E3B] dark:border-white/20 text-[#064E3B] dark:text-[#ECFDF5] bg-white dark:bg-transparent py-2.5 font-bold text-xs shadow-xs hover:bg-[#064E3B]/5 dark:hover:bg-white/10 transition-colors"
             >
               Call 112
             </a>
@@ -472,8 +472,8 @@ function TriageContent() {
         </div>
 
         {/* Patient Notice */}
-        <div className="mt-auto rounded-2xl bg-[#F9FBF9] p-3.5 text-[11.5px] text-[#064E3B]/70 leading-relaxed border border-[#064E3B]/15">
-          <strong className="text-[#064E3B]">Patient Note:</strong> Aether provides preliminary triage assistance. Always consult a certified doctor for medical treatment.
+        <div className="mt-auto rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] p-3.5 text-[11.5px] text-[#064E3B]/70 dark:text-white/50 leading-relaxed border border-[#064E3B]/15 dark:border-white/10">
+          <strong className="text-[#064E3B] dark:text-[#10B981]">Patient Note:</strong> Aether provides preliminary triage assistance. Always consult a certified doctor for medical treatment.
         </div>
       </aside>
     </div>

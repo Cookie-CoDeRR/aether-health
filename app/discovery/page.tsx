@@ -209,28 +209,28 @@ function DiscoveryContent() {
   };
 
   return (
-    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto text-[#064E3B] w-full pb-28">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto text-[#064E3B] dark:text-[#ECFDF5] w-full pb-28 transition-colors">
       {/* Top Header & Patient Context */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#064E3B]/15 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#064E3B]/15 dark:border-white/10 pb-4">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/70 mb-1 flex items-center gap-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/70 dark:text-[#10B981] mb-1 flex items-center gap-2">
             <span>Verified Care Network</span>
             <span>•</span>
-            <span>Emergency Routing & Specialist Roster</span>
+            <span className="text-[#064E3B]/60 dark:text-white/50">Emergency Routing & Specialist Roster</span>
           </div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#064E3B]">
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#064E3B] dark:text-[#ECFDF5]">
             Find Care & Verified Doctors
           </h1>
         </div>
 
         {/* View Switcher Tabs */}
-        <div className="flex items-center gap-1.5 rounded-2xl bg-[#F9FBF9] border border-[#064E3B]/20 p-1.5 shadow-2xs">
+        <div className="flex items-center gap-1.5 rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 p-1.5 shadow-2xs">
           <button
             onClick={() => handleTabChange("hospitals")}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all min-tap-target ${
               activeTab === "hospitals"
-                ? "bg-[#064E3B] text-white shadow-soft"
-                : "text-[#064E3B]/70 hover:text-[#064E3B] hover:bg-white"
+                ? "bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] shadow-soft"
+                : "text-[#064E3B]/70 dark:text-white/70 hover:text-[#064E3B] dark:hover:text-white hover:bg-white dark:hover:bg-white/10"
             }`}
           >
             <Building2 className="w-4 h-4" />
@@ -239,10 +239,10 @@ function DiscoveryContent() {
 
           <button
             onClick={() => handleTabChange("doctors")}
-            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all ${
+            className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-all min-tap-target ${
               activeTab === "doctors"
-                ? "bg-[#064E3B] text-white shadow-soft"
-                : "text-[#064E3B]/70 hover:text-[#064E3B] hover:bg-white"
+                ? "bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] shadow-soft"
+                : "text-[#064E3B]/70 dark:text-white/70 hover:text-[#064E3B] dark:hover:text-white hover:bg-white dark:hover:bg-white/10"
             }`}
           >
             <Stethoscope className="w-4 h-4" />
@@ -252,17 +252,17 @@ function DiscoveryContent() {
       </div>
 
       {/* Filter & Search Toolbar */}
-      <div className="rounded-3xl border border-[#064E3B]/20 bg-white p-4 sm:p-5 shadow-xs space-y-4">
+      <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-4 sm:p-5 shadow-xs space-y-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 items-center">
           {/* Search Input */}
           <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#064E3B]/60" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#064E3B]/60 dark:text-white/40" />
             <input
               type="text"
               placeholder={activeTab === "hospitals" ? "Search hospital or clinic name..." : "Search doctor name or specialty..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] pl-10 pr-3.5 py-2.5 text-xs text-[#064E3B] placeholder-[#064E3B]/50 focus:bg-white focus:outline-none focus:border-[#064E3B]"
+              className="w-full rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] pl-10 pr-3.5 py-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] placeholder-[#064E3B]/50 dark:placeholder-white/40 focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
             />
           </div>
 
@@ -272,11 +272,11 @@ function DiscoveryContent() {
               <select
                 value={selectedSpecialty}
                 onChange={(e) => setSelectedSpecialty(e.target.value)}
-                className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2.5 text-xs text-[#064E3B] font-medium focus:bg-white focus:outline-none focus:border-[#064E3B]"
+                className="w-full rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] px-3.5 py-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] font-medium focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
               >
                 <option value="all">All Specialties ({doctors.length})</option>
                 {availableSpecialties.map((spec) => (
-                  <option key={spec} value={spec}>
+                  <option key={spec} value={spec} className="bg-white dark:bg-[#0B1D17] text-[#064E3B] dark:text-[#ECFDF5]">
                     {spec}
                   </option>
                 ))}
@@ -286,8 +286,8 @@ function DiscoveryContent() {
             /* Radius Slider for Hospitals */
             <div>
               <div className="flex justify-between items-center text-xs mb-1">
-                <span className="font-bold text-[#064E3B]/70">Distance Radius</span>
-                <span className="font-bold text-[#064E3B]">{radiusKm} km</span>
+                <span className="font-bold text-[#064E3B]/70 dark:text-[#A7F3D0]/70">Distance Radius</span>
+                <span className="font-bold text-[#064E3B] dark:text-[#10B981]">{radiusKm} km</span>
               </div>
               <input
                 type="range"
@@ -296,29 +296,29 @@ function DiscoveryContent() {
                 step="1"
                 value={radiusKm}
                 onChange={(e) => setRadiusKm(parseInt(e.target.value))}
-                className="w-full accent-[#064E3B] cursor-pointer"
+                className="w-full accent-[#064E3B] dark:accent-[#10B981] cursor-pointer"
               />
             </div>
           )}
 
           {/* Location Status indicator */}
-          <div className="flex items-center gap-2 rounded-2xl border border-[#064E3B]/15 bg-[#F9FBF9] px-3.5 py-2 text-xs">
-            <MapPin className="w-4 h-4 text-[#064E3B] shrink-0" />
+          <div className="flex items-center gap-2 rounded-2xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] px-3.5 py-2 text-xs">
+            <MapPin className="w-4 h-4 text-[#064E3B] dark:text-[#10B981] shrink-0" />
             <div className="min-w-0 flex-1">
-              <span className="block font-bold text-[11px] text-[#064E3B] truncate">
+              <span className="block font-bold text-[11px] text-[#064E3B] dark:text-[#ECFDF5] truncate">
                 {locationStatus === "detecting"
                   ? "Locating GPS..."
                   : locationStatus === "acquired"
                   ? "GPS Location Acquired"
                   : "Default Region"}
               </span>
-              <span className="block text-[10px] text-[#064E3B]/60 truncate font-mono">
+              <span className="block text-[10px] text-[#064E3B]/60 dark:text-white/50 truncate font-mono">
                 {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
               </span>
             </div>
             <button
               onClick={detectUserLocation}
-              className="text-[10.5px] font-bold text-[#064E3B] hover:underline shrink-0"
+              className="text-[10.5px] font-bold text-[#064E3B] dark:text-[#10B981] hover:underline shrink-0"
             >
               Update
             </button>
@@ -329,10 +329,10 @@ function DiscoveryContent() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setFilterEmergencyOnly(!filterEmergencyOnly)}
-                className={`w-full flex items-center justify-center gap-2 rounded-2xl border py-2.5 px-3 text-xs font-bold transition-all ${
+                className={`w-full flex items-center justify-center gap-2 rounded-2xl border py-2.5 px-3 text-xs font-bold transition-all min-tap-target ${
                   filterEmergencyOnly
-                    ? "bg-[#064E3B] text-white border-[#064E3B]"
-                    : "border-[#064E3B]/20 bg-[#F9FBF9] text-[#064E3B] hover:bg-white"
+                    ? "bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] border-[#064E3B] dark:border-[#10B981]"
+                    : "border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] text-[#064E3B] dark:text-[#ECFDF5] hover:bg-white dark:hover:bg-white/10"
                 }`}
               >
                 <AlertCircle className="w-4 h-4" />
@@ -359,20 +359,20 @@ function DiscoveryContent() {
 
           {/* Mobile Second / Desktop Left: Hospital Cards List */}
           <div className="lg:col-span-5 space-y-3 max-h-[520px] lg:max-h-[640px] overflow-y-auto no-scrollbar pr-0.5 order-last lg:order-first">
-            <div className="flex items-center justify-between text-xs font-bold text-[#064E3B] px-1 sticky top-0 bg-white/90 backdrop-blur-xs py-1 z-10">
+            <div className="flex items-center justify-between text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] px-1 sticky top-0 bg-white/90 dark:bg-[#081511]/90 backdrop-blur-xs py-1 z-10">
               <span>Nearby Facilities ({filteredHospitals.length})</span>
-              <span className="text-[11px] text-[#064E3B]/70">Sorted by distance</span>
+              <span className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70">Sorted by distance</span>
             </div>
 
             {isLoadingHospitals ? (
-              <div className="rounded-3xl border border-[#064E3B]/20 bg-white p-8 text-center text-xs space-y-3">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#064E3B] border-t-transparent mx-auto"></div>
-                <p className="font-bold text-[#064E3B]">Searching OpenStreetMap health registry...</p>
+              <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-8 text-center text-xs space-y-3 shadow-sm">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#064E3B] dark:border-[#10B981] border-t-transparent mx-auto"></div>
+                <p className="font-bold text-[#064E3B] dark:text-[#ECFDF5]">Searching OpenStreetMap health registry...</p>
               </div>
             ) : filteredHospitals.length === 0 ? (
-              <div className="rounded-3xl border border-dashed border-[#064E3B]/20 bg-white p-8 text-center text-xs space-y-2">
-                <p className="font-bold text-sm text-[#064E3B]">No hospitals found in this radius.</p>
-                <p className="text-[#064E3B]/70">Try increasing the radius slider to 10 km or 15 km.</p>
+              <div className="rounded-3xl border border-dashed border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-8 text-center text-xs space-y-2 shadow-sm">
+                <p className="font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5]">No hospitals found in this radius.</p>
+                <p className="text-[#064E3B]/70 dark:text-[#A7F3D0]/70">Try increasing the radius slider to 10 km or 15 km.</p>
               </div>
             ) : (
               filteredHospitals.map((hospital) => (
@@ -392,16 +392,16 @@ function DiscoveryContent() {
       {/* VIEW 2: VERIFIED DOCTORS ROSTER */}
       {activeTab === "doctors" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between text-xs font-bold text-[#064E3B]">
+          <div className="flex items-center justify-between text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5]">
             <span>Verified Practitioners ({filteredDoctors.length})</span>
-            <span className="text-[11px] text-[#064E3B]/70">ABDM Registry Verified</span>
+            <span className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70">ABDM Registry Verified</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredDoctors.map((doc) => (
               <div
                 key={doc.id}
-                className="rounded-3xl border border-[#064E3B]/20 bg-white p-5 space-y-4 shadow-xs hover:border-[#064E3B] hover:shadow-md transition-all flex flex-col justify-between"
+                className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-5 space-y-4 shadow-sm hover:border-[#064E3B] dark:hover:border-[#10B981] hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div className="space-y-3">
                   <div className="flex items-start justify-between gap-3">
@@ -409,32 +409,32 @@ function DiscoveryContent() {
                       <img
                         src={doc.photoUrl || undefined}
                         alt={doc.name}
-                        className="h-12 w-12 rounded-2xl object-cover border border-[#064E3B]/20"
+                        className="h-12 w-12 rounded-2xl object-cover border border-[#064E3B]/20 dark:border-white/15"
                       />
                       <div>
-                        <h4 className="font-serif font-bold text-sm text-[#064E3B]">
+                        <h4 className="font-serif font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5]">
                           {doc.name}
                         </h4>
-                        <span className="text-[11px] font-bold text-[#064E3B]/70 block">
+                        <span className="text-[11px] font-bold text-[#064E3B]/70 dark:text-[#A7F3D0]/70 block">
                           {doc.specialty}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 bg-[#F9FBF9] border border-[#064E3B]/20 px-2 py-0.5 rounded-full text-[11px] font-bold text-[#064E3B]">
-                      <Star className="w-3 h-3 text-[#064E3B] fill-current" />
+                    <div className="flex items-center gap-1 bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 px-2 py-0.5 rounded-full text-[11px] font-bold text-[#064E3B] dark:text-[#10B981]">
+                      <Star className="w-3 h-3 text-amber-400 fill-current" />
                       <span>{doc.rating}</span>
                     </div>
                   </div>
 
-                  <div className="space-y-1 text-xs text-[#064E3B]/80 pt-1 border-t border-[#064E3B]/10">
+                  <div className="space-y-1 text-xs text-[#064E3B]/80 dark:text-[#ECFDF5]/80 pt-1 border-t border-[#064E3B]/10 dark:border-white/10">
                     <p className="font-medium truncate">{doc.qualifications || doc.specialty}</p>
-                    <p className="text-[11px] text-[#064E3B]/60 truncate">{doc.address}</p>
+                    <p className="text-[11px] text-[#064E3B]/60 dark:text-white/50 truncate">{doc.address}</p>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs font-bold text-[#064E3B] pt-1">
+                  <div className="flex items-center justify-between text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] pt-1">
                     <span>Consultation: ₹{doc.consultationFee || 500}</span>
-                    <span className="text-[11px] font-mono text-[#064E3B]/70">{doc.rating} ★ Verified</span>
+                    <span className="text-[11px] font-mono text-[#064E3B]/70 dark:text-[#10B981]">{doc.rating} ★ Verified</span>
                   </div>
                 </div>
 
@@ -443,7 +443,7 @@ function DiscoveryContent() {
                     setSelectedDoctor(doc);
                     setSelectedSlot((doc.availableSlots && doc.availableSlots[0]) || "10:00 AM");
                   }}
-                  className="w-full rounded-2xl bg-[#064E3B] hover:bg-[#043327] py-2.5 text-xs font-bold text-white shadow-xs transition-all min-tap-target"
+                  className="w-full rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] py-2.5 text-xs font-bold text-white dark:text-[#042F24] shadow-xs transition-all min-tap-target"
                 >
                   Book Appointment
                 </button>
@@ -464,20 +464,20 @@ function DiscoveryContent() {
 
       {/* Direct Booking Modal */}
       {selectedDoctor && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#064E3B]/40 p-4 backdrop-blur-xs animate-fade-in text-[#064E3B]">
-          <div className="w-full max-w-md rounded-3xl border border-[#064E3B]/20 bg-white p-6 shadow-2xl space-y-5">
-            <div className="flex items-start justify-between border-b border-[#064E3B]/15 pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in text-[#064E3B] dark:text-[#ECFDF5]">
+          <div className="w-full max-w-md rounded-3xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-6 shadow-2xl space-y-5">
+            <div className="flex items-start justify-between border-b border-[#064E3B]/15 dark:border-white/10 pb-4">
               <div className="flex items-center gap-3">
                 <img
                   src={selectedDoctor.photoUrl || undefined}
                   alt={selectedDoctor.name}
-                  className="h-11 w-11 rounded-2xl object-cover border border-[#064E3B]/20"
+                  className="h-11 w-11 rounded-2xl object-cover border border-[#064E3B]/20 dark:border-white/15"
                 />
                 <div>
-                  <h3 className="font-serif font-bold text-base text-[#064E3B]">
+                  <h3 className="font-serif font-bold text-base text-[#064E3B] dark:text-[#ECFDF5]">
                     {selectedDoctor.name}
                   </h3>
-                  <span className="text-xs text-[#064E3B]/70 font-medium">
+                  <span className="text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium">
                     {selectedDoctor.specialty} • ₹{selectedDoctor.consultationFee}
                   </span>
                 </div>
@@ -488,7 +488,7 @@ function DiscoveryContent() {
                   setSelectedDoctor(null);
                   setBookingConfirmed(false);
                 }}
-                className="text-[#064E3B]/70 hover:text-[#064E3B] p-1"
+                className="text-[#064E3B]/70 dark:text-white/70 hover:text-[#064E3B] dark:hover:text-white p-1"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -496,13 +496,13 @@ function DiscoveryContent() {
 
             {bookingConfirmed ? (
               <div className="text-center py-6 space-y-3">
-                <div className="h-12 w-12 rounded-full bg-[#F9FBF9] border border-[#064E3B]/20 flex items-center justify-center mx-auto text-[#064E3B]">
+                <div className="h-12 w-12 rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 flex items-center justify-center mx-auto text-[#064E3B] dark:text-[#10B981]">
                   <CheckCircle2 className="w-7 h-7" />
                 </div>
-                <h4 className="font-serif text-lg font-bold text-[#064E3B]">
+                <h4 className="font-serif text-lg font-bold text-[#064E3B] dark:text-[#ECFDF5]">
                   Consultation Confirmed!
                 </h4>
-                <p className="text-xs text-[#064E3B]/80">
+                <p className="text-xs text-[#064E3B]/80 dark:text-[#A7F3D0]/80">
                   Appointment confirmed with <strong>{selectedDoctor.name}</strong> for today at <strong>{selectedSlot}</strong>.
                 </p>
                 <button
@@ -510,7 +510,7 @@ function DiscoveryContent() {
                     setSelectedDoctor(null);
                     setBookingConfirmed(false);
                   }}
-                  className="rounded-2xl bg-[#064E3B] text-white font-bold px-6 py-2.5 text-xs shadow-xs"
+                  className="rounded-2xl bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] font-bold px-6 py-2.5 text-xs shadow-xs min-tap-target"
                 >
                   Done
                 </button>
@@ -518,7 +518,7 @@ function DiscoveryContent() {
             ) : (
               <div className="space-y-4 text-xs">
                 <div>
-                  <label className="font-bold text-[#064E3B] block mb-2">
+                  <label className="font-bold text-[#064E3B] dark:text-[#ECFDF5] block mb-2">
                     Select Available Time Slot
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -527,10 +527,10 @@ function DiscoveryContent() {
                         key={slot}
                         type="button"
                         onClick={() => setSelectedSlot(slot)}
-                        className={`rounded-xl py-2 font-bold text-center border transition-all ${
+                        className={`rounded-xl py-2 font-bold text-center border transition-all min-tap-target ${
                           selectedSlot === slot
-                            ? "bg-[#064E3B] text-white border-[#064E3B] shadow-2xs"
-                            : "bg-[#F9FBF9] border-[#064E3B]/20 text-[#064E3B] hover:bg-white"
+                            ? "bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] border-[#064E3B] dark:border-[#10B981] shadow-2xs"
+                            : "bg-[#F9FBF9] dark:bg-[#0F241E] border-[#064E3B]/20 dark:border-white/10 text-[#064E3B] dark:text-[#ECFDF5] hover:bg-white dark:hover:bg-white/10"
                         }`}
                       >
                         {slot}
@@ -539,15 +539,15 @@ function DiscoveryContent() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl bg-[#F9FBF9] border border-[#064E3B]/15 p-3 space-y-1">
-                  <div className="font-bold text-[#064E3B]">Clinic Location:</div>
-                  <p className="text-[#064E3B]/70">{selectedDoctor.address}</p>
+                <div className="rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/15 dark:border-white/10 p-3 space-y-1">
+                  <div className="font-bold text-[#064E3B] dark:text-[#10B981]">Clinic Location:</div>
+                  <p className="text-[#064E3B]/70 dark:text-white/60">{selectedDoctor.address}</p>
                 </div>
 
                 <button
                   onClick={handleDoctorBookingSubmit}
                   disabled={isSubmittingBooking}
-                  className="w-full rounded-2xl bg-[#064E3B] hover:bg-[#043327] py-3 text-xs font-bold text-white shadow-md disabled:opacity-50 transition-all min-tap-target"
+                  className="w-full rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] py-3 text-xs font-bold text-white dark:text-[#042F24] shadow-md disabled:opacity-50 transition-all min-tap-target"
                 >
                   {isSubmittingBooking ? "Confirming..." : "Confirm & Link ABDM Health Record →"}
                 </button>

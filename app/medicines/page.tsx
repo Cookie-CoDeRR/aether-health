@@ -143,23 +143,23 @@ export default function MedicinesPage() {
   const takenCount = prescriptions.filter((p) => p.takenToday).length;
 
   return (
-    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto text-[#1E293B] w-full">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-10 max-w-5xl mx-auto text-[#064E3B] dark:text-[#ECFDF5] w-full pb-28 transition-colors">
       {/* Header */}
-      <div className="border-b border-[#E2E8F0] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="border-b border-[#064E3B]/15 dark:border-white/10 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-[#1E5D57] mb-1 flex items-center gap-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/70 dark:text-[#10B981] mb-1 flex items-center gap-2">
             <span>Prescription Care</span>
             <span>•</span>
-            <span className="text-[#64748B]">Dosage Schedule & Pharmacy Price Comparison</span>
+            <span className="text-[#064E3B]/60 dark:text-white/50">Dosage Schedule & Pharmacy Price Comparison</span>
           </div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-semibold tracking-tight text-[#1E293B]">
+          <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#064E3B] dark:text-[#ECFDF5]">
             Prescriptions & Medicines
           </h1>
         </div>
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-4.5 py-2.5 text-xs font-semibold text-white shadow-soft transition-all shrink-0 min-tap-target"
+          className="inline-flex items-center gap-2 rounded-xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] px-4.5 py-2.5 text-xs font-bold text-white dark:text-[#042F24] shadow-soft transition-all shrink-0 min-tap-target"
         >
           <Plus className="w-4 h-4" />
           <span>Add Prescription</span>
@@ -167,18 +167,18 @@ export default function MedicinesPage() {
       </div>
 
       {/* Active Prescription Tracker Card */}
-      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 space-y-5 shadow-card">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] pb-4">
+      <div className="rounded-2xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-6 space-y-5 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#064E3B]/15 dark:border-white/10 pb-4">
           <div>
-            <h2 className="font-serif text-lg font-semibold text-[#1E293B]">
+            <h2 className="font-serif text-lg font-bold text-[#064E3B] dark:text-[#ECFDF5]">
               Daily Medication Dosing Tracker
             </h2>
-            <p className="text-xs text-[#64748B] mt-0.5">
+            <p className="text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70 mt-0.5">
               Cross off completed daily doses to update your remaining inventory automatically.
             </p>
           </div>
 
-          <span className="text-xs font-semibold text-[#134E48] bg-[#E6F4F1] px-3 py-1.5 rounded-full border border-[#D0EAE4] self-start sm:self-center">
+          <span className="text-xs font-bold text-[#064E3B] dark:text-[#10B981] bg-[#F9FBF9] dark:bg-[#132D26] px-3 py-1.5 rounded-full border border-[#064E3B]/20 dark:border-white/15 self-start sm:self-center">
             {takenCount} of {prescriptions.length} Completed Today
           </span>
         </div>
@@ -195,8 +195,8 @@ export default function MedicinesPage() {
                 key={med.id}
                 className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border transition-all ${
                   med.takenToday
-                    ? "border-[#D0EAE4] bg-[#F6FAF9]"
-                    : "border-[#E2E8F0] bg-white hover:border-[#CBD5E1]"
+                    ? "border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E]/60 opacity-80"
+                    : "border-[#064E3B]/15 dark:border-white/10 bg-white dark:bg-[#0F241E] hover:border-[#064E3B] dark:hover:border-[#10B981]"
                 }`}
               >
                 <div className="space-y-1.5 flex-1">
@@ -206,8 +206,8 @@ export default function MedicinesPage() {
                       aria-label={`Mark ${med.brandName} as ${med.takenToday ? "not taken" : "taken"}`}
                       className={`h-9 w-9 rounded-xl border flex items-center justify-center transition-all min-tap-target shrink-0 ${
                         med.takenToday
-                          ? "bg-[#1E5D57] border-[#1E5D57] text-white"
-                          : "border-[#CBD5E1] bg-[#F8FAF9] text-[#94A3B8] hover:border-[#1E5D57]"
+                          ? "bg-[#064E3B] dark:bg-[#10B981] border-[#064E3B] dark:border-[#10B981] text-white dark:text-[#042F24]"
+                          : "border-[#064E3B]/20 dark:border-white/20 bg-[#F9FBF9] dark:bg-[#132D26] text-[#064E3B]/40 dark:text-white/40 hover:border-[#064E3B] dark:hover:border-[#10B981]"
                       }`}
                     >
                       <Check className={`w-5 h-5 ${med.takenToday ? "opacity-100" : "opacity-40"}`} />
@@ -215,26 +215,26 @@ export default function MedicinesPage() {
 
                     <div>
                       <h3
-                        className={`font-serif text-base font-semibold text-[#1E293B] ${
-                          med.takenToday ? "line-through text-[#64748B]" : ""
+                        className={`font-serif text-base font-bold text-[#064E3B] dark:text-[#ECFDF5] ${
+                          med.takenToday ? "line-through text-[#064E3B]/50 dark:text-white/40" : ""
                         }`}
                       >
                         {med.brandName} ({med.dosage})
                       </h3>
-                      <span className="text-xs text-[#1E5D57] font-medium">
+                      <span className="text-xs text-[#064E3B] dark:text-[#10B981] font-bold">
                         {med.genericName}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-xs text-[#64748B] pl-12">
+                  <p className="text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70 pl-12">
                     📌 {med.frequency}
                   </p>
 
-                  <div className="flex items-center gap-3 text-xs text-[#94A3B8] pl-12">
+                  <div className="flex items-center gap-3 text-xs text-[#064E3B]/50 dark:text-white/40 pl-12">
                     <span>🏥 {med.hospitalName}</span>
                     {med.takenToday && med.takenAt && (
-                      <span className="text-[#1E5D57] font-semibold">
+                      <span className="text-[#064E3B] dark:text-[#10B981] font-bold">
                         ✓ Taken at {med.takenAt}
                       </span>
                     )}
@@ -242,18 +242,18 @@ export default function MedicinesPage() {
                 </div>
 
                 {/* Remaining Inventory Pill Tracker */}
-                <div className="sm:text-right shrink-0 space-y-1 pl-12 sm:pl-0 border-t sm:border-t-0 border-[#E2E8F0] pt-2 sm:pt-0">
+                <div className="sm:text-right shrink-0 space-y-1 pl-12 sm:pl-0 border-t sm:border-t-0 border-[#064E3B]/15 dark:border-white/10 pt-2 sm:pt-0">
                   <div className="flex sm:flex-col justify-between sm:items-end gap-1 text-xs">
-                    <span className="text-[#64748B]">Remaining</span>
-                    <span className="font-bold text-sm text-[#1E293B]">
+                    <span className="text-[#064E3B]/70 dark:text-white/50">Remaining</span>
+                    <span className="font-bold text-sm text-[#064E3B] dark:text-[#ECFDF5]">
                       {med.dosesRemaining} / {med.totalDoses} pills
                     </span>
                   </div>
 
-                  <div className="h-2 w-32 bg-[#F1F5F4] rounded-full overflow-hidden border border-[#E2E8F0]">
+                  <div className="h-2 w-32 bg-[#F9FBF9] dark:bg-[#132D26] rounded-full overflow-hidden border border-[#064E3B]/15 dark:border-white/10">
                     <div
                       className={`h-full transition-all duration-300 rounded-full ${
-                        percentRemaining < 30 ? "bg-[#E06D53]" : "bg-[#1E5D57]"
+                        percentRemaining < 30 ? "bg-rose-500" : "bg-[#064E3B] dark:bg-[#10B981]"
                       }`}
                       style={{ width: `${percentRemaining}%` }}
                     />
@@ -267,18 +267,18 @@ export default function MedicinesPage() {
 
       {/* Search Bar for Generic Pricing Comparison */}
       <div className="space-y-3">
-        <h2 className="font-serif text-lg font-semibold text-[#1E293B]">
+        <h2 className="font-serif text-lg font-bold text-[#064E3B] dark:text-[#ECFDF5]">
           Generic Medicine & Pharmacy Price Comparison
         </h2>
 
         <div className="relative">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94A3B8]" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#064E3B]/50 dark:text-white/40" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by brand name or active ingredient (e.g. Paracetamol, Metformin, Atorvastatin)..."
-            className="w-full rounded-2xl border border-[#E2E8F0] bg-white pl-10 pr-4 py-3 text-sm text-[#1E293B] placeholder-[#94A3B8] focus:outline-none focus:border-[#1E5D57] shadow-soft"
+            className="w-full rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] pl-10 pr-4 py-3 text-sm text-[#064E3B] dark:text-[#ECFDF5] placeholder-[#064E3B]/40 dark:placeholder-white/40 focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981] shadow-xs"
           />
         </div>
       </div>
@@ -286,10 +286,10 @@ export default function MedicinesPage() {
       {/* Medicine Cards List */}
       {isLoading ? (
         <div className="flex justify-center py-14">
-          <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#1E5D57] border-t-transparent" />
+          <div className="h-8 w-8 animate-spin rounded-full border-3 border-[#064E3B] dark:border-[#10B981] border-t-transparent" />
         </div>
       ) : medicines.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#E2E8F0] bg-white p-10 text-center text-xs text-[#64748B] shadow-soft">
+        <div className="rounded-2xl border border-dashed border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-10 text-center text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70 shadow-xs">
           No medicines found matching &quot;{query}&quot;. Try searching for Paracetamol, Ibuprofen, or Metformin.
         </div>
       ) : (
@@ -300,26 +300,26 @@ export default function MedicinesPage() {
             return (
               <div
                 key={med.id}
-                className="rounded-2xl border border-[#E2E8F0] bg-white p-5 space-y-4 shadow-card hover:border-[#1E5D57] transition-all"
+                className="rounded-2xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-5 space-y-4 shadow-sm hover:border-[#064E3B] dark:hover:border-[#10B981] transition-all"
               >
                 {/* Header info */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#064E3B]/15 dark:border-white/10 pb-3">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-serif text-lg font-semibold text-[#1E293B]">
+                      <h3 className="font-serif text-lg font-bold text-[#064E3B] dark:text-[#ECFDF5]">
                         {med.brandName}
                       </h3>
-                      <span className="rounded-full bg-[#E6F4F1] text-[#134E48] px-2.5 py-0.5 text-xs font-semibold">
+                      <span className="rounded-full bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/15 text-[#064E3B] dark:text-[#10B981] px-2.5 py-0.5 text-xs font-bold">
                         {med.drugClass}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 pt-1 text-xs">
-                      <span className="text-[#64748B]">Active Generic:</span>
-                      <span className="font-semibold text-[#1E5D57]">{med.genericName}</span>
+                      <span className="text-[#064E3B]/70 dark:text-white/50">Active Generic:</span>
+                      <span className="font-bold text-[#064E3B] dark:text-[#10B981]">{med.genericName}</span>
                     </div>
                   </div>
 
-                  <span className="text-xs font-bold text-[#1E5D57] bg-[#E6F4F1] px-3 py-1 rounded-full border border-[#D0EAE4] self-start sm:self-center">
+                  <span className="text-xs font-bold text-[#064E3B] dark:text-[#10B981] bg-[#F9FBF9] dark:bg-[#132D26] px-3 py-1 rounded-full border border-[#064E3B]/20 dark:border-white/15 self-start sm:self-center">
                     From ₹{minPrice.toFixed(2)}
                   </span>
                 </div>
@@ -327,22 +327,22 @@ export default function MedicinesPage() {
                 {/* Details */}
                 <div className="grid gap-3 text-xs sm:grid-cols-2">
                   <div>
-                    <span className="font-semibold text-[#64748B] block mb-0.5">Active Ingredient</span>
-                    <p className="text-[#1E293B] font-medium">{med.activeIngredient}</p>
+                    <span className="font-bold text-[#064E3B]/70 dark:text-white/50 block mb-0.5">Active Ingredient</span>
+                    <p className="text-[#064E3B] dark:text-[#ECFDF5] font-semibold">{med.activeIngredient}</p>
                   </div>
                   <div>
-                    <span className="font-semibold text-[#64748B] block mb-0.5">Medical Purpose</span>
-                    <p className="text-[#475569] leading-relaxed">{med.description || "Prescription medication"}</p>
+                    <span className="font-bold text-[#064E3B]/70 dark:text-white/50 block mb-0.5">Medical Purpose</span>
+                    <p className="text-[#064E3B]/80 dark:text-[#A7F3D0]/80 leading-relaxed">{med.description || "Prescription medication"}</p>
                   </div>
                 </div>
 
                 {/* Comparative Price Display */}
-                <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-3.5 space-y-2">
+                <div className="rounded-xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-3.5 space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-[#64748B]">
+                    <span className="font-bold text-[#064E3B]/70 dark:text-[#A7F3D0]/70">
                       Compare Pharmacy Rates
                     </span>
-                    <span className="text-[#1E5D57] font-bold text-xs">
+                    <span className="text-[#064E3B] dark:text-[#10B981] font-bold text-xs">
                       Lowest: ₹{minPrice.toFixed(2)}
                     </span>
                   </div>
@@ -353,11 +353,11 @@ export default function MedicinesPage() {
                         key={price.id}
                         className={`rounded-xl border p-2.5 text-center text-xs ${
                           price.price === minPrice
-                            ? "border-[#1E5D57] bg-[#E6F4F1] text-[#134E48] font-bold ring-1 ring-[#1E5D57]"
-                            : "border-[#E2E8F0] bg-white text-[#475569]"
+                            ? "border-[#064E3B] dark:border-[#10B981] bg-white dark:bg-[#132D26] text-[#064E3B] dark:text-[#10B981] font-bold ring-1 ring-[#064E3B] dark:ring-[#10B981]"
+                            : "border-[#064E3B]/15 dark:border-white/10 bg-white dark:bg-[#0B1D17] text-[#064E3B]/80 dark:text-[#ECFDF5]/80"
                         }`}
                       >
-                        <p className="text-[11px] text-[#64748B] truncate">{price.pharmacyName}</p>
+                        <p className="text-[11px] text-[#064E3B]/60 dark:text-white/50 truncate">{price.pharmacyName}</p>
                         <p className="text-sm font-bold pt-0.5">₹{price.price.toFixed(2)}</p>
                       </div>
                     ))}
@@ -371,23 +371,23 @@ export default function MedicinesPage() {
 
       {/* Manual Add Prescription Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs animate-fade-in">
-          <div className="w-full max-w-md rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-elevated space-y-4 text-[#1E293B]">
-            <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in">
+          <div className="w-full max-w-md rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-6 shadow-2xl space-y-4 text-[#064E3B] dark:text-[#ECFDF5]">
+            <div className="flex items-center justify-between border-b border-[#064E3B]/15 dark:border-white/10 pb-3">
               <div>
-                <h3 className="font-serif text-lg font-semibold text-[#1E293B]">
+                <h3 className="font-serif text-lg font-bold text-[#064E3B] dark:text-[#ECFDF5]">
                   Add Prescription
                 </h3>
-                <p className="text-xs text-[#64748B]">Track daily doses and refill inventory</p>
+                <p className="text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70">Track daily doses and refill inventory</p>
               </div>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-[#64748B] hover:text-[#1E293B] p-1">
+              <button onClick={() => setIsAddModalOpen(false)} className="text-[#064E3B]/70 dark:text-[#A7F3D0]/70 hover:text-[#064E3B] dark:hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleAddMedication} className="space-y-3 text-xs">
               <div>
-                <label className="font-medium text-[#1E293B] block mb-1">
+                <label className="font-bold text-[#064E3B] dark:text-[#ECFDF5] block mb-1">
                   Brand Name *
                 </label>
                 <input
@@ -396,12 +396,12 @@ export default function MedicinesPage() {
                   placeholder="e.g. Crocin, Glycomet, Lipitor"
                   value={newBrandName}
                   onChange={(e) => setNewBrandName(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                  className="w-full rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] p-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] placeholder-[#064E3B]/40 dark:placeholder-white/40 focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
                 />
               </div>
 
               <div>
-                <label className="font-medium text-[#1E293B] block mb-1">
+                <label className="font-bold text-[#064E3B] dark:text-[#ECFDF5] block mb-1">
                   Generic Ingredient
                 </label>
                 <input
@@ -409,13 +409,13 @@ export default function MedicinesPage() {
                   placeholder="e.g. Paracetamol 650mg, Metformin 500mg"
                   value={newGenericName}
                   onChange={(e) => setNewGenericName(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                  className="w-full rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] p-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] placeholder-[#064E3B]/40 dark:placeholder-white/40 focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="font-medium text-[#1E293B] block mb-1">
+                  <label className="font-bold text-[#064E3B] dark:text-[#ECFDF5] block mb-1">
                     Dosage
                   </label>
                   <input
@@ -423,12 +423,12 @@ export default function MedicinesPage() {
                     placeholder="e.g. 500 mg"
                     value={newDosage}
                     onChange={(e) => setNewDosage(e.target.value)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                    className="w-full rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] p-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
                   />
                 </div>
 
                 <div>
-                  <label className="font-medium text-[#1E293B] block mb-1">
+                  <label className="font-bold text-[#064E3B] dark:text-[#ECFDF5] block mb-1">
                     Total Pills
                   </label>
                   <input
@@ -436,13 +436,13 @@ export default function MedicinesPage() {
                     min="1"
                     value={newTotalDoses}
                     onChange={(e) => setNewTotalDoses(parseInt(e.target.value) || 1)}
-                    className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                    className="w-full rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] p-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-medium text-[#1E293B] block mb-1">
+                <label className="font-bold text-[#064E3B] dark:text-[#ECFDF5] block mb-1">
                   Instructions
                 </label>
                 <input
@@ -450,12 +450,12 @@ export default function MedicinesPage() {
                   placeholder="e.g. Twice daily after food"
                   value={newFrequency}
                   onChange={(e) => setNewFrequency(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                  className="w-full rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] p-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
                 />
               </div>
 
               <div>
-                <label className="font-medium text-[#1E293B] block mb-1">
+                <label className="font-bold text-[#064E3B] dark:text-[#ECFDF5] block mb-1">
                   Clinic / Prescribed By
                 </label>
                 <input
@@ -463,21 +463,21 @@ export default function MedicinesPage() {
                   placeholder="e.g. Apollo Hospital / Dr. Sharma"
                   value={newHospitalName}
                   onChange={(e) => setNewHospitalName(e.target.value)}
-                  className="w-full rounded-xl border border-[#E2E8F0] bg-[#F8FAF9] p-2.5 text-xs text-[#1E293B] focus:bg-white focus:outline-none focus:border-[#1E5D57]"
+                  className="w-full rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] p-2.5 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:bg-white dark:focus:bg-[#132D26] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E8F0]">
+              <div className="flex justify-end gap-2 pt-3 border-t border-[#064E3B]/15 dark:border-white/10">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="rounded-xl px-4 py-2 text-xs font-medium text-[#64748B] hover:text-[#1E293B]"
+                  className="rounded-xl px-4 py-2 text-xs font-bold text-[#064E3B]/70 dark:text-[#A7F3D0]/70 hover:text-[#064E3B] dark:hover:text-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-[#1E5D57] hover:bg-[#134E48] px-5 py-2 text-xs font-semibold text-white shadow-soft transition-all min-tap-target"
+                  className="rounded-xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] px-5 py-2 text-xs font-bold text-white dark:text-[#042F24] shadow-soft transition-all min-tap-target"
                 >
                   Save Prescription
                 </button>
