@@ -85,8 +85,8 @@ export default function AppShell({ children }: AppShellProps) {
     pageTitle = "System Operations";
   }
 
-  // Floating dock is shown on patient screens EXCEPT root greet page and doctor portal
-  const showFloatingDock = pathname !== "/" && !pathname.startsWith("/doctor");
+  // Floating dock is shown on all app screens except root landing greet page
+  const showFloatingDock = pathname !== "/";
 
   return (
     <div className="relative flex h-screen max-h-screen w-full bg-white dark:bg-[#081511] text-[#064E3B] dark:text-[#ECFDF5] font-sans antialiased overflow-hidden selection:bg-[#064E3B] selection:text-white dark:selection:bg-[#10B981] dark:selection:text-[#042F24] transition-colors duration-200">

@@ -28,6 +28,7 @@ import {
   KeyRound,
   Award,
   Star,
+  ShieldAlert,
 } from "lucide-react";
 import {
   PatientRecord,
@@ -145,6 +146,39 @@ export default function DoctorPortalPage() {
     INITIAL_PATIENT_QUEUE[0];
 
   const isCurrentPatientUnlocked = unlockedPatients[activePatient.patientId] === true;
+  const isEmergencyCase = activePatient.urgencyLevel === "high_critical";
+
+  // Helper for masking personal information when locked (unless High Critical Emergency)
+  const getPatientDisplay = (patient: PatientRecord) => {
+    const isUnlocked = unlockedPatients[patient.patientId] === true;
+    const isEmergency = patient.urgencyLevel === "high_critical";
+
+    if (isUnlocked || isEmergency) {
+      return {
+        name: patient.name,
+        initials: patient.name.split(" ").map((n) => n[0]).join(""),
+        complaint: patient.chiefComplaint,
+        abha: `ABDM: ${patient.abhaId}`,
+        demographics: `${patient.age} yrs • ${patient.gender} • Blood: ${patient.bloodGroup}`,
+        allergies: patient.allergies.join(", "),
+        isMasked: false,
+        isEmergencyBypass: isEmergency && !isUnlocked,
+      };
+    }
+
+    return {
+      name: `Protected Patient (${patient.patientId})`,
+      initials: "PT",
+      complaint: "🔒 Consent Protected: Enter 4-digit PIN to access clinical dialogue",
+      abha: "ABDM: PIN Encrypted",
+      demographics: "Personal Info Protected • Awaiting Patient PIN",
+      allergies: "Protected under Sovereign Privacy",
+      isMasked: true,
+      isEmergencyBypass: false,
+    };
+  };
+
+  const activeDisplay = getPatientDisplay(activePatient);
 
   // Filtered patient list
   const filteredPatients = patientQueue.filter((p) => {
@@ -166,7 +200,7 @@ export default function DoctorPortalPage() {
       setUnlockedPatients((prev) => ({ ...prev, [activePatient.patientId]: true }));
       setPinInput("");
     } else {
-      setPinError(`⚠️ Invalid PIN. Please request the 4-digit Consent PIN from ${activePatient.name} (Default Demo PIN: ${getPatientConsentPin()}).`);
+      setPinError(`⚠️ Invalid PIN. Please request the current 4-digit Consent PIN from ${activePatient.name} (Default Demo PIN: ${getPatientConsentPin()}).`);
     }
   };
 
@@ -421,6 +455,7 @@ export default function DoctorPortalPage() {
               const isSelected = patient.patientId === selectedPatientId;
               const isCritical = patient.urgencyLevel === "high_critical";
               const isModerate = patient.urgencyLevel === "moderate";
+              const display = getPatientDisplay(patient);
 
               return (
                 <button
@@ -436,10 +471,7 @@ export default function DoctorPortalPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5]">
-                        {patient.name}
-                      </span>
-                      <span className="text-[9.5px] font-mono text-[#064E3B]/50 dark:text-white/40">
-                        {patient.patientId}
+                        {display.name}
                       </span>
                     </div>
 
@@ -457,12 +489,12 @@ export default function DoctorPortalPage() {
                   </div>
 
                   <p className="text-[11px] text-[#064E3B]/75 dark:text-[#A7F3D0]/75 line-clamp-1 leading-snug">
-                    {patient.chiefComplaint}
+                    {display.complaint}
                   </p>
 
                   <div className="flex items-center justify-between text-[9.5px] text-[#064E3B]/50 dark:text-white/40 pt-0.5">
                     <span>
-                      {patient.age}y • {patient.gender} • {patient.bloodGroup}
+                      {display.isMasked ? "Consent Protected" : `${patient.age}y • ${patient.gender} • ${patient.bloodGroup}`}
                     </span>
                     <span className="flex items-center gap-1 font-mono">
                       <Clock className="w-3 h-3 text-[#064E3B]/60 dark:text-white/40" />
@@ -478,43 +510,37 @@ export default function DoctorPortalPage() {
         {/* -----------------------------------------------------------------------
             CENTER/RIGHT PANE: SPACIOUS CLINICAL WORKSPACE & FULL-WIDTH TABS
             ----------------------------------------------------------------------- */}
-        <main className="flex-1 flex flex-col h-full min-h-0 bg-[#F9FBF9] dark:bg-[#081511] overflow-hidden">
+        <main className="flex-1 flex flex-col h-full min-h-0 bg-[#F9FBF9] dark:bg-[#081511] overflow-hidden pb-24">
           {/* Patient Quick Header Banner */}
           <div className="shrink-0 bg-white dark:bg-[#0B1D17] border-b border-[#064E3B]/10 dark:border-white/10 p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600/10 dark:bg-[#10B981]/20 font-serif text-base font-bold text-emerald-800 dark:text-[#10B981] shrink-0">
-                {activePatient.name.split(" ").map((n) => n[0]).join("")}
+                {activeDisplay.initials}
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="font-serif text-base font-bold text-[#064E3B] dark:text-[#ECFDF5]">
-                    {activePatient.name}
+                    {activeDisplay.name}
                   </h2>
                   <span className="font-mono text-[11px] font-bold text-emerald-800 dark:text-[#10B981]">
                     {activePatient.patientId}
                   </span>
                   <span className="hidden sm:inline-block rounded-full bg-[#F9FBF9] dark:bg-[#132D26] border border-[#064E3B]/15 dark:border-white/10 px-2 py-0.5 text-[9.5px] font-mono text-[#064E3B]/80 dark:text-white/80">
-                    ABDM: {activePatient.abhaId}
+                    {activeDisplay.abha}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-[#064E3B]/70 dark:text-white/60">
-                  <span>{activePatient.age} yrs</span>
-                  <span>•</span>
-                  <span>{activePatient.gender}</span>
-                  <span>•</span>
-                  <span className="font-semibold text-rose-700 dark:text-rose-400">
-                    Blood: {activePatient.bloodGroup}
-                  </span>
+                  <span>{activeDisplay.demographics}</span>
                 </div>
               </div>
             </div>
 
-            {/* Documented Allergies Tag */}
+            {/* Documented Allergies Tag & Lock Status */}
             <div className="flex items-center gap-2">
               <div className="rounded-xl border border-rose-300 bg-rose-50 dark:bg-rose-950/40 px-3 py-1 text-xs text-rose-800 dark:text-rose-200 flex items-center gap-1.5">
                 <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                 <span className="font-semibold text-[11px]">
-                  Allergies: {activePatient.allergies.join(", ")}
+                  Allergies: {activeDisplay.allergies}
                 </span>
               </div>
 
@@ -523,9 +549,14 @@ export default function DoctorPortalPage() {
                   <Unlock className="w-3.5 h-3.5 text-emerald-600" />
                   <span>PIN Verified</span>
                 </span>
+              ) : isEmergencyCase ? (
+                <span className="inline-flex items-center gap-1 rounded-xl bg-rose-100 dark:bg-rose-950 border border-rose-500/30 px-2.5 py-1 text-[11px] font-bold text-rose-800 dark:text-rose-300">
+                  <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Emergency Override</span>
+                </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-xl bg-amber-100 dark:bg-amber-950 border border-amber-500/30 px-2.5 py-1 text-[11px] font-bold text-amber-800 dark:text-amber-300">
-                  <Lock className="w-3.5 h-3.5 text-amber-600" />
+                <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 dark:bg-[#132D26] border border-emerald-600/30 px-2.5 py-1 text-[11px] font-bold text-emerald-900 dark:text-emerald-200">
+                  <Lock className="w-3.5 h-3.5 text-emerald-700 dark:text-[#10B981]" />
                   <span>PIN Protected</span>
                 </span>
               )}
@@ -603,18 +634,18 @@ export default function DoctorPortalPage() {
           {/* Tab Viewport */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {/* ===============================================================
-                CONSENT PIN GATE (If patient is protected by PIN)
+                CONSENT PIN GATE (Strict Aether Theme)
                 =============================================================== */}
-            {!isCurrentPatientUnlocked ? (
-              <div className="max-w-xl mx-auto my-6 rounded-3xl border border-amber-300 dark:border-amber-700/50 bg-gradient-to-br from-amber-50/90 via-white to-amber-50/50 dark:from-[#1A1810] dark:via-[#0F241E] dark:to-[#1A1810] p-6 shadow-md space-y-4 text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-amber-500/20 text-amber-700 dark:text-amber-400 mx-auto">
+            {!isCurrentPatientUnlocked && !isEmergencyCase ? (
+              <div className="max-w-xl mx-auto my-6 rounded-3xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-8 shadow-sm space-y-5 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-[#10B981] mx-auto">
                   <KeyRound className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="font-serif text-lg font-bold text-[#064E3B] dark:text-[#ECFDF5]">
+                  <h3 className="font-serif text-xl font-bold text-[#064E3B] dark:text-[#ECFDF5]">
                     Patient Telemetry Consent Gate
                   </h3>
-                  <p className="text-xs text-[#064E3B]/80 dark:text-white/70 mt-1 max-w-md mx-auto leading-relaxed">
+                  <p className="text-xs text-[#064E3B]/75 dark:text-white/70 mt-1.5 max-w-md mx-auto leading-relaxed">
                     Under ABDM Sovereign Health Regulations, access to <strong>{activePatient.name}</strong>&apos;s live AI triage chat, SBAR clinical handover, and biomarker data requires the patient&apos;s 4-digit Consent PIN.
                   </p>
                 </div>
@@ -627,7 +658,7 @@ export default function DoctorPortalPage() {
                     value={pinInput}
                     onChange={(e) => setPinInput(e.target.value)}
                     placeholder="Enter 4-digit PIN (Demo: 4892)"
-                    className="w-full h-11 text-center font-mono text-lg tracking-widest rounded-2xl border border-[#064E3B]/20 dark:border-white/20 bg-white dark:bg-[#081511] text-[#064E3B] dark:text-[#ECFDF5] focus:outline-none focus:border-amber-600"
+                    className="w-full h-11 text-center font-mono text-lg tracking-widest rounded-2xl border border-[#064E3B]/20 dark:border-white/20 bg-[#F9FBF9] dark:bg-[#0F241E] text-[#064E3B] dark:text-[#ECFDF5] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
                   />
 
                   {pinError && (
@@ -638,7 +669,7 @@ export default function DoctorPortalPage() {
 
                   <button
                     type="submit"
-                    className="w-full h-10 rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] text-white dark:text-[#042F24] text-xs font-bold shadow-md hover:scale-102 transition-transform cursor-pointer"
+                    className="w-full h-11 rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] text-white dark:text-[#042F24] text-xs font-bold shadow-md hover:scale-102 transition-transform cursor-pointer"
                   >
                     Verify & Unlock Patient Records
                   </button>
@@ -683,7 +714,7 @@ export default function DoctorPortalPage() {
                           </span>
                         </div>
                         <span className="text-[10px] font-mono text-emerald-700 dark:text-[#10B981] font-semibold">
-                          ABDM Consent Verified
+                          ABDM Sovereign Enclave
                         </span>
                       </div>
 
@@ -748,7 +779,7 @@ export default function DoctorPortalPage() {
                 )}
 
                 {/* ===============================================================
-                    TAB 2: MULTI-MEDICATION PRESCRIPTION BUILDER (SPACIOUS & FULL-WIDTH)
+                    TAB 2: MULTI-MEDICATION PRESCRIPTION BUILDER
                     =============================================================== */}
                 {activeTab === "dispenser" && (
                   <div className="space-y-5 max-w-5xl">
