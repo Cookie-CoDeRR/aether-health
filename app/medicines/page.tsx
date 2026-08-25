@@ -84,6 +84,30 @@ export default function MedicinesPage() {
   const [newHospitalName, setNewHospitalName] = useState("");
 
   useEffect(() => {
+    // Load stored prescriptions if available
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("aether_medications");
+      if (stored) {
+        try {
+          setPrescriptions(JSON.parse(stored));
+        } catch {}
+      } else {
+        localStorage.setItem("aether_medications", JSON.stringify(INITIAL_PRESCRIPTIONS));
+      }
+    }
+
+    // Listen for live doctor prescription updates
+    const handleMedicationsUpdated = (e: any) => {
+      if (e.detail?.allMeds) {
+        setPrescriptions(e.detail.allMeds);
+      }
+    };
+
+    window.addEventListener("aether-medications-updated", handleMedicationsUpdated);
+    return () => window.removeEventListener("aether-medications-updated", handleMedicationsUpdated);
+  }, []);
+
+  useEffect(() => {
     setIsLoading(true);
     searchMedicines(query).then((data) => {
       setMedicines(data);

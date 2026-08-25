@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSettings } from "@/context/SettingsContext";
-import { Menu, X, ShieldCheck, PhoneCall, ChevronDown, User, LogOut, Settings as SettingsIcon, Sun, Moon } from "lucide-react";
+import { Menu, X, ShieldCheck, PhoneCall, ChevronDown, User, LogOut, Settings as SettingsIcon, Sun, Moon, Stethoscope } from "lucide-react";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -211,6 +211,15 @@ export default function Header({
                       {theme} Mode
                     </span>
                   </button>
+
+                  <Link
+                    href="/doctor"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 rounded-xl p-2.5 text-[#064E3B] dark:text-[#ECFDF5] hover:bg-[#F9FBF9] dark:hover:bg-[#132D26] transition-colors"
+                  >
+                    <Stethoscope className="w-4 h-4 text-emerald-600 dark:text-[#10B981]" />
+                    <span className="font-bold">Doctor Clinical Portal</span>
+                  </Link>
 
                   <Link
                     href="/settings"

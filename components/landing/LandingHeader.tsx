@@ -52,10 +52,17 @@ export default function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
       </nav>
 
       {/* Auth Actions */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2 sm:gap-2.5">
+        <Link
+          href="/doctor"
+          className="hidden md:inline-flex items-center gap-1.5 rounded-xl border border-emerald-600/30 bg-emerald-50/70 hover:bg-emerald-100/80 px-3 py-2 text-xs font-bold text-emerald-900 transition-all shadow-2xs"
+        >
+          <span>👨‍⚕️ Doctor Portal</span>
+        </Link>
+
         <button
           onClick={handleQuickGoogleSignIn}
-          className="flex items-center gap-2 rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] px-3.5 py-2 text-xs font-bold text-[#064E3B] transition-all shadow-2xs"
+          className="hidden sm:flex items-center gap-2 rounded-xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] px-3.5 py-2 text-xs font-bold text-[#064E3B] transition-all shadow-2xs"
         >
           <span>Google Sync</span>
         </button>
@@ -69,7 +76,7 @@ export default function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
 
         <button
           onClick={() => onOpenAuth("signup")}
-          className="hidden sm:inline-flex rounded-xl bg-[#064E3B] hover:bg-[#043327] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all"
+          className="rounded-xl bg-[#064E3B] hover:bg-[#043327] px-4 py-2 text-xs font-bold text-white shadow-sm transition-all"
         >
           Get Started →
         </button>

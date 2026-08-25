@@ -30,6 +30,13 @@ export default function TodayMedicationsCard({ userId }: TodayMedicationsCardPro
 
   useEffect(() => {
     reloadMeds();
+
+    const handleDoctorPrescription = () => {
+      reloadMeds();
+    };
+
+    window.addEventListener("aether-medications-updated", handleDoctorPrescription);
+    return () => window.removeEventListener("aether-medications-updated", handleDoctorPrescription);
   }, [userId]);
 
   const handleToggle = (id: string) => {

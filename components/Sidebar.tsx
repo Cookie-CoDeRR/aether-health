@@ -15,6 +15,7 @@ import {
   PhoneCall,
   User,
   LogOut,
+  Stethoscope,
 } from "lucide-react";
 
 const navItems = [
@@ -41,6 +42,12 @@ const navItems = [
     subLabel: "Hospitals & verified doctors",
     href: "/discovery",
     icon: <MapPin className="w-5 h-5 shrink-0" />,
+  },
+  {
+    label: "Doctor Portal",
+    subLabel: "Clinician triage & rx sync",
+    href: "/doctor",
+    icon: <Stethoscope className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
   },
   {
     label: "Settings & Profile",

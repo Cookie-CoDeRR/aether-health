@@ -5,13 +5,13 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useSettings } from "@/context/SettingsContext";
 import { sendTriageMessage } from "@/services/domain/triageService";
+import { syncPatientTriageToDoctorQueue } from "@/services/clinicalHandoverService";
 import { SafetyWrappedResponse } from "@/types/disclaimers";
 import { TriageOutput, SpecialtySuggestion } from "@/types/ai";
 import { UrgencyLevel } from "@/types/symptomLog";
 import ClinicalResponseCard from "@/components/triage/ClinicalResponseCard";
 import PatientRecordsModal from "@/components/triage/PatientRecordsModal";
 import TodayMedicationsCard from "@/components/triage/TodayMedicationsCard";
-import TriageNatureBackground from "@/components/triage/TriageNatureBackground";
 import {
   Sparkles,
   AlertTriangle,
@@ -132,7 +132,15 @@ function TriageContent() {
           suggestedFollowUps: response.data.suggestedFollowUps,
           acknowledged: false,
         };
+        const updatedChat = [...messages, userMsg, aiMsg];
         setMessages((prev) => [...prev, aiMsg]);
+
+        // Automatically compress chat and generate SBAR Handover for doctor
+        syncPatientTriageToDoctorQueue(
+          "AETH-PT-9842",
+          userName || "Alex Rivers",
+          updatedChat
+        );
       }
     } catch (err) {
       setErrorMessage("Unable to connect to Aether health assistant. Please try again.");
