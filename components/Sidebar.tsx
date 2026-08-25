@@ -44,10 +44,16 @@ const navItems = [
     icon: <MapPin className="w-5 h-5 shrink-0" />,
   },
   {
-    label: "Doctor Portal",
-    subLabel: "Clinician triage & rx sync",
-    href: "/doctor",
+    label: "My Doctor & Care",
+    subLabel: "Prescriptions & doc submissions",
+    href: "/doctors",
     icon: <Stethoscope className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
+  },
+  {
+    label: "Doctor Clinician Portal",
+    subLabel: "Practitioner triage & rx sync",
+    href: "/doctor",
+    icon: <ShieldCheck className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
   },
   {
     label: "Settings & Profile",

@@ -44,15 +44,18 @@ export function detectNavigationIntent(query: string): string | null {
     return "/medicines";
   }
 
-  // Doctor Consultation
+  // Doctor Consultation & Care Team
   if (
+    q.includes("my doctor") ||
     q.includes("find doctor") ||
     q.includes("doctor consultation") ||
+    q.includes("consulting doctor") ||
     q.includes("specialist") ||
     q.includes("consultation") ||
-    q === "doctors"
+    q === "doctors" ||
+    q === "doctor"
   ) {
-    return "/discovery?tab=doctors";
+    return "/doctors";
   }
 
   // Hospital Radar / Map / Emergency Care
@@ -241,9 +244,9 @@ function FloatingDockContent({
     },
     {
       id: "doctors",
-      label: "Doctor Consultations",
+      label: "My Doctor & Care Plan",
       icon: <Stethoscope className="w-4 h-4" />,
-      href: "/discovery?tab=doctors",
+      href: "/doctors",
     },
   ];
 

@@ -69,11 +69,13 @@ export default function AppShell({ children }: AppShellProps) {
 
   // Page title inference based on pathname
   let pageTitle = "Care Today";
-  if (pathname.startsWith("/doctor")) {
+  if (pathname === "/doctor" || pathname.startsWith("/doctor/")) {
     pageTitle = "Doctor Clinical Portal";
+  } else if (pathname === "/doctors" || pathname.startsWith("/doctors/")) {
+    pageTitle = "My Doctor & Care Plan";
   } else if (pathname.startsWith("/reports") || pathname.startsWith("/timeline")) {
     pageTitle = "Records & Reports";
-  } else if (pathname.startsWith("/discovery") || pathname.startsWith("/doctors")) {
+  } else if (pathname.startsWith("/discovery")) {
     pageTitle = "Find Care";
   } else if (pathname.startsWith("/settings")) {
     pageTitle = "Settings & Profile";
