@@ -68,21 +68,6 @@ export default function StartPage() {
 
       {/* HERO SECTION */}
       <section className="relative z-10 flex flex-col items-center justify-center px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-12 text-center max-w-5xl mx-auto space-y-8">
-        {/* Brand Super-Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2.5 rounded-full bg-white border border-[#064E3B]/30 px-5 py-2 text-xs font-bold text-[#064E3B] shadow-sm"
-        >
-          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[#064E3B] text-white text-[10px] font-serif font-black">
-            Æ
-          </div>
-          <span className="font-extrabold tracking-wider uppercase text-[11px]">Aether Health</span>
-          <span className="text-[#064E3B]/30">•</span>
-          <span className="font-medium text-[#064E3B]/80">Autonomous Clinical Navigator</span>
-        </motion.div>
-
         {/* Dominant Brand Headline */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
