@@ -57,6 +57,7 @@ export default function AuthModal({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
   const { signInWithGmail } = useSettings();
@@ -139,28 +140,17 @@ export default function AuthModal({
     setIsGoogleSubmitting(true);
     try {
       await signInWithGmail();
-      signInAsDoctor({
-        name: "Dr. Anya Sharma",
-        email: "dr.anya.sharma@apollohospitals.com",
-        registrationNumber: "NMC-IND-94821",
-        hospitalAffiliation: "Apollo Specialty Hospital",
-        specialization: "Cardiology & Internal Medicine",
-        qualifications: "MBBS, MD (AIIMS), DM (Cardiology)",
-      });
-      onClose();
-      router.push("/doctor");
+      const storedEmail = typeof window !== "undefined" ? localStorage.getItem("aether_user_email") || "dr.anya.sharma@apollohospitals.com" : "dr.anya.sharma@apollohospitals.com";
+      const storedName = typeof window !== "undefined" ? localStorage.getItem("aether_user_name") || "Dr. Anya Sharma" : "Dr. Anya Sharma";
+
+      setDoctorEmail(storedEmail);
+      setDoctorName(storedName.startsWith("Dr.") ? storedName : `Dr. ${storedName}`);
+      setIsGoogleConnected(true);
     } catch (err: any) {
-      // Graceful fallback for demo
-      signInAsDoctor({
-        name: "Dr. Anya Sharma",
-        email: "dr.anya.sharma@apollohospitals.com",
-        registrationNumber: "NMC-IND-94821",
-        hospitalAffiliation: "Apollo Specialty Hospital",
-        specialization: "Cardiology & Internal Medicine",
-        qualifications: "MBBS, MD (AIIMS), DM (Cardiology)",
-      });
-      onClose();
-      router.push("/doctor");
+      // Graceful fallback for demo environment
+      setDoctorEmail("dr.anya.sharma@apollohospitals.com");
+      setDoctorName("Dr. Anya Sharma");
+      setIsGoogleConnected(true);
     } finally {
       setIsGoogleSubmitting(false);
     }
@@ -416,6 +406,19 @@ export default function AuthModal({
                 or with NMC credentials
               </span>
             </div>
+
+            {/* Google Connected Status Banner */}
+            {isGoogleConnected && (
+              <div className="rounded-2xl border border-emerald-600/30 bg-emerald-50/80 p-3 flex items-center gap-2.5 text-xs text-emerald-950">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="min-w-0">
+                  <span className="font-bold">Google Account Verified ({doctorEmail})</span>
+                  <p className="text-[10.5px] text-emerald-800">
+                    Please provide your NMC License # and Hospital affiliation below to complete clinical verification.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Doctor Credential Verification Form */}
             <form onSubmit={handleDoctorSubmit} className="space-y-3.5 text-xs">
