@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useSettings } from "@/context/SettingsContext";
 import { Menu, X, ShieldCheck, PhoneCall, ChevronDown, User, LogOut, Settings as SettingsIcon, Sun, Moon, Stethoscope } from "lucide-react";
 
@@ -20,6 +20,7 @@ export default function Header({
   sessionEyebrow,
 }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname() || "";
   const {
     theme,
     setTheme,
@@ -130,14 +131,18 @@ export default function Header({
           </div>
         )}
 
-        {/* User Profile Badge Button */}
+        {/* User / Doctor Profile Badge Button */}
         <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="flex items-center gap-2.5 rounded-full border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0F241E] p-1 sm:pr-3 hover:border-[#064E3B] dark:hover:border-[#10B981] transition-all shadow-2xs min-tap-target"
             aria-label="User Profile Menu"
           >
-            {userPhoto ? (
+            {pathname.startsWith("/doctor") ? (
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 dark:bg-[#10B981] font-sans text-xs font-bold text-white dark:text-[#042F24]">
+                DR
+              </div>
+            ) : userPhoto ? (
               <img
                 src={userPhoto}
                 alt={userName}
@@ -150,10 +155,10 @@ export default function Header({
             )}
             <div className="hidden sm:block text-left">
               <span className="block font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] leading-none truncate max-w-[120px]">
-                {userName}
+                {pathname.startsWith("/doctor") ? "Dr. Anya Sharma" : userName}
               </span>
               <span className="block text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 mt-0.5 truncate max-w-[120px]">
-                {userEmail || "Patient"}
+                {pathname.startsWith("/doctor") ? "NMC Verified" : userEmail || "Patient"}
               </span>
             </div>
             <ChevronDown
@@ -174,26 +179,24 @@ export default function Header({
                 {/* Header Profile Info */}
                 <div className="border-b border-[#064E3B]/15 dark:border-white/10 pb-3 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#064E3B] dark:text-[#ECFDF5] text-sm truncate">{userName}</span>
+                    <span className="font-bold text-[#064E3B] dark:text-[#ECFDF5] text-sm truncate">
+                      {pathname.startsWith("/doctor") ? "Dr. Anya Sharma" : userName}
+                    </span>
                     <span className="rounded-full bg-[#F9FBF9] dark:bg-[#132D26] border border-[#064E3B]/20 dark:border-white/15 text-[#064E3B] dark:text-[#10B981] text-[10px] px-2 py-0.5 font-bold">
-                      Patient
+                      {pathname.startsWith("/doctor") ? "Clinician" : "Patient"}
                     </span>
                   </div>
 
-                  {userEmail && (
-                    <div className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 truncate">
-                      {userEmail}
-                    </div>
-                  )}
+                  <div className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 truncate">
+                    {pathname.startsWith("/doctor")
+                      ? "dr.anya.sharma@apollohospitals.com"
+                      : userEmail}
+                  </div>
 
                   <div className="flex items-center justify-between text-[11px] text-[#064E3B]/60 dark:text-white/50 pt-1">
-                    <span className="truncate font-mono">ID: {userId.substring(0, 14)}...</span>
-                    <button
-                      onClick={handleCopyId}
-                      className="text-[#064E3B] dark:text-[#10B981] hover:underline font-bold ml-1 shrink-0"
-                    >
-                      {copied ? "Copied" : "Copy"}
-                    </button>
+                    <span className="truncate font-mono">
+                      {pathname.startsWith("/doctor") ? "Reg: NMC-IND-94821" : `ID: ${userId.substring(0, 14)}...`}
+                    </span>
                   </div>
                 </div>
 

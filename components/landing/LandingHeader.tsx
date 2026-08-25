@@ -7,7 +7,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { Stethoscope } from "lucide-react";
 
 interface LandingHeaderProps {
-  onOpenAuth: (tab: "signin" | "signup") => void;
+  onOpenAuth: (tab: "signin" | "signup", role?: "patient" | "doctor") => void;
 }
 
 export default function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
@@ -55,13 +55,14 @@ export default function LandingHeader({ onOpenAuth }: LandingHeaderProps) {
 
       {/* Auth Actions */}
       <div className="flex items-center gap-2 sm:gap-2.5">
-        <Link
-          href="/doctor"
-          className="hidden md:inline-flex items-center gap-1.5 rounded-xl border border-emerald-600/30 bg-emerald-50/70 hover:bg-emerald-100/80 px-3 py-2 text-xs font-bold text-emerald-900 transition-all shadow-2xs"
+        <button
+          type="button"
+          onClick={() => onOpenAuth("signin", "doctor")}
+          className="hidden md:inline-flex items-center gap-1.5 rounded-xl border border-emerald-600/30 bg-emerald-50/70 hover:bg-emerald-100/80 px-3.5 py-2 text-xs font-bold text-emerald-950 transition-all shadow-2xs cursor-pointer"
         >
           <Stethoscope className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
           <span>Doctor Portal</span>
-        </Link>
+        </button>
 
         <button
           onClick={handleQuickGoogleSignIn}

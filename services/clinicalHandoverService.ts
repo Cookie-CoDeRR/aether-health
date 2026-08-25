@@ -6,11 +6,18 @@ export interface PrescribedMedication {
   genericName: string;
   dosage: string;
   frequency: string;
+  timesOfDay?: string[]; // e.g. ["Morning (08:00 AM)", "Night (09:30 PM)"]
+  mealTiming?: string; // e.g. "Before Food" | "After Food" | "With Food"
+  startDate?: string;
+  endDate?: string;
+  totalDays?: number;
   totalDoses: number;
   dosesRemaining: number;
   takenToday: boolean;
   takenAt?: string;
   hospitalName: string;
+  doctorName?: string;
+  instructions?: string;
 }
 
 export interface SBARHandoverSummary {
@@ -71,12 +78,10 @@ export const INITIAL_PATIENT_QUEUE: PatientRecord[] = [
     allergies: ["Penicillin & Amoxicillin (Severe Anaphylactoid)", "Latex (Mild Contact)"],
     chronicConditions: ["Mild Seasonal Asthma", "Essential Hypertension (Borderline)"],
     urgencyLevel: "moderate",
-    lastTriageAt: "10 mins ago",
-    chiefComplaint: "Mild throbbing headache, fatigue, and post-prandial stomach cramps",
-    compressedChat: `[USER 09:15 AM]: I have had a mild throbbing headache and fatigue for the past 2 days, plus mild stomach cramps after lunch.
-[AI 09:15 AM]: Evaluated symptoms: consistent with mild gastrointestinal irritation and tension headache. Allergy check: Penicillin guard active. Advised hydration and light meals.
-[USER 09:18 AM]: Is this related to my elevated WBC count (11.2) from last week's test? Also feeling slightly bloated and embarrassed to ask about bowel frequency changes.
-[AI 09:18 AM]: Reassured patient: mild WBC elevation (11.2 K/µL) reflects mild systemic inflammation. Recommended clinical consultation to review gastritis symptoms safely without penicillin antibiotics.`,
+    lastTriageAt: "Just now",
+    chiefComplaint: "Mild throbbing headache, post-prandial epigastric burning, and fatigue",
+    compressedChat: `[USER 09:30 AM]: Experiencing dull retrosternal discomfort and burning sensation after morning coffee. Also mild headache for 2 days.
+[AI 09:30 AM]: Checked known records (Penicillin allergy noted). Evaluated symptoms for dyspepsia vs acute stress cephalalgia. Urgency evaluated as Moderate. Advised avoiding NSAIDs and consulting attending physician.`,
     handoverSummary: {
       situation: "34-year-old male presenting with 48-hour history of frontal tension headache, mild fatigue, and post-prandial epigastric cramping.",
       background: "Documented severe allergy to Penicillin & Amoxicillin. Baseline WBC slightly elevated at 11.2 K/µL (mild active inflammation). Currently taking Metformin 500mg and Atorvastatin 10mg.",
@@ -90,40 +95,40 @@ export const INITIAL_PATIENT_QUEUE: PatientRecord[] = [
         "Prescribe non-penicillin H2-blocker or Proton Pump Inhibitor (e.g. Pantoprazole 40mg once daily).",
         "Reassure patient regarding WBC count; schedule repeat CBC panel if symptoms persist beyond 5 days.",
       ],
-      generatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      generatedAt: "Today, 09:49 AM",
       triageRisk: "moderate",
     },
     recentLabMarkers: [
-      { name: "White Blood Cells (WBC)", value: "11.2", reference: "4.5 - 11.0", status: "high", unit: "10^3/µL" },
-      { name: "Serum Creatinine", value: "0.92", reference: "0.7 - 1.3", status: "normal", unit: "mg/dL" },
+      { name: "White Blood Cell (WBC)", value: "11.2", reference: "4.5 - 11.0", status: "high", unit: "K/µL" },
+      { name: "Serum Creatinine", value: "0.92", reference: "0.70 - 1.30", status: "normal", unit: "mg/dL" },
       { name: "Fasting Blood Glucose", value: "98", reference: "70 - 99", status: "normal", unit: "mg/dL" },
-      { name: "Hemoglobin (Hb)", value: "14.6", reference: "13.5 - 17.5", status: "normal", unit: "g/dL" },
-      { name: "Total Cholesterol", value: "185", reference: "< 200", status: "normal", unit: "mg/dL" },
+      { name: "Hemoglobin (Hb)", value: "14.8", reference: "13.8 - 17.2", status: "normal", unit: "g/dL" },
+      { name: "Platelet Count", value: "245", reference: "150 - 450", status: "normal", unit: "K/µL" },
     ],
     timelineMilestones: [
       {
-        id: "ev_1",
-        title: "AI Clinical Triage Assessment",
-        date: "Today, 09:15 AM",
+        id: "ev-1",
+        title: "Triage Assessment Completed",
+        date: "Today, 09:30 AM",
         category: "Triage",
-        summary: "Patient reported headache, post-prandial cramps. Penicillin guard cross-referenced.",
-        facility: "Aether Telemetry Engine",
+        summary: "Interactive symptom evaluation recorded for epigastric discomfort and headache.",
+        facility: "Aether Telemetry System",
       },
       {
-        id: "ev_2",
-        title: "Comprehensive Metabolic & CBC Lab OCR",
-        date: "14 Aug 2026",
+        id: "ev-2",
+        title: "Comprehensive Metabolic & CBC Panel",
+        date: "Aug 22, 2026",
         category: "Lab",
-        summary: "Automated OCR extracted 5 key biomarkers. WBC flagged at 11.2 K/µL.",
+        summary: "WBC 11.2 K/µL, normal renal and liver function panels.",
         facility: "Apollo Diagnostics Central Lab",
       },
       {
-        id: "ev_3",
+        id: "ev-3",
         title: "Cardiology Clearance Follow-up",
-        date: "28 Jul 2026",
+        date: "Jun 14, 2026",
         category: "Consultation",
         summary: "Routine ECG and treadmill stress test normal. Atorvastatin 10mg continued.",
-        facility: "Fortis Healthcare Hospital",
+        facility: "Apollo Specialty Hospital",
       },
     ],
   },
@@ -143,34 +148,33 @@ export const INITIAL_PATIENT_QUEUE: PatientRecord[] = [
     compressedChat: `[USER 09:00 AM]: I woke up with severe chest tightness and difficulty breathing. My left arm feels heavy and numb.
 [AI 09:00 AM]: HIGH CRITICAL EMERGENCY ALERT triggered. Advised immediate emergency dispatch (108/112). Sitting upright and avoiding exertion instructed.`,
     handoverSummary: {
-      situation: "42-year-old female presenting with acute retrosternal chest tightness, dyspnea at rest, and radiating left upper extremity paresthesia.",
-      background: "History of Type 2 Diabetes (HbA1c 7.4%) and Hypothyroidism (on Levothyroxine 50mcg). Sulfa drug and Aspirin allergies documented.",
-      assessment: "Acute Coronary Syndrome (ACS) or pulmonary embolism must be ruled out STAT. Urgency level: High-Critical.",
+      situation: "42-year-old female presenting with acute retrosternal pressure radiating to left arm and sudden dyspnea.",
+      background: "History of Type 2 Diabetes (HbA1c 7.4%) and known Aspirin sensitivity. High cardiovascular risk profile.",
+      assessment: "Possible Acute Coronary Syndrome (ACS) vs Severe Angina Equivalents. Urgency: HIGH CRITICAL.",
       sensitiveDisclosures: [
-        "Patient reported severe anxiety and fear of hospital admission.",
+        "Patient expressed intense fear of hospitalization due to family medical trauma.",
       ],
       doctorRecommendations: [
-        "Immediate 12-lead ECG, cardiac troponin panel (hs-cTnI), and continuous telemetry monitoring.",
-        "Oxygen supplementation if SpO2 < 94%.",
-        "Avoid Aspirin if hypersensitivity is confirmed; administer alternative antiplatelet (Clopidogrel) per protocol.",
+        "Perform urgent 12-lead Electrocardiogram (ECG) immediately.",
+        "Draw high-sensitivity Troponin I/T and cardiac enzymes stat.",
+        "Prepare emergency sublingual nitrate therapy if blood pressure permits (verify NKDA).",
       ],
-      generatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      generatedAt: "Today, 09:02 AM",
       triageRisk: "high_critical",
     },
     recentLabMarkers: [
+      { name: "Troponin I (Cardiac)", value: "0.08", reference: "< 0.04", status: "high", unit: "ng/mL" },
       { name: "HbA1c Glycated Hemoglobin", value: "7.4", reference: "< 5.7", status: "high", unit: "%" },
       { name: "Serum Potassium", value: "4.1", reference: "3.5 - 5.0", status: "normal", unit: "mEq/L" },
-      { name: "Serum Creatinine", value: "1.05", reference: "0.6 - 1.1", status: "normal", unit: "mg/dL" },
-      { name: "TSH", value: "3.2", reference: "0.4 - 4.0", status: "normal", unit: "mIU/L" },
     ],
     timelineMilestones: [
       {
-        id: "ev_p1",
-        title: "Emergency Triage Dispatch Trigger",
+        id: "ev-p1",
+        title: "Emergency Triage Dispatch",
         date: "Today, 09:00 AM",
         category: "Triage",
-        summary: "Emergency red-flag protocol initiated for acute chest pressure and dyspnea.",
-        facility: "Aether Emergency Dispatch",
+        summary: "High critical symptom flag triggered for acute chest tightness.",
+        facility: "Fortis Emergency Department",
       },
     ],
   },
@@ -187,54 +191,55 @@ export const INITIAL_PATIENT_QUEUE: PatientRecord[] = [
     urgencyLevel: "routine",
     lastTriageAt: "1 hour ago",
     chiefComplaint: "Mild seasonal nasal congestion, sneezing, and ocular pruritus",
-    compressedChat: `[USER 08:30 AM]: Seasonal pollen allergies acting up. Sneezing and itchy eyes since morning.
-[AI 08:30 AM]: Routine allergic rhinitis guidance provided: saline nasal irrigation, oral second-generation antihistamine recommended.`,
+    compressedChat: `[USER 08:45 AM]: Sneezing frequently and clear runny nose since yesterday morning after garden work.
+[AI 08:45 AM]: Evaluated symptoms for seasonal allergic rhinitis. Urgency: Routine. Recommended oral antihistamine or saline nasal spray.`,
     handoverSummary: {
-      situation: "28-year-old male with acute allergic rhinitis exacerbation triggered by seasonal tree pollen.",
-      background: "NKDA. No chronic morbidities.",
-      assessment: "Mild seasonal allergic rhinitis. Urgency level: Routine.",
+      situation: "28-year-old male with acute onset of bilateral watery rhinorrhea and paroxysmal sneezing.",
+      background: "Young healthy individual with no chronic comorbidities or documented drug allergies.",
+      assessment: "Acute Allergic Rhinitis precipitated by environmental aeroallergens. Urgency: Routine.",
       sensitiveDisclosures: [],
       doctorRecommendations: [
-        "Recommend non-sedating antihistamine (Cetirizine 10mg or Fexofenadine 120mg).",
-        "Saline nasal rinse twice daily.",
+        "Recommend non-sedating second-generation H1 antihistamine (e.g. Cetirizine 10mg or Fexofenadine 120mg).",
+        "Advise daily isotonic saline nasal rinse.",
       ],
-      generatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      generatedAt: "Today, 08:48 AM",
       triageRisk: "routine",
     },
     recentLabMarkers: [
-      { name: "Hemoglobin (Hb)", value: "15.2", reference: "13.5 - 17.5", status: "normal", unit: "g/dL" },
-      { name: "Total IgE", value: "142", reference: "< 100", status: "high", unit: "IU/mL" },
+      { name: "Total IgE (Serum)", value: "180", reference: "< 100", status: "high", unit: "IU/mL" },
+      { name: "Absolute Eosinophil Count", value: "420", reference: "20 - 500", status: "normal", unit: "/µL" },
     ],
     timelineMilestones: [
       {
-        id: "ev_r1",
-        title: "Seasonal Allergy AI Triage",
-        date: "Today, 08:30 AM",
+        id: "ev-r1",
+        title: "Allergy Symptom Check",
+        date: "Today, 08:45 AM",
         category: "Triage",
-        summary: "Self-management protocol provided for allergic rhinitis.",
-        facility: "Aether Telemetry Engine",
+        summary: "Seasonal rhinitis triage completed.",
+        facility: "Aether Clinic Portal",
       },
     ],
   },
 ];
 
 /**
- * Compresses an array of chat messages into a token-efficient transcript string.
+ * Compresses raw multi-turn chat messages into a token-efficient dialogue transcript.
  */
-export function compressChatTranscript(messages: any[]): string {
-  if (!messages || messages.length === 0) return "No active conversation logged.";
+export function compressChatTranscript(messages: { sender: string; text: string; timestamp?: string }[]): string {
+  if (!messages || messages.length === 0) return "No prior triage dialogue recorded.";
+
   return messages
     .map((m) => {
-      const sender = m.sender === "user" ? "USER" : "AI";
-      const time = m.timestamp || "";
-      const text = (m.text || "").replace(/\n+/g, " ").trim();
-      return `[${sender} ${time}]: ${text}`;
+      const role = m.sender === "user" ? "USER" : "AI";
+      const time = m.timestamp || new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const cleanText = m.text.replace(/\s+/g, " ").trim();
+      return `[${role} ${time}]: ${cleanText}`;
     })
     .join("\n");
 }
 
 /**
- * Generates an LLM Clinical Handover Summary (SBAR format) from raw chat messages.
+ * Generates structured SBAR Handover Brief using Gemini API.
  */
 export async function generateSBARHandover(
   patientId: string,
@@ -245,8 +250,8 @@ export async function generateSBARHandover(
 
   try {
     if (rawApiKey) {
-      const prompt = `You are a Senior Clinical Triage Officer at Aether Health. 
-Analyze this patient-AI triage conversation and generate a concise, high-yield SBAR Clinical Handover for the attending physician.
+      const prompt = `You are a clinical triage AI assistant for Aether Health.
+Convert the following patient triage dialogue into a concise, professional SBAR (Situation, Background, Assessment, Recommendation) Clinical Handover Brief.
 Highlight any sensitive, confidential, or embarrassing details the patient disclosed to the AI so the doctor can approach the consultation empathetically without forcing the patient to awkwardly repeat themselves.
 
 Patient: ${patientName} (ID: ${patientId})
@@ -289,7 +294,7 @@ Respond with valid JSON containing exactly these fields:
     console.warn("Gemini SBAR Handover generation fallback:", err);
   }
 
-  // High-yield fallback synthesis based on symptoms in transcript
+  // Fallback synthesis
   const lower = compressed.toLowerCase();
   const isEmergency = lower.includes("chest pain") || lower.includes("shortness of breath") || lower.includes("numb");
   const isGastric = lower.includes("stomach") || lower.includes("cramp") || lower.includes("nausea") || lower.includes("bowel");
@@ -309,7 +314,7 @@ Respond with valid JSON containing exactly these fields:
     sensitiveDisclosures: isGastric
       ? [
           "Patient disclosed feelings of embarrassment regarding bowel frequency changes and bloating.",
-          "Patient expressed apprehension regarding whether lab WBC elevation reflects infection.",
+          "Patient noted mild anxiety regarding whether elevated WBC (11.2) indicates an underlying infection.",
         ]
       : [],
     doctorRecommendations: isGastric
@@ -353,20 +358,26 @@ export async function syncPatientTriageToDoctorQueue(
     queue[existingIndex].handoverSummary = summary;
     queue[existingIndex].lastTriageAt = "Just now";
     queue[existingIndex].urgencyLevel = summary.triageRisk;
+    if (messages.length > 0) {
+      const lastUserMsg = [...messages].reverse().find((m) => m.sender === "user");
+      if (lastUserMsg) {
+        queue[existingIndex].chiefComplaint = lastUserMsg.text.substring(0, 100);
+      }
+    }
   }
 
   localStorage.setItem("aether_doctor_patient_queue", JSON.stringify(queue));
 
-  // Dispatch custom live sync event for doctor portal
+  // Broadcast event
   window.dispatchEvent(
     new CustomEvent("aether-patient-triage-updated", {
-      detail: { patientId, summary, compressed },
+      detail: { patientId, compressedChat: compressed, handoverSummary: summary },
     })
   );
 }
 
 /**
- * Retrieves the live patient queue for doctor consultation.
+ * Retrieves the live patient queue for the doctor portal.
  */
 export function getDoctorPatientQueue(): PatientRecord[] {
   if (typeof window === "undefined") return INITIAL_PATIENT_QUEUE;
@@ -385,7 +396,111 @@ export function getDoctorPatientQueue(): PatientRecord[] {
 }
 
 /**
- * Doctor writes a new prescription / next dose update which syncs LIVE to the patient.
+ * Doctor writes multiple prescriptions at once with time-of-day, start/end dates, and live sync.
+ */
+export function prescribeMultipleMedications(
+  patientId: string,
+  items: {
+    brandName: string;
+    genericName: string;
+    dosage: string;
+    frequency: string;
+    timesOfDay: string[];
+    mealTiming: string;
+    startDate: string;
+    endDate: string;
+    totalDays: number;
+    instructions: string;
+    doctorName: string;
+    hospitalName: string;
+  }[]
+): { success: boolean; error?: string; createdMedications?: PrescribedMedication[] } {
+  if (typeof window === "undefined") return { success: false, error: "Window undefined" };
+  if (!items || items.length === 0) return { success: false, error: "No medications provided." };
+
+  // Check all items against Allergy Guard
+  for (const item of items) {
+    const lower = (item.brandName + " " + item.genericName).toLowerCase();
+    if (
+      lower.includes("penicillin") ||
+      lower.includes("amoxicillin") ||
+      lower.includes("ampicillin") ||
+      lower.includes("augmentin")
+    ) {
+      return {
+        success: false,
+        error: `⚠️ CONTRAINDICATION ALERT: "${item.brandName}" contains penicillin derivatives. Patient has a severe Penicillin allergy. Order blocked by Aether Allergy Guard.`,
+      };
+    }
+  }
+
+  const createdMeds: PrescribedMedication[] = items.map((item, idx) => ({
+    id: `rx_doc_${Date.now()}_${idx}`,
+    brandName: item.brandName,
+    genericName: item.genericName,
+    dosage: item.dosage,
+    frequency: item.frequency,
+    timesOfDay: item.timesOfDay,
+    mealTiming: item.mealTiming,
+    startDate: item.startDate,
+    endDate: item.endDate,
+    totalDays: item.totalDays,
+    totalDoses: item.totalDays * (item.timesOfDay.length || 1),
+    dosesRemaining: item.totalDays * (item.timesOfDay.length || 1),
+    takenToday: false,
+    hospitalName: item.hospitalName,
+    doctorName: item.doctorName,
+    instructions: item.instructions,
+  }));
+
+  // Get current patient prescriptions
+  let currentMeds: PrescribedMedication[] = [];
+  const rawMeds = localStorage.getItem("aether_medications");
+  if (rawMeds) {
+    try {
+      currentMeds = JSON.parse(rawMeds);
+    } catch {
+      currentMeds = [];
+    }
+  }
+
+  const updatedMeds = [...createdMeds, ...currentMeds];
+  localStorage.setItem("aether_medications", JSON.stringify(updatedMeds));
+
+  // Add timeline event
+  const medNames = items.map((m) => `${m.brandName} (${m.dosage})`).join(", ");
+  const newTimelineEvent = {
+    id: `ev_rx_${Date.now()}`,
+    title: `Doctor Prescription: ${medNames}`,
+    date: `Today, ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
+    category: "Medication",
+    summary: `Prescribed by ${items[0].doctorName} at ${items[0].hospitalName}. Duration: ${items[0].totalDays} days (${items[0].startDate} to ${items[0].endDate}). Instructions: ${items[0].instructions}`,
+    facility: items[0].hospitalName,
+  };
+
+  let timelineEvents: any[] = [];
+  const rawTimeline = localStorage.getItem("aether_timeline_events");
+  if (rawTimeline) {
+    try {
+      timelineEvents = JSON.parse(rawTimeline);
+    } catch {
+      timelineEvents = [];
+    }
+  }
+  localStorage.setItem("aether_timeline_events", JSON.stringify([newTimelineEvent, ...timelineEvents]));
+
+  // Broadcast live cross-component event
+  window.dispatchEvent(
+    new CustomEvent("aether-medications-updated", {
+      detail: { medication: createdMeds[0], allMeds: updatedMeds },
+    })
+  );
+
+  return { success: true, createdMedications: createdMeds };
+}
+
+/**
+ * Single medicine prescription wrapper.
  */
 export function prescribeDoctorMedication(
   patientId: string,
@@ -401,76 +516,26 @@ export function prescribeDoctorMedication(
     hospitalName: string;
   }
 ): { success: boolean; error?: string; medication?: PrescribedMedication } {
-  if (typeof window === "undefined") return { success: false, error: "Window undefined" };
+  const res = prescribeMultipleMedications(patientId, [
+    {
+      brandName: prescription.brandName,
+      genericName: prescription.genericName,
+      dosage: prescription.dosage,
+      frequency: prescription.frequency,
+      timesOfDay: ["Morning (08:00 AM)"],
+      mealTiming: "Before Food",
+      startDate: "Today",
+      endDate: "14 Days from now",
+      totalDays: 14,
+      instructions: prescription.instructions,
+      doctorName: prescription.doctorName,
+      hospitalName: prescription.hospitalName,
+    },
+  ]);
 
-  // Allergy safety check
-  const lower = (prescription.brandName + " " + prescription.genericName).toLowerCase();
-  if (
-    lower.includes("penicillin") ||
-    lower.includes("amoxicillin") ||
-    lower.includes("ampicillin") ||
-    lower.includes("augmentin")
-  ) {
-    return {
-      success: false,
-      error: `⚠️ CONTRAINDICATION ALERT: Patient has a documented severe allergy to Penicillin & Amoxicillin. Prescription rejected by Aether Allergy Guard.`,
-    };
+  if (!res.success) {
+    return { success: false, error: res.error };
   }
 
-  const newMed: PrescribedMedication = {
-    id: `rx_doc_${Date.now()}`,
-    brandName: prescription.brandName,
-    genericName: prescription.genericName,
-    dosage: prescription.dosage,
-    frequency: prescription.frequency,
-    totalDoses: prescription.totalDoses || 14,
-    dosesRemaining: prescription.totalDoses || 14,
-    takenToday: false,
-    hospitalName: `${prescription.hospitalName} (${prescription.doctorName})`,
-  };
-
-  // Get current patient prescriptions
-  let currentMeds: PrescribedMedication[] = [];
-  const rawMeds = localStorage.getItem("aether_medications");
-  if (rawMeds) {
-    try {
-      currentMeds = JSON.parse(rawMeds);
-    } catch {
-      currentMeds = [];
-    }
-  }
-
-  // Prepend new doctor prescribed medicine
-  const updatedMeds = [newMed, ...currentMeds.filter((m) => m.id !== newMed.id)];
-  localStorage.setItem("aether_medications", JSON.stringify(updatedMeds));
-
-  // Add timeline milestone event for the patient
-  const newTimelineEvent = {
-    id: `ev_rx_${Date.now()}`,
-    title: `Doctor Prescription: ${prescription.brandName} (${prescription.dosage})`,
-    date: `Today, ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
-    category: "Medication",
-    summary: `Prescribed by ${prescription.doctorName} at ${prescription.hospitalName}. Next dose scheduled: ${prescription.nextDoseTime}. Note: ${prescription.instructions}`,
-    facility: prescription.hospitalName,
-  };
-
-  let timelineEvents: any[] = [];
-  const rawTimeline = localStorage.getItem("aether_timeline_events");
-  if (rawTimeline) {
-    try {
-      timelineEvents = JSON.parse(rawTimeline);
-    } catch {
-      timelineEvents = [];
-    }
-  }
-  localStorage.setItem("aether_timeline_events", JSON.stringify([newTimelineEvent, ...timelineEvents]));
-
-  // Broadcast live cross-component and cross-tab update event
-  window.dispatchEvent(
-    new CustomEvent("aether-medications-updated", {
-      detail: { medication: newMed, allMeds: updatedMeds },
-    })
-  );
-
-  return { success: true, medication: newMed };
+  return { success: true, medication: res.createdMedications?.[0] };
 }

@@ -30,6 +30,7 @@ import {
 export default function StartPage() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authTab, setAuthTab] = useState<"signin" | "signup">(initialTab);
+  const [authRole, setAuthRole] = useState<"patient" | "doctor">("patient");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { isGmailAuthenticated } = useSettings();
   const router = useRouter();
@@ -50,8 +51,9 @@ export default function StartPage() {
     }
   }, [isGmailAuthenticated, router]);
 
-  const openAuth = (tab: "signin" | "signup") => {
+  const openAuth = (tab: "signin" | "signup", role: "patient" | "doctor" = "patient") => {
     setAuthTab(tab);
+    setAuthRole(role);
     setIsAuthOpen(true);
   };
 
@@ -630,6 +632,7 @@ export default function StartPage() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         initialTab={authTab}
+        initialRole={authRole}
       />
     </div>
   );

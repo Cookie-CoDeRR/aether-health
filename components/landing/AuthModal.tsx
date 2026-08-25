@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSettings } from "@/context/SettingsContext";
 import {
@@ -35,6 +35,13 @@ export default function AuthModal({
 }: AuthModalProps) {
   const [role, setRole] = useState<"patient" | "doctor">(initialRole);
   const [tab, setTab] = useState<"signin" | "signup">(initialTab);
+
+  useEffect(() => {
+    if (isOpen) {
+      setRole(initialRole);
+      setTab(initialTab);
+    }
+  }, [isOpen, initialRole, initialTab]);
 
   // Patient Fields
   const [email, setEmail] = useState("");
