@@ -26,6 +26,12 @@ import {
   RotateCcw,
 } from "lucide-react";
 
+import {
+  getActiveDoctorProfile,
+  DoctorProfile,
+  VERIFIED_DOCTORS_REGISTRY,
+} from "@/services/authService";
+
 interface ChatMessage {
   id: string;
   sender: "user" | "ai";
@@ -60,6 +66,7 @@ function TriageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isRecordsModalOpen, setIsRecordsModalOpen] = useState(false);
+  const [attendingDoctor, setAttendingDoctor] = useState<DoctorProfile>(VERIFIED_DOCTORS_REGISTRY[0]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +94,14 @@ function TriageContent() {
     window.addEventListener("aether-triage-prompt", handleTriagePromptEvent);
     return () =>
       window.removeEventListener("aether-triage-prompt", handleTriagePromptEvent);
+  }, []);
+
+  // Load attending doctor profile
+  useEffect(() => {
+    const doc = getActiveDoctorProfile();
+    if (doc) {
+      setAttendingDoctor(doc);
+    }
   }, []);
 
   const handleSend = async (textToSend: string) => {
@@ -417,6 +432,45 @@ function TriageContent() {
 
       {/* ---------- RIGHT RAIL: PERMANENTLY VISIBLE PATIENT CONTEXT (380px - 410px) ---------- */}
       <aside className="hidden lg:flex w-[380px] xl:w-[410px] shrink-0 flex-col h-full min-h-0 bg-white dark:bg-[#0B1D17] p-6 space-y-5 overflow-y-auto border-l border-[#064E3B]/15 dark:border-white/10 pb-28 transition-colors">
+        {/* Attending Doctor Card */}
+        <div className="rounded-3xl border border-emerald-600/25 dark:border-[#10B981]/20 bg-gradient-to-br from-emerald-50/60 via-white to-emerald-50/30 dark:from-[#0B1D17] dark:via-[#0F241E] dark:to-[#0B1D17] p-5 space-y-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs">
+          <div className="flex items-center justify-between gap-2 border-b border-[#064E3B]/10 dark:border-white/10 pb-2.5">
+            <div className="flex items-center gap-2 font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5]">
+              <Stethoscope className="w-4 h-4 text-emerald-600 dark:text-[#10B981] shrink-0" />
+              <span>Attending Physician</span>
+            </div>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 text-[9.5px] font-bold text-emerald-800 dark:text-emerald-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Telemetry Active</span>
+            </span>
+          </div>
+
+          <div className="flex items-start gap-3 pt-0.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-700/10 dark:bg-[#10B981]/20 font-serif text-base font-bold text-emerald-800 dark:text-[#10B981] shrink-0">
+              {attendingDoctor.name.replace("Dr. ", "").split(" ").map((n) => n[0]).join("")}
+            </div>
+            <div className="space-y-0.5 flex-1 min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] truncate">
+                  {attendingDoctor.name}
+                </span>
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              </div>
+              <p className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 truncate">
+                {attendingDoctor.specialization}
+              </p>
+              <p className="text-[10px] font-mono text-emerald-800 dark:text-emerald-300">
+                {attendingDoctor.hospitalAffiliation}
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-white/80 dark:bg-[#081511]/80 border border-[#064E3B]/10 dark:border-white/5 p-2.5 flex items-center justify-between text-[10.5px]">
+            <span className="text-[#064E3B]/70 dark:text-white/60">SBAR Triage Handover</span>
+            <span className="font-mono font-bold text-emerald-700 dark:text-[#10B981]">Encrypted & Synced</span>
+          </div>
+        </div>
+
         {/* Today's Active Medications Card */}
         <TodayMedicationsCard userId={ACTIVE_PATIENT_USER_ID} />
 

@@ -20,11 +20,13 @@ export default function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // One-time auto trigger on first login/arrival on interior pages + event listener
+  // One-time auto trigger on first login/arrival on interior pages + event listener (Patient only)
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const isDoctorRoute = pathname.startsWith("/doctor");
+      const userRole = localStorage.getItem("aether_user_role");
       const hasSeenTour = localStorage.getItem("aether_onboarding_completed");
-      if (!hasSeenTour && pathname !== "/") {
+      if (!hasSeenTour && pathname !== "/" && !isDoctorRoute && userRole !== "doctor") {
         // Small delay for smooth entry animation
         const timer = setTimeout(() => setIsTourOpen(true), 600);
         return () => clearTimeout(timer);
@@ -67,7 +69,9 @@ export default function AppShell({ children }: AppShellProps) {
 
   // Page title inference based on pathname
   let pageTitle = "Care Today";
-  if (pathname.startsWith("/reports") || pathname.startsWith("/timeline")) {
+  if (pathname.startsWith("/doctor")) {
+    pageTitle = "Doctor Clinical Portal";
+  } else if (pathname.startsWith("/reports") || pathname.startsWith("/timeline")) {
     pageTitle = "Records & Reports";
   } else if (pathname.startsWith("/discovery") || pathname.startsWith("/doctors")) {
     pageTitle = "Find Care";
@@ -79,8 +83,8 @@ export default function AppShell({ children }: AppShellProps) {
     pageTitle = "System Operations";
   }
 
-  // Floating dock is shown on all screens EXCEPT root greet page ("/")
-  const showFloatingDock = pathname !== "/";
+  // Floating dock is shown on patient screens EXCEPT root greet page and doctor portal
+  const showFloatingDock = pathname !== "/" && !pathname.startsWith("/doctor");
 
   return (
     <div className="relative flex h-screen max-h-screen w-full bg-white dark:bg-[#081511] text-[#064E3B] dark:text-[#ECFDF5] font-sans antialiased overflow-hidden selection:bg-[#064E3B] selection:text-white dark:selection:bg-[#10B981] dark:selection:text-[#042F24] transition-colors duration-200">
