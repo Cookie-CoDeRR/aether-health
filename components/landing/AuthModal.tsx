@@ -47,7 +47,7 @@ export default function AuthModal({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // Doctor Fields
+  // Doctor Fields (Clean & Empty by default)
   const [doctorName, setDoctorName] = useState("");
   const [doctorEmail, setDoctorEmail] = useState("");
   const [regNumber, setRegNumber] = useState("");
@@ -63,15 +63,6 @@ export default function AuthModal({
   const router = useRouter();
 
   if (!isOpen) return null;
-
-  const handleSelectDoctorPreset = (preset: DoctorProfile) => {
-    setDoctorName(preset.name);
-    setDoctorEmail(preset.email);
-    setRegNumber(preset.registrationNumber);
-    setHospitalAffiliation(preset.hospitalAffiliation);
-    setSpecialization(preset.specialization);
-    setQualifications(preset.qualifications);
-  };
 
   const handleGoogleSignIn = async () => {
     setAuthError(null);
@@ -147,44 +138,29 @@ export default function AuthModal({
     setAuthError(null);
     setIsGoogleSubmitting(true);
     try {
-      const profile = await signInWithGmail();
-      const rawName = profile.displayName || doctorName || "Dr. Alex Rivers";
-      const formattedName = rawName.startsWith("Dr.") ? rawName : `Dr. ${rawName}`;
-
-      await signInAsDoctor({
-        name: formattedName,
-        email: profile.email || doctorEmail || "dr.alex.rivers@apollohospitals.com",
-        registrationNumber: regNumber || "NMC-IND-94821",
-        hospitalAffiliation: hospitalAffiliation || "Apollo Specialty Hospital",
-        specialization: specialization || "Cardiology & Internal Medicine",
-        qualifications: qualifications || "MBBS, MD",
+      await signInWithGmail();
+      signInAsDoctor({
+        name: "Dr. Anya Sharma",
+        email: "dr.anya.sharma@apollohospitals.com",
+        registrationNumber: "NMC-IND-94821",
+        hospitalAffiliation: "Apollo Specialty Hospital",
+        specialization: "Cardiology & Internal Medicine",
+        qualifications: "MBBS, MD (AIIMS), DM (Cardiology)",
       });
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("aether_auth_active", "true");
-        localStorage.setItem("aether_user_role", "doctor");
-      }
       onClose();
       router.push("/doctor");
     } catch (err: any) {
-      if (err.message && err.message.includes("unauthorized-domain")) {
-        await signInAsDoctor({
-          name: "Dr. Alex Rivers (Google Verified)",
-          email: "alex.rivers.aether@gmail.com",
-          registrationNumber: "NMC-IND-94821",
-          hospitalAffiliation: "Apollo Specialty Hospital",
-          specialization: "Cardiology & Internal Medicine",
-          qualifications: "MBBS, MD",
-        });
-        if (typeof window !== "undefined") {
-          localStorage.setItem("aether_auth_active", "true");
-          localStorage.setItem("aether_user_role", "doctor");
-        }
-        onClose();
-        router.push("/doctor");
-      } else {
-        setAuthError(err.message || "Failed to sign in as doctor with Google.");
-      }
+      // Graceful fallback for demo
+      signInAsDoctor({
+        name: "Dr. Anya Sharma",
+        email: "dr.anya.sharma@apollohospitals.com",
+        registrationNumber: "NMC-IND-94821",
+        hospitalAffiliation: "Apollo Specialty Hospital",
+        specialization: "Cardiology & Internal Medicine",
+        qualifications: "MBBS, MD (AIIMS), DM (Cardiology)",
+      });
+      onClose();
+      router.push("/doctor");
     } finally {
       setIsGoogleSubmitting(false);
     }
@@ -193,25 +169,32 @@ export default function AuthModal({
   const handleDoctorSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError(null);
+
+    const nameToUse = doctorName.trim() || "Dr. Anya Sharma";
+    const regToUse = regNumber.trim() || "NMC-IND-94821";
+    const emailToUse = doctorEmail.trim() || "dr.anya.sharma@apollohospitals.com";
+
     setIsSubmitting(true);
+    await new Promise((r) => setTimeout(r, 450));
 
-    try {
-      await signInAsDoctor({
-        name: doctorName || "Dr. Anya Sharma",
-        email: doctorEmail || "dr.anya.sharma@apollohospitals.com",
-        registrationNumber: regNumber || "NMC-IND-94821",
-        hospitalAffiliation,
-        specialization,
-        qualifications,
-      });
+    signInAsDoctor({
+      name: nameToUse,
+      email: emailToUse,
+      registrationNumber: regToUse,
+      hospitalAffiliation,
+      specialization,
+      qualifications,
+    });
 
-      setIsSubmitting(false);
-      onClose();
-      router.push("/doctor");
-    } catch (err: any) {
-      setAuthError(err.message || "Failed to verify doctor credentials.");
-      setIsSubmitting(false);
-    }
+    setIsSubmitting(false);
+    onClose();
+    router.push("/doctor");
+  };
+
+  const handleGuestDoctorEnter = () => {
+    signInAsDoctor(VERIFIED_DOCTORS_REGISTRY[0]);
+    onClose();
+    router.push("/doctor");
   };
 
   const handleGuestPatientEnter = () => {
@@ -223,29 +206,20 @@ export default function AuthModal({
     router.push("/triage");
   };
 
-  const handleGuestDoctorEnter = () => {
-    if (typeof window !== "undefined") {
-      handleSelectDoctorPreset(VERIFIED_DOCTORS_REGISTRY[0]);
-      signInAsDoctor({
-        name: VERIFIED_DOCTORS_REGISTRY[0].name,
-        email: VERIFIED_DOCTORS_REGISTRY[0].email,
-        registrationNumber: VERIFIED_DOCTORS_REGISTRY[0].registrationNumber,
-        hospitalAffiliation: VERIFIED_DOCTORS_REGISTRY[0].hospitalAffiliation,
-        specialization: VERIFIED_DOCTORS_REGISTRY[0].specialization,
-        qualifications: VERIFIED_DOCTORS_REGISTRY[0].qualifications,
-      });
-    }
-    onClose();
-    router.push("/doctor");
-  };
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#064E3B]/40 backdrop-blur-xs p-4 animate-fade-in text-[#064E3B] font-sans">
-      <div className="w-full max-w-lg rounded-3xl border border-[#064E3B]/20 bg-white p-6 sm:p-7 shadow-2xl space-y-4.5 max-h-[92vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#064E3B]/15 pb-3.5">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-[#064E3B]/40 backdrop-blur-md transition-opacity"
+        onClick={onClose}
+      />
+
+      {/* Modal Card */}
+      <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl border border-[#064E3B]/20 text-[#064E3B] space-y-4 max-h-[92vh] overflow-y-auto z-10">
+        {/* Header with Title & Close */}
+        <div className="flex items-center justify-between border-b border-[#064E3B]/10 pb-3.5">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#064E3B] font-serif text-lg font-bold text-white shadow-soft">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#064E3B] text-white font-serif text-lg font-bold shadow-soft">
               Æ
             </div>
             <div>
@@ -265,7 +239,7 @@ export default function AuthModal({
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-1.5 text-[#064E3B]/70 hover:text-[#064E3B] hover:bg-[#F9FBF9] transition-colors"
+            className="rounded-xl p-1.5 text-[#064E3B]/70 hover:text-[#064E3B] hover:bg-[#F9FBF9] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -276,7 +250,7 @@ export default function AuthModal({
           <button
             type="button"
             onClick={() => setRole("patient")}
-            className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-bold transition-all cursor-pointer ${
               role === "patient"
                 ? "bg-[#064E3B] text-white shadow-soft"
                 : "text-[#064E3B]/70 hover:text-[#064E3B]"
@@ -289,7 +263,7 @@ export default function AuthModal({
           <button
             type="button"
             onClick={() => setRole("doctor")}
-            className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-bold transition-all ${
+            className={`flex items-center justify-center gap-2 rounded-xl py-2 px-3 text-xs font-bold transition-all cursor-pointer ${
               role === "doctor"
                 ? "bg-[#064E3B] text-white shadow-soft"
                 : "text-[#064E3B]/70 hover:text-[#064E3B]"
@@ -310,13 +284,13 @@ export default function AuthModal({
             PATIENT AUTH VIEW
             ========================================================================= */}
         {role === "patient" && (
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {/* Google Login */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
               disabled={isGoogleSubmitting}
-              className="w-full flex items-center justify-center gap-3 rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] p-3 text-xs font-bold text-[#064E3B] transition-all shadow-xs disabled:opacity-50 min-tap-target"
+              className="w-full flex items-center justify-center gap-3 rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] p-3 text-xs font-bold text-[#064E3B] transition-all shadow-xs disabled:opacity-50 min-tap-target cursor-pointer"
             >
               <span>
                 {isGoogleSubmitting
@@ -328,7 +302,7 @@ export default function AuthModal({
             </button>
 
             {/* Divider */}
-            <div className="relative flex items-center justify-center">
+            <div className="relative flex items-center justify-center my-1">
               <div className="w-full border-t border-[#064E3B]/15" />
               <span className="absolute bg-white px-3 text-[11px] font-bold text-[#064E3B]/60 uppercase">
                 or with email
@@ -340,7 +314,7 @@ export default function AuthModal({
               <button
                 type="button"
                 onClick={() => setTab("signin")}
-                className={`rounded-xl py-1.5 transition-all ${
+                className={`rounded-xl py-1.5 transition-all cursor-pointer ${
                   tab === "signin"
                     ? "bg-[#064E3B] text-white shadow-soft"
                     : "text-[#064E3B]/70 hover:text-[#064E3B]"
@@ -351,7 +325,7 @@ export default function AuthModal({
               <button
                 type="button"
                 onClick={() => setTab("signup")}
-                className={`rounded-xl py-1.5 transition-all ${
+                className={`rounded-xl py-1.5 transition-all cursor-pointer ${
                   tab === "signup"
                     ? "bg-[#064E3B] text-white shadow-soft"
                     : "text-[#064E3B]/70 hover:text-[#064E3B]"
@@ -394,7 +368,7 @@ export default function AuthModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-2xl bg-[#064E3B] hover:bg-[#043327] py-3 text-xs font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 transition-all mt-1 min-tap-target"
+                className="w-full rounded-2xl bg-[#064E3B] hover:bg-[#043327] py-3 text-xs font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 transition-all mt-1 min-tap-target cursor-pointer"
               >
                 {isSubmitting
                   ? "Entering Patient Portal..."
@@ -404,11 +378,11 @@ export default function AuthModal({
               </button>
             </form>
 
-            <div className="border-t border-[#064E3B]/15 pt-3 text-center">
+            <div className="border-t border-[#064E3B]/15 pt-2 text-center">
               <button
                 type="button"
                 onClick={handleGuestPatientEnter}
-                className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] py-2.5 text-xs font-bold text-[#064E3B] transition-all min-tap-target"
+                className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] py-2.5 text-xs font-bold text-[#064E3B] transition-all min-tap-target cursor-pointer"
               >
                 ✦ Enter as Patient Demo Guest →
               </button>
@@ -417,7 +391,7 @@ export default function AuthModal({
         )}
 
         {/* =========================================================================
-            DOCTOR & CLINICIAN AUTH VIEW
+            DOCTOR & CLINICIAN AUTH VIEW (Spacious & Clean, No Clutter)
             ========================================================================= */}
         {role === "doctor" && (
           <div className="space-y-4">
@@ -436,51 +410,16 @@ export default function AuthModal({
             </button>
 
             {/* Divider */}
-            <div className="relative flex items-center justify-center">
+            <div className="relative flex items-center justify-center my-1">
               <div className="w-full border-t border-[#064E3B]/15" />
               <span className="absolute bg-white px-3 text-[11px] font-bold text-[#064E3B]/60 uppercase">
                 or with NMC credentials
               </span>
             </div>
 
-            {/* Quick 1-Click Verified Clinician Presets */}
-            <div className="rounded-2xl border border-emerald-600/20 bg-emerald-50/50 p-3.5 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B] flex items-center gap-1.5">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>1-Click Verified Doctor Presets</span>
-                </span>
-                <span className="text-[10px] font-mono text-emerald-700 font-semibold">
-                  NMC Verified
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {VERIFIED_DOCTORS_REGISTRY.slice(0, 2).map((doc) => (
-                  <button
-                    key={doc.doctorId}
-                    type="button"
-                    onClick={() => handleSelectDoctorPreset(doc)}
-                    className="flex flex-col text-left rounded-xl border border-[#064E3B]/15 bg-white hover:bg-emerald-50/80 hover:border-[#064E3B] p-2.5 transition-all shadow-2xs group cursor-pointer"
-                  >
-                    <span className="font-bold text-xs text-[#064E3B] flex items-center justify-between">
-                      <span>{doc.name}</span>
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600 opacity-70 group-hover:opacity-100" />
-                    </span>
-                    <span className="text-[11px] text-[#064E3B]/70 font-medium truncate">
-                      {doc.specialization}
-                    </span>
-                    <span className="text-[10px] font-mono text-emerald-800/80 mt-0.5">
-                      {doc.hospitalAffiliation}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Doctor Credential Verification Form */}
-            <form onSubmit={handleDoctorSubmit} className="space-y-3 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <form onSubmit={handleDoctorSubmit} className="space-y-3.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#064E3B] mb-1">
                     Doctor Full Name
@@ -490,8 +429,8 @@ export default function AuthModal({
                     required
                     value={doctorName}
                     onChange={(e) => setDoctorName(e.target.value)}
-                    placeholder="Dr. Anya Sharma"
-                    className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
+                    placeholder="e.g. Dr. Sarah Jenkins"
+                    className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                   />
                 </div>
 
@@ -505,13 +444,13 @@ export default function AuthModal({
                     required
                     value={regNumber}
                     onChange={(e) => setRegNumber(e.target.value)}
-                    placeholder="NMC-IND-94821"
-                    className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2 text-xs font-mono font-bold text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
+                    placeholder="e.g. NMC-IND-94821"
+                    className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2.5 text-xs font-mono text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#064E3B] mb-1">
                     Hospital / Institution
@@ -519,7 +458,7 @@ export default function AuthModal({
                   <select
                     value={hospitalAffiliation}
                     onChange={(e) => setHospitalAffiliation(e.target.value)}
-                    className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3 py-2 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
+                    className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3 py-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                   >
                     <option value="Apollo Specialty Hospital">Apollo Specialty Hospital</option>
                     <option value="Fortis Healthcare & Research">Fortis Healthcare & Research</option>
@@ -536,7 +475,7 @@ export default function AuthModal({
                   <select
                     value={specialization}
                     onChange={(e) => setSpecialization(e.target.value)}
-                    className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3 py-2 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
+                    className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3 py-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                   >
                     <option value="Cardiology & Internal Medicine">Cardiology & Internal Medicine</option>
                     <option value="Emergency & Critical Care Medicine">Emergency & Critical Care</option>
@@ -556,8 +495,8 @@ export default function AuthModal({
                   required
                   value={doctorEmail}
                   onChange={(e) => setDoctorEmail(e.target.value)}
-                  placeholder="dr.anya.sharma@apollohospitals.com"
-                  className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
+                  placeholder="e.g. doctor@hospital.org"
+                  className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] px-3.5 py-2.5 text-xs text-[#064E3B] focus:bg-white focus:outline-none focus:border-[#064E3B]"
                 />
               </div>
 
@@ -571,7 +510,7 @@ export default function AuthModal({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-2xl bg-[#064E3B] hover:bg-[#043327] py-3 text-xs font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 transition-all mt-1 min-tap-target flex items-center justify-center gap-2"
+                className="w-full rounded-2xl bg-[#064E3B] hover:bg-[#043327] py-3 text-xs font-bold text-white shadow-md hover:shadow-lg disabled:opacity-50 transition-all mt-1 min-tap-target flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>
                   {isSubmitting
@@ -581,11 +520,11 @@ export default function AuthModal({
               </button>
             </form>
 
-            <div className="border-t border-[#064E3B]/15 pt-3 text-center">
+            <div className="border-t border-[#064E3B]/15 pt-2 text-center">
               <button
                 type="button"
                 onClick={handleGuestDoctorEnter}
-                className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] py-2.5 text-xs font-bold text-[#064E3B] transition-all min-tap-target flex items-center justify-center gap-1.5"
+                className="w-full rounded-2xl border border-[#064E3B]/20 bg-[#F9FBF9] hover:bg-white hover:border-[#064E3B] py-2.5 text-xs font-bold text-[#064E3B] transition-all min-tap-target flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Instant 1-Click Doctor Portal Demo Access →</span>
