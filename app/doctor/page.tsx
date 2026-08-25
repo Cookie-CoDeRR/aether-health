@@ -136,8 +136,27 @@ export default function DoctorPortalPage() {
       setPatientQueue(updatedQueue);
     };
 
+    const handleSwitchTab = (e: any) => {
+      if (e.detail?.tab) {
+        setActiveTab(e.detail.tab);
+      }
+    };
+
+    const handleCopilotQueryEvent = (e: any) => {
+      if (e.detail?.query) {
+        setActiveTab("copilot");
+        handleSendCopilotMessage(e.detail.query);
+      }
+    };
+
     window.addEventListener("aether-patient-triage-updated", handlePatientTriageUpdate);
-    return () => window.removeEventListener("aether-patient-triage-updated", handlePatientTriageUpdate);
+    window.addEventListener("aether-doctor-switch-tab", handleSwitchTab);
+    window.addEventListener("aether-doctor-copilot-query", handleCopilotQueryEvent);
+    return () => {
+      window.removeEventListener("aether-patient-triage-updated", handlePatientTriageUpdate);
+      window.removeEventListener("aether-doctor-switch-tab", handleSwitchTab);
+      window.removeEventListener("aether-doctor-copilot-query", handleCopilotQueryEvent);
+    };
   }, []);
 
   const activePatient =

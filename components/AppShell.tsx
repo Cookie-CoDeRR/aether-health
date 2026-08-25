@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import FloatingDock from "./FloatingDock";
+import DoctorFloatingDock from "./DoctorFloatingDock";
 import InteractiveSpotlight from "./InteractiveSpotlight";
 import AmbientNatureOverlay from "./AmbientNatureOverlay";
 import Aether3DSystemTour from "./guide/Aether3DSystemTour";
@@ -17,7 +18,7 @@ interface AppShellProps {
 export default function AppShell({ children }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
   const router = useRouter();
 
   // One-time auto trigger on first login/arrival on interior pages + event listener (Patient only)
@@ -125,12 +126,16 @@ export default function AppShell({ children }: AppShellProps) {
         </div>
       </main>
 
-      {/* Floating Bottom Dock Bar (Shown everywhere except greet page and profile page) */}
+      {/* Floating Bottom Dock Bar (Role-Specific) */}
       {showFloatingDock && (
-        <FloatingDock
-          onToggleMenu={() => setSidebarOpen(true)}
-          onOpenTriagePrompt={handleOpenTriagePrompt}
-        />
+        pathname.startsWith("/doctor") ? (
+          <DoctorFloatingDock onToggleMenu={() => setSidebarOpen(true)} />
+        ) : (
+          <FloatingDock
+            onToggleMenu={() => setSidebarOpen(true)}
+            onOpenTriagePrompt={handleOpenTriagePrompt}
+          />
+        )
       )}
 
       {/* 3D System Onboarding Guide Tour (One-time auto trigger on sign up/first login + revisitable) */}
