@@ -16,9 +16,21 @@ import {
   User,
   LogOut,
   Stethoscope,
+  Activity,
+  Award,
+  Clock,
+  Sparkles,
 } from "lucide-react";
 
-const navItems = [
+interface NavItem {
+  label: string;
+  subLabel: string;
+  href: string;
+  icon: React.ReactNode;
+  tab?: string;
+}
+
+const PATIENT_NAV_ITEMS: NavItem[] = [
   {
     label: "Care Today",
     subLabel: "AI symptom check & care",
@@ -50,16 +62,53 @@ const navItems = [
     icon: <Stethoscope className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
   },
   {
-    label: "Doctor Clinician Portal",
-    subLabel: "Practitioner triage & rx sync",
-    href: "/doctor",
-    icon: <ShieldCheck className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
-  },
-  {
     label: "Settings & Profile",
     subLabel: "Preferences & history",
     href: "/settings",
     icon: <Settings className="w-5 h-5 shrink-0" />,
+  },
+];
+
+const DOCTOR_NAV_ITEMS: NavItem[] = [
+  {
+    label: "Patient Triage Queue",
+    subLabel: "Active patient queue & triage",
+    href: "/doctor",
+    icon: <Activity className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
+  },
+  {
+    label: "Prescriptions & Dosing",
+    subLabel: "Multi-Rx dispenser & broadcast",
+    href: "/doctor",
+    tab: "dispenser",
+    icon: <Pill className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
+  },
+  {
+    label: "Doctor AI Copilot",
+    subLabel: "Clinical guidance & pharmacology",
+    href: "/doctor",
+    tab: "copilot",
+    icon: <Stethoscope className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
+  },
+  {
+    label: "Lab OCR & CBC Panels",
+    subLabel: "Biomarker panels & extraction",
+    href: "/doctor",
+    tab: "labs",
+    icon: <FileText className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
+  },
+  {
+    label: "EHR Medical Timeline",
+    subLabel: "Longitudinal patient milestones",
+    href: "/doctor",
+    tab: "timeline",
+    icon: <Clock className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
+  },
+  {
+    label: "Doctor Profile & Certificates",
+    subLabel: "NMC registration & degrees",
+    href: "/doctor/profile",
+    icon: <Award className="w-5 h-5 shrink-0 text-emerald-600 dark:text-[#10B981]" />,
   },
 ];
 
@@ -69,9 +118,19 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() || "";
+  const isDoctorRoute = pathname.startsWith("/doctor");
   const { userName, userEmail, userPhoto, isGmailAuthenticated, signOutGmail } =
     useSettings();
+
+  const handleNavClick = (item: any) => {
+    onClose();
+    if (item.tab && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("aether-doctor-switch-tab", { detail: { tab: item.tab } }));
+    }
+  };
+
+  const navItems = isDoctorRoute ? DOCTOR_NAV_ITEMS : PATIENT_NAV_ITEMS;
 
   return (
     <AnimatePresence>
@@ -106,7 +165,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     Aether Health
                   </div>
                   <div className="text-[10px] font-sans font-semibold tracking-wider uppercase text-[#064E3B]/70 dark:text-[#6EE7B7]">
-                    Patient Telemetry
+                    {isDoctorRoute ? "Clinician Telemetry Portal" : "Patient Telemetry"}
                   </div>
                 </div>
               </div>
@@ -120,58 +179,81 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               </button>
             </div>
 
-            {/* Patient Profile Card inside Drawer */}
-            <div className="my-5 rounded-2xl border border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-4 flex items-center justify-between gap-3 shadow-xs">
-              <div className="flex items-center gap-3 min-w-0">
-                {userPhoto ? (
-                  <img
-                    src={userPhoto}
-                    alt={userName}
-                    className="h-10 w-10 rounded-full border-2 border-[#064E3B] dark:border-[#10B981] object-cover"
-                  />
-                ) : (
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] font-bold text-sm">
-                    {userName ? userName[0] : <User className="w-5 h-5" />}
+            {/* Role-Specific Profile Card inside Drawer */}
+            {isDoctorRoute ? (
+              <div className="my-5 rounded-2xl border border-emerald-600/25 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-[#0F241E] p-4 flex items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-600 dark:bg-[#10B981] text-white dark:text-[#042F24] font-bold text-sm">
+                    DR
                   </div>
-                )}
-                <div className="min-w-0">
-                  <div className="font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] truncate">
-                    {userName || "Patient Account"}
-                  </div>
-                  <div className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium truncate">
-                    {isGmailAuthenticated ? userEmail : "ABDM Profile Linked"}
+                  <div className="min-w-0">
+                    <div className="font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] truncate">
+                      Dr. Anya Sharma
+                    </div>
+                    <div className="text-[11px] text-emerald-800 dark:text-[#A7F3D0] font-mono truncate">
+                      Apollo Hospital • Reg: 94821
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {isGmailAuthenticated && (
-                <button
-                  onClick={signOutGmail}
-                  title="Sign out"
-                  className="rounded-lg p-1.5 text-[#064E3B]/60 dark:text-[#A7F3D0]/70 hover:text-[#064E3B] dark:hover:text-white hover:bg-white dark:hover:bg-white/10"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[9px] font-bold text-emerald-800 dark:text-emerald-300 shrink-0">
+                  <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
+                  <span>Verified</span>
+                </span>
+              </div>
+            ) : (
+              <div className="my-5 rounded-2xl border border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-4 flex items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  {userPhoto ? (
+                    <img
+                      src={userPhoto}
+                      alt={userName}
+                      className="h-10 w-10 rounded-full border-2 border-[#064E3B] dark:border-[#10B981] object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] font-bold text-sm">
+                      {userName ? userName[0] : <User className="w-5 h-5" />}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] truncate">
+                      {userName || "Patient Account"}
+                    </div>
+                    <div className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 font-medium truncate">
+                      {isGmailAuthenticated ? userEmail : "ABDM Profile Linked"}
+                    </div>
+                  </div>
+                </div>
+
+                {isGmailAuthenticated && (
+                  <button
+                    onClick={signOutGmail}
+                    title="Sign out"
+                    className="rounded-lg p-1.5 text-[#064E3B]/60 dark:text-[#A7F3D0]/70 hover:text-[#064E3B] dark:hover:text-white hover:bg-white dark:hover:bg-white/10"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Navigation List */}
             <div className="px-1 py-1 text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/60 dark:text-white/40">
-              Portal Navigation
+              {isDoctorRoute ? "Clinician Workspace Navigation" : "Patient Portal Navigation"}
             </div>
 
             <nav className="space-y-1.5 pt-1">
-              {navItems.map((item) => {
+              {navItems.map((item, idx) => {
                 const isActive =
-                  pathname === item.href ||
-                  (item.href === "/discovery" && pathname === "/doctors") ||
-                  (item.href === "/reports" && pathname === "/timeline");
+                  pathname === item.href && !item.tab
+                    ? true
+                    : item.href === "/doctor/profile" && pathname === "/doctor/profile";
 
                 return (
                   <Link
-                    key={item.href}
+                    key={idx}
                     href={item.href}
-                    onClick={onClose}
+                    onClick={() => handleNavClick(item)}
                     className={`group flex items-center gap-3.5 rounded-2xl px-4 py-3 text-xs font-semibold transition-all duration-150 min-tap-target ${
                       isActive
                         ? "bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] shadow-soft font-bold"
@@ -207,7 +289,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               })}
             </nav>
 
-            {/* Emergency Hotline Assistance Card */}
+            {/* Emergency Hotline / Clinical Support Card */}
             <div className="mt-auto space-y-3 pt-5 border-t border-[#064E3B]/15 dark:border-white/10">
               <div className="rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/10 p-4 space-y-2 text-xs shadow-xs">
                 <div className="flex items-center gap-2 font-bold text-[#064E3B] dark:text-[#ECFDF5]">
@@ -226,7 +308,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                   </a>
                   <a
                     href="tel:112"
-                    className="flex-1 text-center rounded-xl border border-[#064E3B] dark:border-white/20 text-[#064E3B] dark:text-[#ECFDF5] bg-white dark:bg-transparent py-2 font-bold text-xs shadow-xs hover:bg-[#064E3B]/5 dark:hover:bg-white/10"
+                    className="flex-1 text-center rounded-xl border border-[#064E3B] dark:border-white/20 text-[#064E3B] dark:text-[#ECFDF5] bg-white dark:transparent py-2 font-bold text-xs shadow-xs hover:bg-[#064E3B]/5 dark:hover:bg-white/10"
                   >
                     Dial 112
                   </a>
@@ -234,7 +316,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               </div>
 
               <div className="text-[11px] text-[#064E3B]/60 dark:text-white/40 text-center font-medium">
-                Aether Health • Autonomous Patient Triage
+                {isDoctorRoute
+                  ? "Aether Health • Sovereign Clinician Workspace"
+                  : "Aether Health • Autonomous Patient Triage"}
               </div>
             </div>
           </motion.aside>
