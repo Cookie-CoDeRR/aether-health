@@ -50,8 +50,8 @@ interface MultiRxItem {
   genericName: string;
   dosage: string;
   frequency: string;
-  timesOfDay: string[]; // e.g. ["Morning (08:00 AM)", "Night (09:30 PM)"]
-  mealTiming: string; // "Before Food" | "After Food" | "With Food"
+  timesOfDay: string[];
+  mealTiming: string;
   startDate: string;
   endDate: string;
   totalDays: number;
@@ -76,7 +76,7 @@ export default function DoctorPortalPage() {
 
   // Patient Consent PIN Gate State
   const [unlockedPatients, setUnlockedPatients] = useState<Record<string, boolean>>({
-    "AETH-PT-9842": false, // Protected by default
+    "AETH-PT-9842": false,
   });
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState<string | null>(null);
@@ -130,7 +130,7 @@ export default function DoctorPortalPage() {
     const queue = getDoctorPatientQueue();
     setPatientQueue(queue);
 
-    // Live sync listener when patient chats on triage
+    // Live sync listener when patient chats on triage or submits docs
     const handlePatientTriageUpdate = (e: any) => {
       const updatedQueue = getDoctorPatientQueue();
       setPatientQueue(updatedQueue);
@@ -244,10 +244,17 @@ export default function DoctorPortalPage() {
     const lower = textToSubmit.toLowerCase();
     let aiResponseText = "";
 
-    if (lower.includes("antibiotic") || lower.includes("penicillin") || lower.includes("contraindication") || lower.includes("allergy")) {
+    if (
+      lower.includes("antibiotic") ||
+      lower.includes("penicillin") ||
+      lower.includes("amoxicillin") ||
+      lower.includes("augmentin") ||
+      lower.includes("contraindication") ||
+      lower.includes("allergy")
+    ) {
       aiResponseText = `**Clinical Guidance regarding Antibiotic & Drug Allergy Safety:**\n\n- ⚠️ **Contraindicated**: Patient has a documented severe allergy to **Penicillin & Amoxicillin** (anaphylaxis risk). Avoid all aminopenicillins, piperacillin, and augmentin formulations.\n- **Safe Alternatives**: Macrolides (e.g. **Azithromycin 500mg** or **Clarithromycin 500mg**) or Fluoroquinolones.\n- **WBC Correlation**: Current WBC is **11.2 K/µL** (mild reactive leukocytosis). If gastritis is non-infectious, antibiotic therapy is not recommended.`;
-    } else if (lower.includes("wbc") || lower.includes("lab") || lower.includes("blood") || lower.includes("cbc")) {
-      aiResponseText = `**Biometric & Lab Summary:**\n\n- **WBC**: **11.2 K/µL** (High - Normal Ref: 4.5 - 11.0). Indicates mild reactive leukocytosis consistent with acute mucosal irritation or physiological stress.\n- **Kidney Function**: Serum Creatinine is normal at **0.92 mg/dL**.\n- **Metabolic**: Fasting blood glucose is normal at **98 mg/dL**.\n- **Recommendation**: Repeat CBC panel in 7 days if dyspeptic symptoms persist after PPI therapy.`;
+    } else if (lower.includes("wbc") || lower.includes("lab") || lower.includes("blood") || lower.includes("cbc") || lower.includes("ecg")) {
+      aiResponseText = `**Biometric & Lab Summary:**\n\n- **WBC**: **11.2 K/µL** (High - Normal Ref: 4.5 - 11.0). Indicates mild reactive leukocytosis consistent with acute mucosal irritation or physiological stress.\n- **Kidney Function**: Serum Creatinine is normal at **0.92 mg/dL**.\n- **Metabolic**: Fasting blood glucose is normal at **98 mg/dL**.\n- **ECG Reading**: Normal Sinus Rhythm (72 bpm), normal PR/QRS intervals.\n- **Recommendation**: Repeat CBC panel in 7 days if dyspeptic symptoms persist after PPI therapy.`;
     } else if (lower.includes("dose") || lower.includes("pantoprazole") || lower.includes("gastritis") || lower.includes("dyspepsia")) {
       aiResponseText = `**Dyspepsia / Gastritis Dosing Guidance:**\n\n- **Suggested First-Line**: **Pantoprazole 40mg** delayed-release tablet once daily, taken 30 minutes before breakfast for 14 days.\n- **Adjunct**: Sucralfate oral suspension (1g TID) or Antacid gel as needed for acute breakthrough burning.\n- **Live Sync**: You can dispense multiple medicines in the **Prescriptions & Dosing** tab to update the patient's tracker live.`;
     } else {
@@ -353,42 +360,7 @@ export default function DoctorPortalPage() {
   return (
     <div className="flex flex-col h-full min-h-0 w-full bg-[#F9FBF9] dark:bg-[#081511] text-[#064E3B] dark:text-[#ECFDF5] font-sans antialiased overflow-hidden">
       {/* =========================================================================
-          DOCTOR CLINICIAN IDENTITY STRIP
-          ========================================================================= */}
-      <div className="shrink-0 flex items-center justify-between border-b border-[#064E3B]/10 dark:border-white/10 bg-white/80 dark:bg-[#0B1D17]/80 backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xs z-10">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-[#10B981] shrink-0">
-            <Stethoscope className="w-4.5 h-4.5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] leading-none">
-                {doctorProfile.name}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-500/30 px-2 py-0.5 text-[9.5px] font-bold text-emerald-800 dark:text-emerald-300">
-                <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" />
-                <span>NMC Verified</span>
-              </span>
-            </div>
-            <p className="text-[10.5px] text-[#064E3B]/60 dark:text-[#A7F3D0]/60 font-mono mt-0.5">
-              {doctorProfile.hospitalAffiliation} • {doctorProfile.college || "AIIMS New Delhi"} • Reg: {doctorProfile.registrationNumber}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/doctor/profile"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-600/30 bg-emerald-50/70 dark:bg-[#0F241E] hover:bg-emerald-100 dark:hover:bg-[#132D26] px-3.5 py-1.5 text-xs font-bold text-emerald-900 dark:text-emerald-300 transition-all shadow-2xs"
-          >
-            <Award className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Doctor Profile & Credentials</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* =========================================================================
-          MAIN CLINICAL 2-COLUMN WORKSPACE (Clean & Breathable)
+          MAIN CLINICAL 2-COLUMN WORKSPACE (Clean, Spacious & Uncrowded)
           ========================================================================= */}
       <div className="flex flex-1 min-h-0 overflow-hidden divide-x divide-[#064E3B]/10 dark:divide-white/10">
         {/* -----------------------------------------------------------------------
@@ -400,7 +372,7 @@ export default function DoctorPortalPage() {
             <div className="flex items-center justify-between">
               <span className="font-serif text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] flex items-center gap-1.5">
                 <Activity className="w-3.5 h-3.5 text-emerald-600 dark:text-[#10B981]" />
-                <span>Clinical Patient Queue</span>
+                <span>Patient Triage Queue</span>
               </span>
               <span className="rounded-full bg-[#064E3B]/10 dark:bg-white/10 px-2 py-0.5 text-[10px] font-mono font-bold text-[#064E3B] dark:text-[#ECFDF5]">
                 {filteredPatients.length} Active
@@ -481,7 +453,7 @@ export default function DoctorPortalPage() {
                   key={patient.patientId}
                   type="button"
                   onClick={() => setSelectedPatientId(patient.patientId)}
-                  className={`w-full text-left p-3.5 transition-all flex flex-col gap-1.5 relative cursor-pointer ${
+                  className={`w-full text-left p-3.5 transition-all flex flex-col gap-1 relative cursor-pointer ${
                     isSelected
                       ? "bg-[#F9FBF9] dark:bg-[#132D26] border-l-4 border-l-[#064E3B] dark:border-l-[#10B981]"
                       : "hover:bg-[#F9FBF9]/60 dark:hover:bg-white/[0.02]"
@@ -530,7 +502,7 @@ export default function DoctorPortalPage() {
             CENTER/RIGHT PANE: SPACIOUS CLINICAL WORKSPACE & FULL-WIDTH TABS
             ----------------------------------------------------------------------- */}
         <main className="flex-1 flex flex-col h-full min-h-0 bg-[#F9FBF9] dark:bg-[#081511] overflow-hidden pb-24">
-          {/* Patient Quick Header Banner */}
+          {/* Patient Header Banner */}
           <div className="shrink-0 bg-white dark:bg-[#0B1D17] border-b border-[#064E3B]/10 dark:border-white/10 p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600/10 dark:bg-[#10B981]/20 font-serif text-base font-bold text-emerald-800 dark:text-[#10B981] shrink-0">
@@ -633,7 +605,7 @@ export default function DoctorPortalPage() {
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Lab OCR ({activePatient.recentLabMarkers.length})</span>
+              <span>Lab OCR & ECG ({activePatient.recentLabMarkers.length})</span>
             </button>
 
             <button
@@ -801,26 +773,26 @@ export default function DoctorPortalPage() {
                     TAB 2: MULTI-MEDICATION PRESCRIPTION BUILDER
                     =============================================================== */}
                 {activeTab === "dispenser" && (
-                  <div className="space-y-5 max-w-5xl">
-                    <div className="rounded-3xl border border-[#064E3B]/15 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-6 shadow-xs space-y-5">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#064E3B]/10 dark:border-white/10 pb-4">
+                  <div className="space-y-4 max-w-5xl">
+                    <div className="rounded-3xl border border-[#064E3B]/15 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-5 sm:p-6 shadow-xs space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#064E3B]/10 dark:border-white/10 pb-3">
                         <div>
                           <div className="flex items-center gap-2 font-serif text-base font-bold text-[#064E3B] dark:text-[#ECFDF5]">
-                            <Pill className="w-5 h-5 text-emerald-600" />
-                            <span>Multi-Medication Live Prescription Dispenser</span>
+                            <Pill className="w-4.5 h-4.5 text-emerald-600" />
+                            <span>Prescriptions & Dosing Dispenser</span>
                           </div>
                           <p className="text-xs text-[#064E3B]/70 dark:text-[#A7F3D0]/70 mt-0.5">
-                            Add multiple medications, specify time of day, meal timing, and duration. Broadcasts directly to {activePatient.name}&apos;s tracker.
+                            Broadcasts directly to {activePatient.name}&apos;s live daily medication schedule.
                           </p>
                         </div>
 
                         <button
                           type="button"
                           onClick={handleAddRxItem}
-                          className="inline-flex items-center gap-1.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 text-xs font-bold transition-all shadow-2xs cursor-pointer self-start sm:self-auto"
+                          className="inline-flex items-center gap-1.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs cursor-pointer self-start sm:self-auto"
                         >
-                          <Plus className="w-4 h-4" />
-                          <span>Add Another Medicine</span>
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Medicine</span>
                         </button>
                       </div>
 
@@ -838,18 +810,18 @@ export default function DoctorPortalPage() {
                       )}
 
                       {/* Multi-Rx Form */}
-                      <form onSubmit={handlePrescribeAllMedications} className="space-y-4">
+                      <form onSubmit={handlePrescribeAllMedications} className="space-y-3.5">
                         {rxList.map((item, index) => (
                           <div
                             key={item.id}
-                            className="rounded-2xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-4.5 space-y-4 relative"
+                            className="rounded-2xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-4 space-y-3 relative"
                           >
                             <div className="flex items-center justify-between border-b border-[#064E3B]/10 dark:border-white/5 pb-2">
                               <span className="font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] flex items-center gap-2">
                                 <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#064E3B] text-white text-[10px]">
                                   {index + 1}
                                 </span>
-                                <span>Medication Order #{index + 1}</span>
+                                <span>Medication #{index + 1}</span>
                               </span>
 
                               {rxList.length > 1 && (
@@ -864,31 +836,31 @@ export default function DoctorPortalPage() {
                               )}
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                              <div className="lg:col-span-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                              <div>
                                 <label className="block text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5] mb-1">
-                                  Brand Medicine Name
+                                  Medicine & Formulation
                                 </label>
                                 <input
                                   type="text"
                                   required
                                   value={item.brandName}
                                   onChange={(e) => handleUpdateRxItem(item.id, "brandName", e.target.value)}
-                                  placeholder="e.g. Pantoprazole 40 or Azithromycin 500"
+                                  placeholder="e.g. Pantoprazole 40"
                                   className="w-full rounded-xl border border-[#064E3B]/15 dark:border-white/15 bg-white dark:bg-[#0B1D17] px-3 py-2 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:outline-none focus:border-[#064E3B]"
                                 />
                               </div>
 
                               <div>
                                 <label className="block text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5] mb-1">
-                                  Dosage / Strength
+                                  Dosage
                                 </label>
                                 <input
                                   type="text"
                                   required
                                   value={item.dosage}
                                   onChange={(e) => handleUpdateRxItem(item.id, "dosage", e.target.value)}
-                                  placeholder="e.g. 40 mg / 1 Tablet"
+                                  placeholder="e.g. 40 mg"
                                   className="w-full rounded-xl border border-[#064E3B]/15 dark:border-white/15 bg-white dark:bg-[#0B1D17] px-3 py-2 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:outline-none focus:border-[#064E3B]"
                                 />
                               </div>
@@ -909,11 +881,11 @@ export default function DoctorPortalPage() {
                             </div>
 
                             {/* Time of Day Checkboxes */}
-                            <div className="space-y-1.5">
+                            <div className="space-y-1">
                               <label className="block text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5]">
-                                When to Take (Time of Day Schedule)
+                                Time of Day Schedule
                               </label>
-                              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                              <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold">
                                 {[
                                   "Morning (08:00 AM)",
                                   "Afternoon (01:00 PM)",
@@ -926,7 +898,7 @@ export default function DoctorPortalPage() {
                                       key={timeOpt}
                                       type="button"
                                       onClick={() => handleToggleTimeOfDay(item.id, timeOpt)}
-                                      className={`px-3 py-1.5 rounded-xl border text-[11px] transition-all cursor-pointer ${
+                                      className={`px-3 py-1 rounded-xl border text-[11px] transition-all cursor-pointer ${
                                         isChecked
                                           ? "bg-[#064E3B] text-white border-[#064E3B] dark:bg-[#10B981] dark:text-[#042F24] dark:border-[#10B981]"
                                           : "bg-white dark:bg-[#0B1D17] border-[#064E3B]/20 text-[#064E3B]/80 dark:text-white/80"
@@ -940,8 +912,8 @@ export default function DoctorPortalPage() {
                               </div>
                             </div>
 
-                            {/* Meal Timing & Dates */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                            {/* Meal Timing & Instructions */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                               <div>
                                 <label className="block text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5] mb-1">
                                   Meal Timing
@@ -960,41 +932,16 @@ export default function DoctorPortalPage() {
 
                               <div>
                                 <label className="block text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5] mb-1">
-                                  Start Date
+                                  Instructions
                                 </label>
                                 <input
                                   type="text"
-                                  value={item.startDate}
-                                  onChange={(e) => handleUpdateRxItem(item.id, "startDate", e.target.value)}
+                                  value={item.instructions}
+                                  onChange={(e) => handleUpdateRxItem(item.id, "instructions", e.target.value)}
+                                  placeholder="e.g. Take 30 mins before breakfast."
                                   className="w-full rounded-xl border border-[#064E3B]/15 dark:border-white/15 bg-white dark:bg-[#0B1D17] px-3 py-2 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:outline-none focus:border-[#064E3B]"
                                 />
                               </div>
-
-                              <div>
-                                <label className="block text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5] mb-1">
-                                  End Date
-                                </label>
-                                <input
-                                  type="text"
-                                  value={item.endDate}
-                                  onChange={(e) => handleUpdateRxItem(item.id, "endDate", e.target.value)}
-                                  className="w-full rounded-xl border border-[#064E3B]/15 dark:border-white/15 bg-white dark:bg-[#0B1D17] px-3 py-2 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:outline-none focus:border-[#064E3B]"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Specific Instructions */}
-                            <div>
-                              <label className="block text-[11px] font-bold text-[#064E3B] dark:text-[#ECFDF5] mb-1">
-                                Dietary & Clinical Instructions
-                              </label>
-                              <input
-                                type="text"
-                                value={item.instructions}
-                                onChange={(e) => handleUpdateRxItem(item.id, "instructions", e.target.value)}
-                                placeholder="e.g. Avoid acidic liquids, take 30 mins prior to breakfast."
-                                className="w-full rounded-xl border border-[#064E3B]/15 dark:border-white/15 bg-white dark:bg-[#0B1D17] px-3 py-2 text-xs text-[#064E3B] dark:text-[#ECFDF5] focus:outline-none focus:border-[#064E3B]"
-                              />
                             </div>
                           </div>
                         ))}
@@ -1006,7 +953,7 @@ export default function DoctorPortalPage() {
 
                         <button
                           type="submit"
-                          className="w-full rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] py-3.5 text-xs font-bold text-white dark:text-[#042F24] transition-all shadow-md hover:scale-101 flex items-center justify-center gap-2 cursor-pointer"
+                          className="w-full rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] py-3 text-xs font-bold text-white dark:text-[#042F24] transition-all shadow-md hover:scale-101 flex items-center justify-center gap-2 cursor-pointer"
                         >
                           <Zap className="w-4 h-4" />
                           <span>Dispense & Sync All {rxList.length} Prescription(s) Live</span>
@@ -1126,13 +1073,13 @@ export default function DoctorPortalPage() {
                 )}
 
                 {/* ===============================================================
-                    TAB 4: LAB REPORTS & BIOMETRIC OCR
+                    TAB 4: LAB REPORTS, CBC & ECG BIOMETRICS
                     =============================================================== */}
                 {activeTab === "labs" && (
                   <div className="space-y-4 max-w-5xl">
                     <div className="rounded-3xl border border-[#064E3B]/15 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-6 space-y-4 shadow-2xs">
                       <h3 className="font-serif text-base font-bold text-[#064E3B] dark:text-[#ECFDF5] border-b border-[#064E3B]/10 dark:border-white/10 pb-3">
-                        Extracted Lab Biometrics & CBC Panels
+                        Extracted Lab Biometrics & ECG Scans
                       </h3>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
