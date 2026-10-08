@@ -409,6 +409,10 @@ function DiscoveryContent() {
                       <img
                         src={doc.photoUrl || undefined}
                         alt={doc.name}
+                        width={48}
+                        height={48}
+                        loading="lazy"
+                        decoding="async"
                         className="h-12 w-12 rounded-2xl object-cover border border-[#064E3B]/20 dark:border-white/15"
                       />
                       <div>
@@ -471,6 +475,10 @@ function DiscoveryContent() {
                 <img
                   src={selectedDoctor.photoUrl || undefined}
                   alt={selectedDoctor.name}
+                  width={44}
+                  height={44}
+                  loading="lazy"
+                  decoding="async"
                   className="h-11 w-11 rounded-2xl object-cover border border-[#064E3B]/20 dark:border-white/15"
                 />
                 <div>

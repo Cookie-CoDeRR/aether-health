@@ -129,6 +129,10 @@ export default function DoctorListDrawer({
                   <img
                     src={doc.photoUrl}
                     alt={doc.name}
+                    width={56}
+                    height={56}
+                    loading="lazy"
+                    decoding="async"
                     className="h-14 w-14 rounded-2xl object-cover border border-[#064E3B]/20 dark:border-white/15 shrink-0 shadow-xs"
                   />
                   <div className="flex-1 min-w-0">

@@ -3,13 +3,17 @@
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
 import FloatingDock from "./FloatingDock";
 import DoctorFloatingDock from "./DoctorFloatingDock";
 import InteractiveSpotlight from "./InteractiveSpotlight";
 import AmbientNatureOverlay from "./AmbientNatureOverlay";
-import Aether3DSystemTour from "./guide/Aether3DSystemTour";
+
+const Aether3DSystemTour = dynamic(() => import("./guide/Aether3DSystemTour"), {
+  ssr: false,
+});
 
 interface AppShellProps {
   children: React.ReactNode;

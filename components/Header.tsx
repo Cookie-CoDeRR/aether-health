@@ -149,6 +149,10 @@ export default function Header({
               <img
                 src={userPhoto}
                 alt={userName}
+                width={32}
+                height={32}
+                loading="lazy"
+                decoding="async"
                 className="h-8 w-8 rounded-full object-cover border border-[#064E3B] dark:border-[#10B981]"
               />
             ) : (

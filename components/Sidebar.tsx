@@ -211,6 +211,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     <img
                       src={userPhoto}
                       alt={userName}
+                      width={40}
+                      height={40}
+                      loading="lazy"
+                      decoding="async"
                       className="h-10 w-10 rounded-full border-2 border-[#064E3B] dark:border-[#10B981] object-cover"
                     />
                   ) : (

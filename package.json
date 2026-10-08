@@ -7,7 +7,10 @@
     "build": "prisma generate && next build",
     "postinstall": "prisma generate",
     "start": "next start",
-    "lint": "next lint"
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint",
+    "test": "npx tsx scripts/test-release-gate.ts",
+    "test:all": "npx tsx scripts/test-release-gate.ts && npx tsx scripts/test-pr4-integration-auth.ts"
   },
   "dependencies": {
     "@google/genai": "^2.16.0",

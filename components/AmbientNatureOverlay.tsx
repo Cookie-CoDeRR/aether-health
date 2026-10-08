@@ -303,8 +303,10 @@ export default function AmbientNatureOverlay() {
       ctx.restore();
     };
 
-    // Animation Loop
+    // Animation Loop (or single static render if prefers-reduced-motion)
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let time = 0;
+
     const render = () => {
       time += 0.025;
       ctx.clearRect(0, 0, width, height);
@@ -313,18 +315,20 @@ export default function AmbientNatureOverlay() {
 
       drawCornerGrass(time, isDark);
       drawTopCornerFoliage(time, isDark);
-      drawPollen(time, isDark);
-      drawDriftingLeaves(time, isDark);
-
-      animationFrameId = requestAnimationFrame(render);
+      
+      if (!prefersReducedMotion) {
+        drawPollen(time, isDark);
+        drawDriftingLeaves(time, isDark);
+        animationFrameId = requestAnimationFrame(render);
+      }
     };
 
     render();
 
     return () => {
       window.removeEventListener("resize", handleResize);
-      clearInterval(leafInterval);
-      cancelAnimationFrame(animationFrameId);
+      if (leafInterval) clearInterval(leafInterval);
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
     };
   }, []);
 

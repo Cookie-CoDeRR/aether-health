@@ -145,7 +145,15 @@ export default function SettingsPage() {
 
           <div className="inline-flex items-center gap-2.5 rounded-2xl bg-[#F9FBF9] dark:bg-[#0F241E] border border-[#064E3B]/20 dark:border-white/10 px-3.5 py-1.5 text-xs shadow-2xs">
             {userPhoto ? (
-              <img src={userPhoto} alt={userName} className="h-6 w-6 rounded-full object-cover border border-[#064E3B]/30" />
+              <img
+                src={userPhoto}
+                alt={userName}
+                width={24}
+                height={24}
+                loading="lazy"
+                decoding="async"
+                className="h-6 w-6 rounded-full object-cover border border-[#064E3B]/30"
+              />
             ) : (
               <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[#064E3B] dark:bg-[#10B981] text-white dark:text-[#042F24] font-bold text-[10px]">
                 {userName[0]}

@@ -151,6 +151,7 @@ export default function ReportsPage() {
       >
         <input
           type="file"
+          aria-label="Upload lab test or prescription report"
           accept=".pdf,.png,.jpg,.jpeg,.webp"
           onChange={(e) => e.target.files && e.target.files[0] && handleFileSelect(e.target.files[0])}
           className="absolute inset-0 cursor-pointer opacity-0"
