@@ -4,10 +4,19 @@ import { Report } from "@/types/report";
 import { Appointment } from "@/types/appointment";
 import { markRecordAsCured } from "./vectorHistoryService";
 
-// In-memory persistent timeline entries store initialized with baseline data
+function isDemoModeActive(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true")
+  );
+}
+
+// In-memory persistent timeline entries store initialized with baseline data for demo patient
 let DYNAMIC_TIMELINE_ENTRIES: TimelineEntry[] = [
   {
     id: "app_301",
+    userId: "aether_usr_8f92a170b4c2",
     type: "appointment",
     timestamp: new Date(Date.now() + 3600 * 1000 * 48), // 2 days in future
     title: "Specialist Appointment (REQUESTED)",
@@ -20,6 +29,7 @@ let DYNAMIC_TIMELINE_ENTRIES: TimelineEntry[] = [
   },
   {
     id: "symp_101",
+    userId: "aether_usr_8f92a170b4c2",
     type: "symptom_log",
     timestamp: new Date(Date.now() - 3600 * 1000 * 5), // 5 hours ago
     title: "Symptom Triage Assessment",
@@ -33,6 +43,7 @@ let DYNAMIC_TIMELINE_ENTRIES: TimelineEntry[] = [
   },
   {
     id: "rep_201",
+    userId: "aether_usr_8f92a170b4c2",
     type: "report",
     timestamp: new Date(Date.now() - 3600 * 1000 * 24), // 1 day ago
     title: "Report Analysis: Complete_Blood_Count_CBC_Aug2026.pdf",
@@ -45,6 +56,7 @@ let DYNAMIC_TIMELINE_ENTRIES: TimelineEntry[] = [
   },
   {
     id: "symp_102",
+    userId: "aether_usr_8f92a170b4c2",
     type: "symptom_log",
     timestamp: new Date(Date.now() - 3600 * 1000 * 72), // 3 days ago
     title: "Symptom Triage Assessment",
@@ -63,11 +75,59 @@ let DYNAMIC_TIMELINE_ENTRIES: TimelineEntry[] = [
 ];
 
 /**
- * Domain Service: Fetches and merges timeline entries sorted strictly by timestamp descending.
+ * Domain Service: Fetches and merges timeline entries strictly filtered by session userId.
+ * Seeded entries are returned only in DEMO_MODE for the seeded demo patient.
  */
 export async function getHealthTimeline(userId: string): Promise<TimelineEntry[]> {
-  await new Promise((res) => setTimeout(res, 50));
-  return [...DYNAMIC_TIMELINE_ENTRIES].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  await new Promise((res) => setTimeout(res, 30));
+
+  if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+    return [];
+  }
+
+  const isDemo = isDemoModeActive();
+
+  const userEntries = DYNAMIC_TIMELINE_ENTRIES.filter((entry) => {
+    if (entry.userId !== userId) return false;
+    const isSeeded =
+      entry.id.startsWith("app_") ||
+      entry.id.startsWith("symp_") ||
+      entry.id.startsWith("rep_");
+    if (isSeeded && !isDemo) return false;
+    return true;
+  });
+
+  // Also load any partitioned browser timeline events
+  if (typeof window !== "undefined") {
+    const partitionedKey = `aether_timeline_events:${userId}`;
+    const rawEvents = localStorage.getItem(partitionedKey);
+    if (rawEvents) {
+      try {
+        const events = JSON.parse(rawEvents);
+        if (Array.isArray(events)) {
+          for (const ev of events) {
+            if (!userEntries.some((e) => e.id === ev.id)) {
+              userEntries.push({
+                id: ev.id || `ev_${Date.now()}`,
+                userId,
+                type: "appointment",
+                timestamp: new Date(ev.date || Date.now()),
+                title: ev.title,
+                subtitle: ev.summary || ev.facility || "Recorded Timeline Event",
+                badgeText: ev.category || "General",
+                badgeVariant: "emerald",
+                details: ev,
+              });
+            }
+          }
+        }
+      } catch {
+        // ignore parse error
+      }
+    }
+  }
+
+  return userEntries.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 /**
@@ -86,9 +146,13 @@ export async function createClinicianClearance(params: {
       "A clearance may only be created by an explicit clinician action recorded with their clinician ID."
     );
   }
+  if (!params.patientId) {
+    throw new Error("Patient ID is required to create a clinical clearance.");
+  }
 
   const newEntry: TimelineEntry = {
     id: `clearance_${Date.now()}`,
+    userId: params.patientId,
     type: "cured_certificate",
     timestamp: new Date(),
     title: `Clinical Clearance: ${params.title}`,

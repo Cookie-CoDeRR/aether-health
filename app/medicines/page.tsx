@@ -66,13 +66,14 @@ const INITIAL_PRESCRIPTIONS: PrescribedMedication[] = [
   },
 ];
 
+import { useSettings } from "@/context/SettingsContext";
+
 export default function MedicinesPage() {
+  const { userId } = useSettings();
   const [query, setQuery] = useState("");
   const [medicines, setMedicines] = useState<MedicineWithPrices[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [prescriptions, setPrescriptions] = useState<PrescribedMedication[]>(
-    INITIAL_PRESCRIPTIONS
-  );
+  const [prescriptions, setPrescriptions] = useState<PrescribedMedication[]>([]);
 
   // Manual Add Modal state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -83,29 +84,44 @@ export default function MedicinesPage() {
   const [newTotalDoses, setNewTotalDoses] = useState<number>(30);
   const [newHospitalName, setNewHospitalName] = useState("");
 
+  const isDemo =
+    typeof process !== "undefined" &&
+    (process.env.NEXT_PUBLIC_DEMO_MODE === "true" ||
+      process.env.DEMO_MODE === "true");
+
   useEffect(() => {
-    // Load stored prescriptions if available
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("aether_medications");
+    // Load stored prescriptions for the active patient from partitioned key
+    if (typeof window !== "undefined" && userId) {
+      const storageKey = `aether_medications:${userId}`;
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         try {
           setPrescriptions(JSON.parse(stored));
-        } catch {}
+        } catch {
+          setPrescriptions([]);
+        }
+      } else if (isDemo && userId === "aether_usr_8f92a170b4c2") {
+        // Seed demo prescriptions only in DEMO_MODE for demo patient
+        setPrescriptions(INITIAL_PRESCRIPTIONS);
+        localStorage.setItem(storageKey, JSON.stringify(INITIAL_PRESCRIPTIONS));
       } else {
-        localStorage.setItem("aether_medications", JSON.stringify(INITIAL_PRESCRIPTIONS));
+        setPrescriptions([]);
       }
     }
+  }, [userId, isDemo]);
 
-    // Listen for live doctor prescription updates
+  useEffect(() => {
+    // Listen for live doctor prescription updates for this patient
     const handleMedicationsUpdated = (e: any) => {
-      if (e.detail?.allMeds) {
+      if (e.detail?.patientId === userId && e.detail?.allMeds) {
         setPrescriptions(e.detail.allMeds);
       }
     };
 
     window.addEventListener("aether-medications-updated", handleMedicationsUpdated);
-    return () => window.removeEventListener("aether-medications-updated", handleMedicationsUpdated);
-  }, []);
+    return () =>
+      window.removeEventListener("aether-medications-updated", handleMedicationsUpdated);
+  }, [userId]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -116,8 +132,8 @@ export default function MedicinesPage() {
   }, [query]);
 
   const toggleDoseTaken = (id: string) => {
-    setPrescriptions((prev) =>
-      prev.map((item) => {
+    setPrescriptions((prev) => {
+      const updated = prev.map((item) => {
         if (item.id === id) {
           const nextTaken = !item.takenToday;
           const nextRemaining = nextTaken
@@ -133,8 +149,12 @@ export default function MedicinesPage() {
           };
         }
         return item;
-      })
-    );
+      });
+      if (typeof window !== "undefined" && userId) {
+        localStorage.setItem(`aether_medications:${userId}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const handleAddMedication = (e: React.FormEvent) => {
@@ -153,7 +173,13 @@ export default function MedicinesPage() {
       hospitalName: newHospitalName || "Personal Entry",
     };
 
-    setPrescriptions((prev) => [newMed, ...prev]);
+    setPrescriptions((prev) => {
+      const updated = [newMed, ...prev];
+      if (typeof window !== "undefined" && userId) {
+        localStorage.setItem(`aether_medications:${userId}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
     setIsAddModalOpen(false);
 
     setNewBrandName("");

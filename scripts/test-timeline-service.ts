@@ -3,9 +3,12 @@ import { getHealthTimeline } from "../services/domain/timelineService";
 async function runTimelineServiceAcceptanceTests() {
   console.log("=== Running Health Timeline Acceptance Tests ===");
 
-  const timeline = await getHealthTimeline("demo-user-123");
+  // Set DEMO_MODE to test seeded demo timeline
+  process.env.DEMO_MODE = "true";
+  const demoUserId = "aether_usr_8f92a170b4c2";
+  const timeline = await getHealthTimeline(demoUserId);
 
-  console.log(`Fetched ${timeline.length} total timeline entries`);
+  console.log(`Fetched ${timeline.length} total timeline entries for ${demoUserId}`);
 
   const symptomEntries = timeline.filter((e) => e.type === "symptom_log");
   const reportEntries = timeline.filter((e) => e.type === "report");
@@ -47,3 +50,4 @@ async function runTimelineServiceAcceptanceTests() {
 }
 
 runTimelineServiceAcceptanceTests();
+

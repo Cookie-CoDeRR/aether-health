@@ -35,10 +35,16 @@ import {
   getPatientConsentPin,
   setPatientConsentPin,
 } from "@/services/authService";
-import { PrescribedMedication, INITIAL_PATIENT_QUEUE } from "@/services/clinicalHandoverService";
+import { useSettings } from "@/context/SettingsContext";
+import {
+  PrescribedMedication,
+  INITIAL_PATIENT_QUEUE,
+  getPatientPrescribedMedications,
+} from "@/services/clinicalHandoverService";
 
 export default function MyDoctorPage() {
   const router = useRouter();
+  const { userId } = useSettings();
 
   // Active Attending Doctor
   const [attendingDoctor, setAttendingDoctor] = useState<DoctorProfile>(VERIFIED_DOCTORS_REGISTRY[0]);
@@ -102,33 +108,10 @@ export default function MyDoctorPage() {
         if (activeDoc) setAttendingDoctor(activeDoc);
       }
 
-      // Load medications prescribed
-      const storedMeds = localStorage.getItem("aether_medications");
-      if (storedMeds) {
-        try {
-          setPrescriptions(JSON.parse(storedMeds));
-        } catch {}
-      } else {
-        setPrescriptions([
-          {
-            id: "rx-1",
-            brandName: "Pantoprazole 40",
-            genericName: "Pantoprazole Sodium 40mg Delayed-Release",
-            dosage: "40 mg",
-            frequency: "Once daily in the morning",
-            timesOfDay: ["Morning (08:00 AM)"],
-            mealTiming: "Before Food (Empty stomach)",
-            startDate: "Today",
-            endDate: "14 Days",
-            totalDays: 14,
-            totalDoses: 14,
-            dosesRemaining: 12,
-            takenToday: true,
-            takenAt: "08:15 AM",
-            hospitalName: "Apollo Specialty Hospital",
-            instructions: "Take 30 mins before morning meal. Avoid spicy foods.",
-          },
-        ]);
+      // Load medications prescribed for active patient
+      if (userId) {
+        const meds = getPatientPrescribedMedications(userId);
+        setPrescriptions(meds);
       }
 
       // Load submitted documents
@@ -148,7 +131,7 @@ export default function MyDoctorPage() {
     };
     window.addEventListener("aether-medications-updated", handleMedUpdate);
     return () => window.removeEventListener("aether-medications-updated", handleMedUpdate);
-  }, []);
+  }, [userId]);
 
   const handleSelectDoctor = (doctor: DoctorProfile) => {
     setAttendingDoctor(doctor);

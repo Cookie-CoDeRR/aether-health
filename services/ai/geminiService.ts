@@ -26,6 +26,12 @@ const ai = new GoogleGenAI({ apiKey: rawApiKey || "AIzaSyDummyKeyForVercelBuildB
 function generateFallbackTriageOutput(symptoms: string, userId: string): TriageOutput {
   const lower = symptoms.toLowerCase();
   const patientContext = getPatientHistoryContextItems(userId);
+  const allergyNotes = patientContext.filter((c) =>
+    c.toLowerCase().includes("allergy") || c.toLowerCase().includes("penicillin")
+  );
+  const labNotes = patientContext.filter((c) =>
+    c.toLowerCase().includes("cbc") || c.toLowerCase().includes("lab") || c.toLowerCase().includes("wbc")
+  );
 
   // High / Critical Emergency Trigger
   if (
@@ -47,11 +53,12 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
 
 #### Clinical Breakdown & Lab History
 - **Primary Clinical Concern**: Sudden onset chest discomfort, breathing difficulties, or acute weakness require immediate evaluation to rule out acute cardiac or pulmonary events.
-- **Cross-Referenced Patient Context**: Medical history notes a prior episode of seasonal chest tightness. Given current acute symptoms, urgent evaluation is strongly advised.`,
-      patientRecordContext: [
-        "Allergy: Penicillin & Amoxicillin class antibiotics",
-        "Baseline History: Previous episode of seasonal chest tightness",
-      ],
+- **Cross-Referenced Patient Context**: ${
+  patientContext.length > 0
+    ? `Medical history reviewed (${patientContext[0]}). Urgent physician evaluation is strongly advised.`
+    : "No prior records logged. Urgent physician evaluation is strongly advised."
+}`,
+      patientRecordContext: patientContext.slice(0, 2),
       suggestedFollowUps: [
         "Should I call emergency services (108/911) or go directly to the nearest ER?",
         "What position should I sit in while waiting for emergency assistance?",
@@ -76,7 +83,7 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
       status: "ok",
       urgencyLevel: "moderate",
       summary: isStomach
-        ? "Moderate abdominal discomfort evaluated against patient baseline lab markers."
+        ? "Moderate abdominal discomfort evaluated against patient baseline profile."
         : "Moderate systemic/respiratory symptoms logged requiring clinical evaluation.",
       message: `It sounds like you're experiencing uncomfortable **${symptoms}**. This is commonly related to ${
         isStomach
@@ -95,18 +102,23 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
           ? "Symptoms are consistent with acute gastritis, gastroesophageal reflux, or localized bowel irritation."
           : "Fever and cough indicate typical viral upper airway response."
       }
-- **Lab & Allergy Cross-Reference**:
-  - 🩸 **CBC Blood Panel**: Your recent lab report noted a **slightly elevated WBC count (11.2 x10^3/µL)**, reflecting mild active inflammation.
-  - ⚠️ **Allergy Reminder**: You have a documented **severe allergy to Penicillin & Amoxicillin**. Avoid any antibiotic or pain medications containing penicillin derivatives.
+- **Patient Context Cross-Reference**:
+  ${
+    allergyNotes.length > 0
+      ? `- ⚠️ **Allergy Reminder**: Documented allergy (${allergyNotes[0]}). Avoid contraindicating medications.`
+      : "- 🛡️ **Allergy Status**: No known drug allergies reported on file."
+  }
+  ${
+    labNotes.length > 0
+      ? `- 🩸 **Lab Baseline**: Prior panel noted (${labNotes[0]}).`
+      : ""
+  }
 - **Red Flag Signs**: Seek prompt urgent care if pain becomes localized to the lower right abdomen, fever rises above 38.5°C, or you experience persistent vomiting.`,
-      patientRecordContext: [
-        "CBC Lab Report (Feb 2026): WBC 11.2 x10^3/µL (Slightly Elevated Inflammatory Marker)",
-        "Drug Allergy: Severe allergy to Penicillin and Amoxicillin class antibiotics",
-      ],
+      patientRecordContext: patientContext.slice(0, 2),
       suggestedFollowUps: [
-        "Is my stomach pain connected to my recent elevated WBC count (11.2)?",
-        "What safe over-the-counter pain or gas relievers can I take given my Penicillin allergy?",
+        "What safe over-the-counter pain or digestive aids can I take?",
         "What red flag symptoms mean I should go to urgent care immediately?",
+        "When should I follow up with a primary care doctor?",
       ],
     };
   }
@@ -126,15 +138,20 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
 #### Clinical Breakdown & Lab History
 - **Clinical Impression**: Mild tension, temporary fatigue, or environmental strain.
 - **Patient Context Reminders**:
-  - ⚠️ **Allergy Alert**: Always remember your recorded **Penicillin / Amoxicillin allergy** when selecting any over-the-counter medications.
-  - 🩸 **Baseline Markers**: Past lab markers (Hemoglobin 13.5 g/dL, Creatinine 0.9 mg/dL) remain well within normal healthy baselines.`,
-    patientRecordContext: [
-      "Drug Allergy: Severe allergy to Penicillin and Amoxicillin class antibiotics",
-      "CBC Lab Report: Hemoglobin 13.5 g/dL (Normal Baseline)",
-    ],
+  ${
+    allergyNotes.length > 0
+      ? `- ⚠️ **Allergy Alert**: Always remember your recorded allergy (${allergyNotes[0]}) when selecting OTC medications.`
+      : "- 🛡️ **Allergy Status**: No active contraindications logged on file."
+  }
+  ${
+    labNotes.length > 0
+      ? `- 🩸 **Baseline Markers**: Reference (${labNotes[0]}).`
+      : ""
+  }`,
+    patientRecordContext: patientContext.slice(0, 2),
     suggestedFollowUps: [
       "Could hydration or sleep quality be causing these symptoms?",
-      "Which non-penicillin fever or pain relievers are safe for me?",
+      "Which over-the-counter fever or pain relievers are safe for me?",
       "When should I follow up with a primary care doctor?",
     ],
   };

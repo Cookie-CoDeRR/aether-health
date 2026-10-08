@@ -46,8 +46,6 @@ interface ChatMessage {
   acknowledged?: boolean;
 }
 
-const ACTIVE_PATIENT_USER_ID = "aether_usr_8f92a170b4c2";
-
 // Clean 1-2 word quick clinical prompt chips
 const QUICK_PROMPTS = [
   { label: "Headache & Fatigue", query: "I have had a mild throbbing headache and fatigue for the past 2 days." },
@@ -60,7 +58,8 @@ const QUICK_PROMPTS = [
 
 function TriageContent() {
   const searchParams = useSearchParams();
-  const { userName } = useSettings();
+  const { userId, userName } = useSettings();
+  const activePatientId = userId;
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,14 +73,6 @@ function TriageContent() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
 
-  // Check URL query param ?q=
-  useEffect(() => {
-    const q = searchParams.get("q");
-    if (q) {
-      handleSend(q);
-    }
-  }, [searchParams]);
-
   // Listen for prompt events dispatched from floating dock
   useEffect(() => {
     const handleTriagePromptEvent = (e: any) => {
@@ -94,7 +85,7 @@ function TriageContent() {
     window.addEventListener("aether-triage-prompt", handleTriagePromptEvent);
     return () =>
       window.removeEventListener("aether-triage-prompt", handleTriagePromptEvent);
-  }, []);
+  }, [activePatientId]);
 
   // Load attending doctor profile
   useEffect(() => {
@@ -123,7 +114,7 @@ function TriageContent() {
 
     try {
       const response = await sendTriageMessage({
-        userId: ACTIVE_PATIENT_USER_ID,
+        userId: activePatientId,
         symptoms: queryText,
       });
 
@@ -152,8 +143,8 @@ function TriageContent() {
 
         // Automatically compress chat and generate SBAR Handover for doctor
         syncPatientTriageToDoctorQueue(
-          "AETH-PT-9842",
-          userName || "Alex Rivers",
+          activePatientId,
+          userName || "Patient",
           updatedChat
         );
       }
@@ -175,13 +166,13 @@ function TriageContent() {
     setErrorMessage(null);
   };
 
-  const firstName = userName ? userName.split(" ")[0] : "Alex";
+  const firstName = userName ? userName.split(" ")[0] : "Patient";
 
   return (
     <div className="relative flex flex-1 h-full min-h-0 divide-x divide-[#064E3B]/15 dark:divide-white/10 font-sans text-[#064E3B] dark:text-[#ECFDF5] bg-transparent overflow-hidden">
       {/* Patient Record Management Modal */}
       <PatientRecordsModal
-        userId={ACTIVE_PATIENT_USER_ID}
+        userId={activePatientId}
         isOpen={isRecordsModalOpen}
         onClose={() => setIsRecordsModalOpen(false)}
       />
@@ -472,7 +463,7 @@ function TriageContent() {
         </div>
 
         {/* Today's Active Medications Card */}
-        <TodayMedicationsCard userId={ACTIVE_PATIENT_USER_ID} />
+        <TodayMedicationsCard userId={activePatientId} />
 
         {/* Health History & Allergies Card */}
         <div className="rounded-3xl border border-[#064E3B]/20 dark:border-white/10 bg-white dark:bg-[#0B1D17] p-5 space-y-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] shadow-xs overflow-hidden">

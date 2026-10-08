@@ -24,7 +24,10 @@ import {
   Stethoscope,
 } from "lucide-react";
 
+import { useSettings } from "@/context/SettingsContext";
+
 export default function TimelinePage() {
+  const { userId } = useSettings();
   const [timelineEntries, setTimelineEntries] = useState<TimelineEntry[]>([]);
   const [filterType, setFilterType] = useState<"all" | TimelineEntryType>("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -46,7 +49,7 @@ export default function TimelinePage() {
 
   const reloadTimeline = () => {
     setIsLoading(true);
-    getHealthTimeline("aether_usr_8f92a170b4c2").then((data) => {
+    getHealthTimeline(userId).then((data) => {
       setTimelineEntries(data);
       setIsLoading(false);
     });
@@ -54,7 +57,7 @@ export default function TimelinePage() {
 
   useEffect(() => {
     reloadTimeline();
-  }, []);
+  }, [userId]);
 
   const filteredEntries = timelineEntries.filter(
     (entry) => filterType === "all" || entry.type === filterType
@@ -63,7 +66,7 @@ export default function TimelinePage() {
   const handleCreateCertificate = async () => {
     if (!certTitle.trim() || !certDoctorName.trim()) return;
     await issueClearanceCertificate({
-      userId: "aether_usr_8f92a170b4c2",
+      userId,
       title: certTitle,
       subtitle: certSubtitle || "Condition certified resolved by licensed physician.",
       doctorName: certDoctorName,

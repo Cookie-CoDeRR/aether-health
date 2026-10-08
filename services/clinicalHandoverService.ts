@@ -349,54 +349,263 @@ export async function syncPatientTriageToDoctorQueue(
   localStorage.setItem(`aether_compressed_chat_${patientId}`, compressed);
   localStorage.setItem(`aether_handover_${patientId}`, JSON.stringify(summary));
 
-  // Update primary patient entry in queue
-  const queue = getDoctorPatientQueue();
-  const existingIndex = queue.findIndex((p) => p.patientId === patientId);
-
-  if (existingIndex >= 0) {
-    queue[existingIndex].compressedChat = compressed;
-    queue[existingIndex].handoverSummary = summary;
-    queue[existingIndex].lastTriageAt = "Just now";
-    queue[existingIndex].urgencyLevel = summary.triageRisk;
-    if (messages.length > 0) {
-      const lastUserMsg = [...messages].reverse().find((m) => m.sender === "user");
-      if (lastUserMsg) {
-        queue[existingIndex].chiefComplaint = lastUserMsg.text.substring(0, 100);
-      }
+  // Update or insert patient entry in queue
+  let chiefComplaint = "Initial consultation";
+  if (messages.length > 0) {
+    const lastUserMsg = [...messages].reverse().find((m) => m.sender === "user");
+    if (lastUserMsg) {
+      chiefComplaint = lastUserMsg.text.substring(0, 100);
     }
   }
 
-  localStorage.setItem("aether_doctor_patient_queue", JSON.stringify(queue));
+  upsertPatientQueueRecord({
+    patientId,
+    name: patientName,
+    compressedChat: compressed,
+    handoverSummary: summary,
+    lastTriageAt: "Just now",
+    urgencyLevel: summary.triageRisk,
+    chiefComplaint,
+  });
 
   // Broadcast event
-  window.dispatchEvent(
-    new CustomEvent("aether-patient-triage-updated", {
-      detail: { patientId, compressedChat: compressed, handoverSummary: summary },
-    })
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    try {
+      window.dispatchEvent(
+        new CustomEvent("aether-patient-triage-updated", {
+          detail: { patientId, compressedChat: compressed, handoverSummary: summary },
+        })
+      );
+    } catch {
+      // ignore event dispatch errors
+    }
+  }
+}
+
+/**
+ * Inserts or updates a patient record in the doctor queue.
+ */
+export function upsertPatientQueueRecord(
+  record: Partial<PatientRecord> & { patientId: string }
+): PatientRecord {
+  const queue =
+    typeof window !== "undefined" && localStorage.getItem("aether_doctor_patient_queue")
+      ? JSON.parse(localStorage.getItem("aether_doctor_patient_queue")!)
+      : [...INITIAL_PATIENT_QUEUE];
+
+  const idx = queue.findIndex((p: PatientRecord) => p.patientId === record.patientId);
+  const defaultRecord: PatientRecord = {
+    patientId: record.patientId,
+    abhaId:
+      record.abhaId ||
+      `91-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(
+        1000 + Math.random() * 9000
+      )}-${Math.floor(1000 + Math.random() * 9000)}`,
+    name: record.name || `Patient ${record.patientId}`,
+    age: record.age || 30,
+    gender: record.gender || "Not specified",
+    bloodGroup: record.bloodGroup || "O+",
+    phone: record.phone || "+91 90000 00000",
+    allergies: record.allergies || [],
+    chronicConditions: record.chronicConditions || [],
+    urgencyLevel: record.urgencyLevel || "routine",
+    lastTriageAt: record.lastTriageAt || "Just now",
+    chiefComplaint: record.chiefComplaint || "Initial consultation",
+    compressedChat: record.compressedChat || "",
+    handoverSummary: record.handoverSummary || {
+      situation: "Patient presented for evaluation",
+      background: "No critical background noted",
+      assessment: "Awaiting clinical examination",
+      sensitiveDisclosures: [],
+      doctorRecommendations: ["Conduct standard clinical assessment"],
+      generatedAt: new Date().toISOString(),
+      triageRisk: "routine",
+    },
+    recentLabMarkers: record.recentLabMarkers || [],
+    timelineMilestones: record.timelineMilestones || [],
+  };
+
+  const finalRecord = idx >= 0 ? { ...queue[idx], ...record } : { ...defaultRecord, ...record };
+  if (idx >= 0) {
+    queue[idx] = finalRecord;
+  } else {
+    queue.push(finalRecord);
+  }
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem("aether_doctor_patient_queue", JSON.stringify(queue));
+  }
+  
+  const memIdx = INITIAL_PATIENT_QUEUE.findIndex((p) => p.patientId === record.patientId);
+  if (memIdx >= 0) {
+    INITIAL_PATIENT_QUEUE[memIdx] = finalRecord;
+  } else {
+    INITIAL_PATIENT_QUEUE.push(finalRecord);
+  }
+
+  return finalRecord;
+}
+
+function isDemoModeActive(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true")
+  );
+}
+
+// In-memory clinician access grant registry
+export interface ClinicianPatientGrant {
+  clinicianIdentifier: string; // e.g. "dr.anya.sharma@apollohospitals.com" or "doc_anya_sharma"
+  patientId: string;
+  grantedAt: string;
+}
+
+let CLINICIAN_PATIENT_GRANTS: ClinicianPatientGrant[] = [
+  // Demo baseline grants for demo doctor and demo patients
+  {
+    clinicianIdentifier: "doc_anya_sharma",
+    patientId: "AETH-PT-9842",
+    grantedAt: "2026-08-25T00:00:00Z",
+  },
+  {
+    clinicianIdentifier: "dr.anya.sharma@apollohospitals.com",
+    patientId: "AETH-PT-9842",
+    grantedAt: "2026-08-25T00:00:00Z",
+  },
+  {
+    clinicianIdentifier: "doc_anya_sharma",
+    patientId: "aether_usr_8f92a170b4c2",
+    grantedAt: "2026-08-25T00:00:00Z",
+  },
+  {
+    clinicianIdentifier: "dr.anya.sharma@apollohospitals.com",
+    patientId: "aether_usr_8f92a170b4c2",
+    grantedAt: "2026-08-25T00:00:00Z",
+  },
+  {
+    clinicianIdentifier: "doc_anya_sharma",
+    patientId: "AETH-PT-3104",
+    grantedAt: "2026-08-25T00:00:00Z",
+  },
+  {
+    clinicianIdentifier: "doc_anya_sharma",
+    patientId: "AETH-PT-5519",
+    grantedAt: "2026-08-25T00:00:00Z",
+  },
+];
+
+export function grantClinicianPatientAccess(
+  clinicianIdentifier: string,
+  patientId: string
+): void {
+  if (!clinicianIdentifier || !patientId) return;
+  const exists = CLINICIAN_PATIENT_GRANTS.some(
+    (g) =>
+      g.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() &&
+      g.patientId.toLowerCase() === patientId.toLowerCase()
+  );
+  if (!exists) {
+    CLINICIAN_PATIENT_GRANTS.push({
+      clinicianIdentifier,
+      patientId,
+      grantedAt: new Date().toISOString(),
+    });
+  }
+}
+
+export function revokeClinicianPatientAccess(
+  clinicianIdentifier: string,
+  patientId: string
+): void {
+  CLINICIAN_PATIENT_GRANTS = CLINICIAN_PATIENT_GRANTS.filter(
+    (g) =>
+      !(
+        g.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() &&
+        g.patientId.toLowerCase() === patientId.toLowerCase()
+      )
+  );
+}
+
+export function hasClinicianAccess(
+  clinicianIdentifier: string,
+  patientId: string
+): boolean {
+  if (!clinicianIdentifier || !patientId) return false;
+  return CLINICIAN_PATIENT_GRANTS.some(
+    (g) =>
+      (g.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() ||
+        g.clinicianIdentifier.toLowerCase() ===
+          clinicianIdentifier.replace("doctor_", "").toLowerCase()) &&
+      g.patientId.toLowerCase() === patientId.toLowerCase()
   );
 }
 
 /**
  * Retrieves the live patient queue for the doctor portal.
+ * If clinicianIdentifier is supplied, returns only patients who have granted access.
  */
-export function getDoctorPatientQueue(): PatientRecord[] {
-  if (typeof window === "undefined") return INITIAL_PATIENT_QUEUE;
+export function getDoctorPatientQueue(clinicianIdentifier?: string): PatientRecord[] {
+  if (typeof window === "undefined") {
+    if (!clinicianIdentifier) return isDemoModeActive() ? INITIAL_PATIENT_QUEUE : [];
+    return INITIAL_PATIENT_QUEUE.filter((p) =>
+      hasClinicianAccess(clinicianIdentifier, p.patientId)
+    );
+  }
 
   const stored = localStorage.getItem("aether_doctor_patient_queue");
-  if (!stored) {
-    localStorage.setItem("aether_doctor_patient_queue", JSON.stringify(INITIAL_PATIENT_QUEUE));
-    return INITIAL_PATIENT_QUEUE;
+  let queue = INITIAL_PATIENT_QUEUE;
+  if (stored) {
+    try {
+      queue = JSON.parse(stored);
+    } catch {
+      queue = INITIAL_PATIENT_QUEUE;
+    }
   }
 
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return INITIAL_PATIENT_QUEUE;
+  if (!clinicianIdentifier) {
+    return isDemoModeActive() ? queue : [];
   }
+
+  // Filter queue strictly by explicit clinician consent grant
+  return queue.filter((p) => hasClinicianAccess(clinicianIdentifier, p.patientId));
+}
+
+/**
+ * Returns patient record for a doctor if explicit access grant exists; otherwise returns null.
+ */
+export function getPatientRecordForDoctor(
+  clinicianIdentifier: string,
+  patientId: string
+): PatientRecord | null {
+  if (!hasClinicianAccess(clinicianIdentifier, patientId)) {
+    return null;
+  }
+  const queue = getDoctorPatientQueue(clinicianIdentifier);
+  return queue.find((p) => p.patientId === patientId) || null;
+}
+
+export function getPatientMedicationsKey(patientId: string): string {
+  return `aether_medications:${patientId}`;
+}
+
+export function getPatientPrescribedMedications(patientId: string): PrescribedMedication[] {
+  if (typeof window === "undefined" || !patientId) return [];
+  const key = getPatientMedicationsKey(patientId);
+  const raw = localStorage.getItem(key);
+  if (raw) {
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 /**
  * Doctor writes multiple prescriptions at once with time-of-day, start/end dates, and live sync.
+ * Partitions storage strictly by patientId: aether_medications:<patientId>.
  */
 export function prescribeMultipleMedications(
   patientId: string,
@@ -416,6 +625,7 @@ export function prescribeMultipleMedications(
   }[]
 ): { success: boolean; error?: string; createdMedications?: PrescribedMedication[] } {
   if (typeof window === "undefined") return { success: false, error: "Window undefined" };
+  if (!patientId || !patientId.trim()) return { success: false, error: "Patient ID is required." };
   if (!items || items.length === 0) return { success: false, error: "No medications provided." };
 
   // Check all items against Allergy Guard
@@ -453,24 +663,18 @@ export function prescribeMultipleMedications(
     instructions: item.instructions,
   }));
 
-  // Get current patient prescriptions
-  let currentMeds: PrescribedMedication[] = [];
-  const rawMeds = localStorage.getItem("aether_medications");
-  if (rawMeds) {
-    try {
-      currentMeds = JSON.parse(rawMeds);
-    } catch {
-      currentMeds = [];
-    }
-  }
+  // Get current patient prescriptions using partitioned storage key
+  const partitionedKey = getPatientMedicationsKey(patientId);
+  const currentMeds = getPatientPrescribedMedications(patientId);
 
   const updatedMeds = [...createdMeds, ...currentMeds];
-  localStorage.setItem("aether_medications", JSON.stringify(updatedMeds));
+  localStorage.setItem(partitionedKey, JSON.stringify(updatedMeds));
 
-  // Add timeline event
+  // Add timeline event in partitioned timeline storage
   const medNames = items.map((m) => `${m.brandName} (${m.dosage})`).join(", ");
   const newTimelineEvent = {
     id: `ev_rx_${Date.now()}`,
+    userId: patientId,
     title: `Doctor Prescription: ${medNames}`,
     date: `Today, ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`,
     category: "Medication",
@@ -478,8 +682,9 @@ export function prescribeMultipleMedications(
     facility: items[0].hospitalName,
   };
 
+  const timelineKey = `aether_timeline_events:${patientId}`;
   let timelineEvents: any[] = [];
-  const rawTimeline = localStorage.getItem("aether_timeline_events");
+  const rawTimeline = localStorage.getItem(timelineKey);
   if (rawTimeline) {
     try {
       timelineEvents = JSON.parse(rawTimeline);
@@ -487,14 +692,20 @@ export function prescribeMultipleMedications(
       timelineEvents = [];
     }
   }
-  localStorage.setItem("aether_timeline_events", JSON.stringify([newTimelineEvent, ...timelineEvents]));
+  localStorage.setItem(timelineKey, JSON.stringify([newTimelineEvent, ...timelineEvents]));
 
-  // Broadcast live cross-component event
-  window.dispatchEvent(
-    new CustomEvent("aether-medications-updated", {
-      detail: { medication: createdMeds[0], allMeds: updatedMeds },
-    })
-  );
+  // Broadcast live cross-component event with patientId
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    try {
+      window.dispatchEvent(
+        new CustomEvent("aether-medications-updated", {
+          detail: { patientId, medication: createdMeds[0], allMeds: updatedMeds },
+        })
+      );
+    } catch {
+      // ignore event dispatch errors in testing/SSR environments
+    }
+  }
 
   return { success: true, createdMedications: createdMeds };
 }

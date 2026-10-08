@@ -48,8 +48,68 @@ let TODAY_ASSIGNED_MEDICATIONS: DailyMedicationItem[] = [
   },
 ];
 
+function isDemoModeActive(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true")
+  );
+}
+
+/**
+ * Returns today's assigned medications strictly filtered by the session patient id.
+ * Seeded medications are returned only in DEMO_MODE for the seeded demo patient.
+ */
 export function getTodayAssignedMedications(userId: string): DailyMedicationItem[] {
-  return [...TODAY_ASSIGNED_MEDICATIONS];
+  if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+    return [];
+  }
+
+  const isDemo = isDemoModeActive();
+
+  // In-memory / baseline items filtered strictly by userId
+  const matchingItems = TODAY_ASSIGNED_MEDICATIONS.filter((m) => {
+    if (m.userId !== userId) return false;
+    if (m.id.startsWith("sched_") && !isDemo) return false;
+    return true;
+  });
+
+  // Also load any prescribed medications partitioned by patientId in browser storage
+  if (typeof window !== "undefined") {
+    const partitionedKey = `aether_medications:${userId}`;
+    const storedRaw = localStorage.getItem(partitionedKey);
+    if (storedRaw) {
+      try {
+        const storedMeds = JSON.parse(storedRaw);
+        if (Array.isArray(storedMeds)) {
+          for (const rx of storedMeds) {
+            if (!matchingItems.some((m) => m.id === rx.id || m.brandName === rx.brandName)) {
+              matchingItems.push({
+                id: rx.id || `rx_${Date.now()}`,
+                userId,
+                brandName: rx.brandName,
+                genericName: rx.genericName || rx.brandName,
+                dosage: rx.dosage,
+                scheduleTime: rx.timesOfDay?.[0] || "09:00 AM",
+                instruction: rx.instructions || rx.frequency || "As prescribed",
+                isTaken: Boolean(rx.takenToday),
+                takenAt: rx.takenAt,
+                allergySafeWarning:
+                  rx.brandName.toLowerCase().includes("amox") ||
+                  rx.brandName.toLowerCase().includes("penic")
+                    ? "⚠️ WARNING: Contains Penicillin derivatives!"
+                    : "Non-Penicillin • Verified Safe",
+              });
+            }
+          }
+        }
+      } catch {
+        // ignore JSON parse error
+      }
+    }
+  }
+
+  return [...matchingItems];
 }
 
 export function toggleMedicationDoseTaken(id: string): DailyMedicationItem | null {
@@ -65,9 +125,12 @@ export function toggleMedicationDoseTaken(id: string): DailyMedicationItem | nul
 }
 
 export function addAssignedMedication(params: Omit<DailyMedicationItem, "id" | "isTaken">): DailyMedicationItem {
+  if (!params.userId || !params.userId.trim()) {
+    throw new Error("Patient ID is required to assign medications.");
+  }
   const newItem: DailyMedicationItem = {
     ...params,
-    id: `sched_${Date.now()}`,
+    id: `sched_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
     isTaken: false,
     allergySafeWarning: params.brandName.toLowerCase().includes("amox") || params.brandName.toLowerCase().includes("penic")
       ? "⚠️ WARNING: Patient has Penicillin Allergy!"

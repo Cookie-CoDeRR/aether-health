@@ -4,6 +4,7 @@ export type BadgeVariant = "default" | "amber" | "emerald" | "slate" | "rose";
 
 export interface TimelineEntry {
   id: string;
+  userId?: string;
   type: TimelineEntryType;
   timestamp: Date;
   title: string;

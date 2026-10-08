@@ -73,15 +73,35 @@ export async function storeVectorMedicalRecord(
   return newRecord;
 }
 
+function isDemoModeActive(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true")
+  );
+}
+
 /**
  * Returns all active (unresolved) vector records for a patient.
+ * Strictly isolates patient data: seeded records only appear in DEMO_MODE for the demo patient.
  */
 export function getPatientVectorRecords(userId: string): VectorMedicalRecord[] {
-  return INITIAL_PATIENT_VECTOR_MEMORIES.filter(
-    (rec) =>
-      !rec.isResolved &&
-      (rec.userId === userId || userId === "demo-user-123" || rec.userId === "aether_usr_8f92a170b4c2")
-  );
+  if (!userId || typeof userId !== "string" || userId.trim().length === 0) {
+    return [];
+  }
+
+  const isDemo = isDemoModeActive();
+
+  return INITIAL_PATIENT_VECTOR_MEMORIES.filter((rec) => {
+    if (rec.isResolved) return false;
+    // Strict matching: Only records belonging to this exact userId
+    if (rec.userId !== userId) return false;
+    // Seeded records are returned ONLY in DEMO_MODE
+    if (rec.id.startsWith("vec_mem_") && !isDemo) {
+      return false;
+    }
+    return true;
+  });
 }
 
 /**
