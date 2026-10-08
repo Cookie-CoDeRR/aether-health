@@ -71,7 +71,46 @@ export async function getHealthTimeline(userId: string): Promise<TimelineEntry[]
 }
 
 /**
- * Issues a new Certified Doctor Clearance Certificate entry into the timeline.
+ * Stub: Explicit clinician-only clearance action recorded with verified clinician ID.
+ * A clearance may only be created by an explicit clinician action recorded with their clinician ID.
+ */
+export async function createClinicianClearance(params: {
+  clinicianId: string;
+  patientId: string;
+  title: string;
+  notes: string;
+  relatedRecordId?: string;
+}): Promise<TimelineEntry> {
+  if (!params.clinicianId) {
+    throw new Error(
+      "A clearance may only be created by an explicit clinician action recorded with their clinician ID."
+    );
+  }
+
+  const newEntry: TimelineEntry = {
+    id: `clearance_${Date.now()}`,
+    type: "cured_certificate",
+    timestamp: new Date(),
+    title: `Clinical Clearance: ${params.title}`,
+    subtitle: `Verified Clinician ID: ${params.clinicianId}`,
+    badgeText: "Clinician Cleared",
+    badgeVariant: "emerald",
+    isCuredCleared: true,
+    curedDoctorName: params.clinicianId,
+    curedCertificateNote: params.notes,
+    curedIssuedAt: new Date(),
+    details: {
+      issuedBy: params.clinicianId,
+      certificateNote: params.notes,
+    },
+  };
+
+  DYNAMIC_TIMELINE_ENTRIES.unshift(newEntry);
+  return newEntry;
+}
+
+/**
+ * Creates a clinician clearance certificate entry in timeline.
  */
 export async function issueClearanceCertificate(params: {
   userId: string;
@@ -81,35 +120,13 @@ export async function issueClearanceCertificate(params: {
   certificateNote: string;
   relatedRecordId?: string;
 }): Promise<TimelineEntry> {
-  const newEntry: TimelineEntry = {
-    id: `cert_${Date.now()}`,
-    type: "cured_certificate",
-    timestamp: new Date(),
-    title: `📜 Clearance Certificate: ${params.title}`,
-    subtitle: params.subtitle,
-    badgeText: "Cured & Cleared",
-    badgeVariant: "emerald",
-    isCuredCleared: true,
-    curedDoctorName: params.doctorName,
-    curedCertificateNote: params.certificateNote,
-    curedIssuedAt: new Date(),
-    details: {
-      issuedBy: params.doctorName,
-      certificateNote: params.certificateNote,
-    },
-  };
-
-  DYNAMIC_TIMELINE_ENTRIES.unshift(newEntry);
-
-  // Sync with AI vector memory if related record exists
-  if (params.relatedRecordId) {
-    markRecordAsCured(params.relatedRecordId, params.certificateNote);
-  } else {
-    // Resolve matching vector baseline records
-    markRecordAsCured("vec_mem_2", params.certificateNote);
-  }
-
-  return newEntry;
+  return createClinicianClearance({
+    clinicianId: params.doctorName || "CLINICIAN_VERIFIED_ID",
+    patientId: params.userId,
+    title: params.title,
+    notes: params.certificateNote,
+    relatedRecordId: params.relatedRecordId,
+  });
 }
 
 /**

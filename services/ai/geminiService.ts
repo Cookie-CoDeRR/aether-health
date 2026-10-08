@@ -7,6 +7,7 @@ import {
   TriageOutput,
   ReportParseInput,
   ReportParseOutput,
+  ReportMetric,
 } from "../../types/ai";
 import {
   queryVectorMedicalContext,
@@ -233,37 +234,136 @@ Current Reported Symptoms: ${input.symptoms}`;
 }
 
 /**
- * Parses medical report/document via Google AI Studio (Gemini 1.5 Flash)
+ * Parses medical report/document via Google AI Studio (Gemini 1.5 Flash).
+ * When real extraction is unavailable, sample data is only provided if DEMO_MODE is explicitly enabled.
+ * Without DEMO_MODE, returns 'Could not read this report' with no fabricated values.
  */
 export async function parseGeminiReport(
   input: ReportParseInput
 ): Promise<SafetyWrappedResponse<ReportParseOutput>> {
-  try {
-    const mockOutput: ReportParseOutput = {
-      status: "ok",
-      parseStatus: "ok",
-      parsedMetrics: [
-        { name: "Hemoglobin", value: 13.5, referenceRange: "12.0 - 15.5", unit: "g/dL", isOutOfRange: false },
-        { name: "WBC Count", value: 11.2, referenceRange: "4.5 - 11.0", unit: "10^3/µL", isOutOfRange: true },
-        { name: "Fasting Blood Sugar", value: 95, referenceRange: "70 - 99", unit: "mg/dL", isOutOfRange: false },
-        { name: "Serum Creatinine", value: 0.9, referenceRange: "0.6 - 1.2", unit: "mg/dL", isOutOfRange: false },
-      ],
-      plainSummary: `Analyzed document ${input.fileName}. Overall metrics are mostly within normal limits, with a slightly elevated White Blood Cell (WBC) count indicating a mild inflammatory response.`,
-      rawOcrText: `[OCR EXTRACTED TEXT - ${input.fileName}]\nHemoglobin: 13.5 g/dL (Normal: 12.0 - 15.5)\nWBC: 11.2 x10^3/uL (Normal: 4.5 - 11.0) *HIGH*\nFasting Glucose: 95 mg/dL\nCreatinine: 0.9 mg/dL`,
-    };
+  const isDemoMode =
+    process.env.DEMO_MODE === "true" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
-    return processSafetyMiddleware({
-      userId: input.userId,
-      promptText: `Parse medical report file: ${input.fileName}`,
-      urgencyLevel: "low",
-      rawResponseData: mockOutput,
-    });
-  } catch (err) {
-    const fallbackOutput: ReportParseOutput = {
+  try {
+    let parsedMetrics: ReportMetric[] = [];
+    let plainSummary = "";
+    let rawOcrText = "";
+    let extractionSuccessful = false;
+
+    // Real Gemini OCR extraction if API key and file data (base64 or buffer) are available
+    if (
+      rawApiKey &&
+      !rawApiKey.includes("Dummy") &&
+      !rawApiKey.includes("your") &&
+      (input.fileBase64 || input.fileBuffer)
+    ) {
+      try {
+        const base64Data =
+          input.fileBase64 ||
+          (input.fileBuffer ? input.fileBuffer.toString("base64") : "");
+        const mimeType = input.mimeType || "application/pdf";
+
+        const prompt = `System: You are an expert clinical laboratory document parser.
+Analyze the provided medical report file (${input.fileName}).
+Extract all explicit lab test metrics, standard reference ranges, units, and out-of-range flags.
+Return a JSON object:
+{
+  "parsedMetrics": [
+    {
+      "name": string (metric name, e.g. "Hemoglobin"),
+      "value": number or string (extracted value),
+      "referenceRange": string (reference range),
+      "unit": string (e.g. "g/dL"),
+      "isOutOfRange": boolean
+    }
+  ],
+  "plainSummary": string (concise plain-language clinical summary of the findings),
+  "rawOcrText": string (text extracted directly from the document)
+}`;
+
+        const response = await ai.models.generateContent({
+          model: "gemini-1.5-flash",
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: prompt },
+                {
+                  inlineData: {
+                    mimeType,
+                    data: base64Data,
+                  },
+                },
+              ],
+            },
+          ],
+        });
+
+        const text = response.text || "";
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (Array.isArray(parsed.parsedMetrics) && parsed.parsedMetrics.length > 0) {
+            parsedMetrics = parsed.parsedMetrics;
+            plainSummary =
+              parsed.plainSummary ||
+              `Extracted ${parsedMetrics.length} lab markers from ${input.fileName}.`;
+            rawOcrText = parsed.rawOcrText || text;
+            extractionSuccessful = true;
+          }
+        }
+      } catch (ocrErr) {
+        console.warn("Real document OCR execution error:", ocrErr);
+      }
+    }
+
+    if (extractionSuccessful) {
+      const realOutput: ReportParseOutput = {
+        status: "ok",
+        parseStatus: "ok",
+        parsedMetrics,
+        plainSummary,
+        rawOcrText,
+      };
+
+      return processSafetyMiddleware({
+        userId: input.userId,
+        promptText: `Parse medical report file: ${input.fileName}`,
+        urgencyLevel: "low",
+        rawResponseData: realOutput,
+      });
+    }
+
+    // If no real extraction ran:
+    // Only return sample data if explicit DEMO_MODE is on
+    if (isDemoMode) {
+      const sampleOutput: ReportParseOutput = {
+        status: "ok",
+        parseStatus: "ok",
+        parsedMetrics: [
+          { name: "Hemoglobin", value: 13.5, referenceRange: "12.0 - 15.5", unit: "g/dL", isOutOfRange: false },
+          { name: "WBC Count", value: 11.2, referenceRange: "4.5 - 11.0", unit: "10^3/µL", isOutOfRange: true },
+          { name: "Fasting Blood Sugar", value: 95, referenceRange: "70 - 99", unit: "mg/dL", isOutOfRange: false },
+          { name: "Serum Creatinine", value: 0.9, referenceRange: "0.6 - 1.2", unit: "mg/dL", isOutOfRange: false },
+        ],
+        plainSummary: `[Sample data, not a real result] Demonstration CBC analysis for ${input.fileName}.`,
+        rawOcrText: `[Sample data, not a real result - ${input.fileName}]\nHemoglobin: 13.5 g/dL (Normal: 12.0 - 15.5)\nWBC: 11.2 x10^3/uL (Normal: 4.5 - 11.0) *HIGH*\nFasting Glucose: 95 mg/dL\nCreatinine: 0.9 mg/dL`,
+      };
+
+      return processSafetyMiddleware({
+        userId: input.userId,
+        promptText: `Parse medical report file: ${input.fileName}`,
+        urgencyLevel: "low",
+        rawResponseData: sampleOutput,
+      });
+    }
+
+    // Default when DEMO_MODE is OFF and no extraction ran: Never return any fabricated values
+    const unreadOutput: ReportParseOutput = {
       status: "failed",
       parseStatus: "failed",
       parsedMetrics: [],
-      plainSummary: "Unable to parse report document due to an error.",
+      plainSummary: "Could not read this report",
       rawOcrText: "",
     };
 
@@ -271,7 +371,22 @@ export async function parseGeminiReport(
       userId: input.userId,
       promptText: `Parse medical report file: ${input.fileName}`,
       urgencyLevel: "low",
-      rawResponseData: fallbackOutput,
+      rawResponseData: unreadOutput,
+    });
+  } catch (err) {
+    const errorOutput: ReportParseOutput = {
+      status: "failed",
+      parseStatus: "failed",
+      parsedMetrics: [],
+      plainSummary: "Could not read this report",
+      rawOcrText: "",
+    };
+
+    return processSafetyMiddleware({
+      userId: input.userId,
+      promptText: `Parse medical report file: ${input.fileName}`,
+      urgencyLevel: "low",
+      rawResponseData: errorOutput,
     });
   }
 }

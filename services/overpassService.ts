@@ -1,4 +1,4 @@
-import { Hospital } from "@/types/hospital";
+import { Hospital, EmergencyCapability } from "@/types/hospital";
 import { calculateDistanceKm } from "@/lib/geoUtils";
 
 const OVERPASS_API_URL = "https://overpass-api.de/api/interpreter";
@@ -19,15 +19,33 @@ interface OverpassResponse {
   elements: OverpassElement[];
 }
 
+export interface OverpassQueryResult {
+  hospitals: Hospital[];
+  status: "ok" | "empty" | "unavailable";
+  error?: string;
+}
+
 /**
- * Queries OpenStreetMap Overpass API to fetch real nearby hospitals and clinics.
- * Formats Overpass QL, issues POST request, and maps raw elements to structured Hospital objects.
+ * Queries OpenStreetMap Overpass API for real hospitals and clinics.
+ * On failure or empty result, returns an empty list without inventing fake hospitals.
  */
 export async function fetchNearbyHospitals(
   lat: number,
   lng: number,
   radiusMeters: number = 5000
 ): Promise<Hospital[]> {
+  const result = await fetchNearbyHospitalsWithStatus(lat, lng, radiusMeters);
+  return result.hospitals;
+}
+
+/**
+ * Queries OpenStreetMap Overpass API and returns both mapped hospitals and exact query status.
+ */
+export async function fetchNearbyHospitalsWithStatus(
+  lat: number,
+  lng: number,
+  radiusMeters: number = 5000
+): Promise<OverpassQueryResult> {
   const overpassQuery = `[out:json][timeout:25];
 (
   node["amenity"~"hospital|clinic|doctors"](around:${radiusMeters},${lat},${lng});
@@ -46,25 +64,38 @@ out center body;`;
     });
 
     if (!response.ok) {
-      throw new Error(`Overpass API response error: ${response.statusText}`);
+      return {
+        hospitals: [],
+        status: "unavailable",
+        error: `Overpass API response error: ${response.statusText}`,
+      };
     }
 
     const data: OverpassResponse = await response.json();
-    const parsedHospitals = mapOverpassElementsToHospitals(data.elements, lat, lng);
+    const parsedHospitals = mapOverpassElementsToHospitals(data.elements || [], lat, lng);
 
-    if (parsedHospitals.length > 0) {
-      return parsedHospitals.sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
+    if (parsedHospitals.length === 0) {
+      return {
+        hospitals: [],
+        status: "empty",
+      };
     }
 
-    // Fallback if Overpass returned empty set for remote/unmapped coordinates
-    return getFallbackNearbyHospitals(lat, lng);
-  } catch (error) {
-    console.warn("Overpass API query failed or timed out. Using fallback hospital data.", error);
-    return getFallbackNearbyHospitals(lat, lng);
+    const sorted = parsedHospitals.sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
+    return {
+      hospitals: sorted,
+      status: "ok",
+    };
+  } catch (error: any) {
+    return {
+      hospitals: [],
+      status: "unavailable",
+      error: error?.message || "Overpass query failed or timed out",
+    };
   }
 }
 
-function mapOverpassElementsToHospitals(
+export function mapOverpassElementsToHospitals(
   elements: OverpassElement[],
   userLat: number,
   userLng: number
@@ -83,19 +114,33 @@ function mapOverpassElementsToHospitals(
       tags["name:en"] ||
       tags.operator ||
       (tags.amenity === "hospital"
-        ? "City Hospital Facility"
+        ? "Hospital"
         : tags.amenity === "clinic"
-        ? "Community Health Clinic"
+        ? "Clinic"
         : "Medical Center");
 
     const address = buildAddressString(tags);
     const amenity = (tags.amenity as Hospital["type"]) || "hospital";
-    const isEmergency =
-      tags.emergency === "yes" ||
-      amenity === "hospital" ||
-      /emergency|icu|trauma|hospital/i.test(name);
+
+    // Emergency capability is strictly determined by source OSM tagging
+    let emergencyCapability: EmergencyCapability = "unconfirmed";
+    let isEmergency = false;
+
+    if (tags.emergency === "yes") {
+      emergencyCapability = "confirmed";
+      isEmergency = true;
+    } else if (tags.emergency === "no") {
+      emergencyCapability = "unavailable";
+      isEmergency = false;
+    } else {
+      emergencyCapability = "unconfirmed";
+      isEmergency = false;
+    }
 
     const distanceKm = calculateDistanceKm(userLat, userLng, itemLat, itemLng);
+
+    // Only use phone number if present in OpenStreetMap source tags. Never use placeholder phones.
+    const phone = tags.phone || tags["contact:phone"] || undefined;
 
     hospitals.push({
       id: `osm_${elem.type}_${elem.id}`,
@@ -104,9 +149,10 @@ function mapOverpassElementsToHospitals(
       lat: itemLat,
       lng: itemLng,
       address,
-      phone: tags.phone || tags["contact:phone"] || "+91 80 2345 6789",
+      phone,
       type: amenity,
       isEmergency,
+      emergencyCapability,
       distanceKm,
     });
   });
@@ -126,37 +172,5 @@ function buildAddressString(tags: Record<string, string>): string {
     return parts.join(", ");
   }
 
-  return tags["addr:full"] || "Main Road, Medical District Area";
-}
-
-/**
- * Generates realistic fallback hospitals around user position when Overpass is unavailable or offline.
- */
-function getFallbackNearbyHospitals(userLat: number, userLng: number): Hospital[] {
-  const mockOffsets = [
-    { name: "Apex Specialty Hospital & Emergency", dLat: 0.008, dLng: 0.006, emergency: true, type: "hospital" as const, phone: "+91 80 4911 0000" },
-    { name: "St. Jude Emergency Medical Center", dLat: -0.006, dLng: 0.012, emergency: true, type: "emergency" as const, phone: "+91 80 2699 5000" },
-    { name: "Apollo Heart & Triage Clinic", dLat: 0.014, dLng: -0.009, emergency: false, type: "clinic" as const, phone: "+91 80 2212 3456" },
-    { name: "Sunshine Pediatric & Family Care", dLat: -0.012, dLng: -0.011, emergency: false, type: "doctors" as const, phone: "+91 80 4000 8000" },
-    { name: "Metro Trauma & Critical Care", dLat: 0.018, dLng: 0.015, emergency: true, type: "hospital" as const, phone: "+91 80 2500 1122" },
-  ];
-
-  return mockOffsets.map((offset, index) => {
-    const lat = userLat + offset.dLat;
-    const lng = userLng + offset.dLng;
-    const distanceKm = calculateDistanceKm(userLat, userLng, lat, lng);
-
-    return {
-      id: `fallback_hosp_${index + 1}`,
-      osmId: `way/fallback_${index + 1}`,
-      name: offset.name,
-      lat,
-      lng,
-      address: `Block ${index + 1}, Healthcare Avenue, Sector ${index * 2 + 3}`,
-      phone: offset.phone,
-      type: offset.type,
-      isEmergency: offset.emergency,
-      distanceKm,
-    };
-  }).sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
+  return tags["addr:full"] || "";
 }

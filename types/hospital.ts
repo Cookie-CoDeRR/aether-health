@@ -1,3 +1,5 @@
+export type EmergencyCapability = "confirmed" | "unconfirmed" | "unavailable";
+
 export interface Hospital {
   id: string;
   osmId: string;
@@ -8,5 +10,6 @@ export interface Hospital {
   phone?: string;
   type: "hospital" | "clinic" | "emergency" | "doctors";
   isEmergency: boolean;
+  emergencyCapability?: EmergencyCapability;
   distanceKm?: number;
 }
