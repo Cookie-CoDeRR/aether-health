@@ -123,6 +123,9 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const { userName, userEmail, userPhoto, isGmailAuthenticated, signOutGmail } =
     useSettings();
 
+  // Strict isolation: The slide-over sidebar drawer is exclusively for patient navigation.
+  if (isDoctorRoute) return null;
+
   const handleNavClick = (item: any) => {
     onClose();
     if (item.tab && typeof window !== "undefined") {
@@ -130,7 +133,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
     }
   };
 
-  const navItems = isDoctorRoute ? DOCTOR_NAV_ITEMS : PATIENT_NAV_ITEMS;
+  const navItems = PATIENT_NAV_ITEMS;
 
   return (
     <AnimatePresence>

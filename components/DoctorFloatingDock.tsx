@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Menu,
   Activity,
   Pill,
   FileText,
@@ -15,18 +14,13 @@ import {
   ArrowRight,
   Mic,
   MicOff,
-  MessageSquare,
-  Clock,
-  ShieldCheck,
 } from "lucide-react";
 
 interface DoctorFloatingDockProps {
-  onToggleMenu: () => void;
   onOpenDoctorPrompt?: (initialQuery?: string) => void;
 }
 
 function DoctorFloatingDockContent({
-  onToggleMenu,
   onOpenDoctorPrompt,
 }: DoctorFloatingDockProps) {
   const pathname = usePathname() || "";
@@ -79,12 +73,12 @@ function DoctorFloatingDockContent({
     }
   };
 
-  const handleOpenCopilotChat = () => {
+  const handleSwitchTab = (tab: string) => {
     if (pathname !== "/doctor") {
       router.push("/doctor");
     }
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("aether-doctor-switch-tab", { detail: { tab: "copilot" } }));
+      window.dispatchEvent(new CustomEvent("aether-doctor-switch-tab", { detail: { tab } }));
     }
   };
 
@@ -105,38 +99,26 @@ function DoctorFloatingDockContent({
     }
 
     if (text.includes("dispense") || text.includes("prescribe") || text.includes("medicine") || text.includes("rx")) {
-      router.push("/doctor");
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("aether-doctor-switch-tab", { detail: { tab: "dispenser" } }));
-      }
+      handleSwitchTab("dispenser");
       setQuery("");
       return;
     }
 
     if (text.includes("lab") || text.includes("cbc") || text.includes("wbc") || text.includes("report")) {
-      router.push("/doctor");
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("aether-doctor-switch-tab", { detail: { tab: "labs" } }));
-      }
+      handleSwitchTab("labs");
       setQuery("");
       return;
     }
 
     if (text.includes("sbar") || text.includes("handover") || text.includes("summary")) {
-      router.push("/doctor");
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("aether-doctor-switch-tab", { detail: { tab: "handover" } }));
-      }
+      handleSwitchTab("handover");
       setQuery("");
       return;
     }
 
     // Default: route to doctor workspace and ask AI Copilot
-    if (pathname !== "/doctor") {
-      router.push("/doctor");
-    }
+    handleSwitchTab("copilot");
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent("aether-doctor-switch-tab", { detail: { tab: "copilot" } }));
       window.dispatchEvent(new CustomEvent("aether-doctor-copilot-query", { detail: { query: text } }));
     }
     setQuery("");
@@ -144,23 +126,29 @@ function DoctorFloatingDockContent({
 
   const navItems = [
     {
-      id: "menu",
-      label: "Clinician Menu",
-      icon: <Menu className="w-4 h-4" />,
-      onClick: onToggleMenu,
-    },
-    {
       id: "queue",
       label: "Patient Queue",
       icon: <Activity className="w-4 h-4" />,
-      href: "/doctor",
+      onClick: () => handleSwitchTab("queue"),
       activeMatch: pathname === "/doctor",
+    },
+    {
+      id: "dispenser",
+      label: "Live Rx Dispenser",
+      icon: <Pill className="w-4 h-4" />,
+      onClick: () => handleSwitchTab("dispenser"),
     },
     {
       id: "copilot-chat",
       label: "Doctor AI Copilot",
       icon: <Sparkles className="w-4 h-4 text-emerald-600 dark:text-[#10B981]" />,
-      onClick: handleOpenCopilotChat,
+      onClick: () => handleSwitchTab("copilot"),
+    },
+    {
+      id: "labs",
+      label: "Lab OCR & CBC Panels",
+      icon: <FileText className="w-4 h-4" />,
+      onClick: () => handleSwitchTab("labs"),
     },
     {
       id: "profile",

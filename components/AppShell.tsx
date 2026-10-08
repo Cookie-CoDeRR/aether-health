@@ -20,11 +20,11 @@ export default function AppShell({ children }: AppShellProps) {
   const [isTourOpen, setIsTourOpen] = useState(false);
   const pathname = usePathname() || "";
   const router = useRouter();
+  const isDoctorRoute = pathname === "/doctor" || pathname.startsWith("/doctor/");
 
   // One-time auto trigger on first login/arrival on interior pages + event listener (Patient only)
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isDoctorRoute = pathname === "/doctor" || pathname.startsWith("/doctor/");
       const userRole = localStorage.getItem("aether_user_role");
       const hasSeenTour = localStorage.getItem("aether_onboarding_completed");
       if (!hasSeenTour && pathname !== "/" && !isDoctorRoute && userRole !== "doctor") {
@@ -33,7 +33,7 @@ export default function AppShell({ children }: AppShellProps) {
         return () => clearTimeout(timer);
       }
     }
-  }, [pathname]);
+  }, [pathname, isDoctorRoute]);
 
   // Global listener to open 3D guide on demand from anywhere (e.g. Settings, Header)
   useEffect(() => {
@@ -97,8 +97,10 @@ export default function AppShell({ children }: AppShellProps) {
       {/* Interactive Cursor Spotlight Glow */}
       <InteractiveSpotlight />
 
-      {/* Slide-over Drawer Navigation (Closed by default) */}
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* Slide-over Drawer Navigation (Patient only - never mounted on clinician workspace) */}
+      {!isDoctorRoute && (
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      )}
 
       {/* Main App Container */}
       <main className="relative z-10 flex min-w-0 flex-1 flex-col h-full max-h-screen overflow-hidden">
@@ -128,8 +130,8 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* Floating Bottom Dock Bar (Role-Specific) */}
       {showFloatingDock && (
-        (pathname === "/doctor" || pathname.startsWith("/doctor/")) ? (
-          <DoctorFloatingDock onToggleMenu={() => setSidebarOpen(true)} />
+        isDoctorRoute ? (
+          <DoctorFloatingDock />
         ) : (
           <FloatingDock
             onToggleMenu={() => setSidebarOpen(true)}

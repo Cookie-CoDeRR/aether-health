@@ -67,15 +67,17 @@ export default function Header({
 
   return (
     <header className="relative flex items-center justify-between border-b border-[#064E3B]/15 dark:border-white/10 bg-white dark:bg-[#0B1D17] px-4 sm:px-8 py-3.5 z-30 shadow-xs text-[#064E3B] dark:text-[#ECFDF5] transition-colors duration-200">
-      {/* Left Title & Mobile Menu Trigger */}
+      {/* Left Title & Mobile Menu Trigger (Patient only) */}
       <div className="flex items-center gap-3">
-        <button
-          onClick={onToggleSidebar}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] text-[#064E3B] dark:text-[#ECFDF5] hover:bg-[#064E3B]/5 dark:hover:bg-white/10 transition-colors lg:hidden min-tap-target"
-          aria-label="Toggle Navigation"
-        >
-          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </button>
+        {!isDoctorRoute && (
+          <button
+            onClick={onToggleSidebar}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] text-[#064E3B] dark:text-[#ECFDF5] hover:bg-[#064E3B]/5 dark:hover:bg-white/10 transition-colors lg:hidden min-tap-target"
+            aria-label="Toggle Navigation"
+          >
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+        )}
 
         <div>
           {sessionEyebrow && (
