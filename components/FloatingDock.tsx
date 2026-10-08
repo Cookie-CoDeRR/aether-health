@@ -276,7 +276,8 @@ function FloatingDockContent({
               } else if (item.id === "doctors") {
                 isActive =
                   (pathname === "/discovery" && currentTab === "doctors") ||
-                  pathname === "/doctors";
+                  pathname === "/doctors" ||
+                  pathname.startsWith("/doctors/");
               } else if (item.href) {
                 isActive = pathname === item.href;
               }

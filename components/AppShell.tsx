@@ -24,7 +24,7 @@ export default function AppShell({ children }: AppShellProps) {
   // One-time auto trigger on first login/arrival on interior pages + event listener (Patient only)
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isDoctorRoute = pathname.startsWith("/doctor");
+      const isDoctorRoute = pathname === "/doctor" || pathname.startsWith("/doctor/");
       const userRole = localStorage.getItem("aether_user_role");
       const hasSeenTour = localStorage.getItem("aether_onboarding_completed");
       if (!hasSeenTour && pathname !== "/" && !isDoctorRoute && userRole !== "doctor") {
@@ -128,7 +128,7 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* Floating Bottom Dock Bar (Role-Specific) */}
       {showFloatingDock && (
-        pathname.startsWith("/doctor") ? (
+        (pathname === "/doctor" || pathname.startsWith("/doctor/")) ? (
           <DoctorFloatingDock onToggleMenu={() => setSidebarOpen(true)} />
         ) : (
           <FloatingDock

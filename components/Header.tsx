@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useSettings } from "@/context/SettingsContext";
-import { Menu, X, ShieldCheck, PhoneCall, ChevronDown, User, LogOut, Settings as SettingsIcon, Sun, Moon, Stethoscope } from "lucide-react";
+import { Menu, X, ShieldCheck, PhoneCall, ChevronDown, User, LogOut, Settings as SettingsIcon, Sun, Moon, Stethoscope, Award } from "lucide-react";
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -21,6 +21,7 @@ export default function Header({
 }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname() || "";
+  const isDoctorRoute = pathname === "/doctor" || pathname.startsWith("/doctor/");
   const {
     theme,
     setTheme,
@@ -138,7 +139,7 @@ export default function Header({
             className="flex items-center gap-2.5 rounded-full border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0F241E] p-1 sm:pr-3 hover:border-[#064E3B] dark:hover:border-[#10B981] transition-all shadow-2xs min-tap-target"
             aria-label="User Profile Menu"
           >
-            {pathname.startsWith("/doctor") ? (
+            {isDoctorRoute ? (
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 dark:bg-[#10B981] font-sans text-xs font-bold text-white dark:text-[#042F24]">
                 DR
               </div>
@@ -155,10 +156,10 @@ export default function Header({
             )}
             <div className="hidden sm:block text-left">
               <span className="block font-bold text-xs text-[#064E3B] dark:text-[#ECFDF5] leading-none truncate max-w-[120px]">
-                {pathname.startsWith("/doctor") ? "Dr. Anya Sharma" : userName}
+                {isDoctorRoute ? "Dr. Anya Sharma" : userName}
               </span>
               <span className="block text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 mt-0.5 truncate max-w-[120px]">
-                {pathname.startsWith("/doctor") ? "NMC Verified" : userEmail || "Patient"}
+                {isDoctorRoute ? "NMC Verified" : userEmail || "Patient"}
               </span>
             </div>
             <ChevronDown
@@ -180,22 +181,22 @@ export default function Header({
                 <div className="border-b border-[#064E3B]/15 dark:border-white/10 pb-3 space-y-1">
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-[#064E3B] dark:text-[#ECFDF5] text-sm truncate">
-                      {pathname.startsWith("/doctor") ? "Dr. Anya Sharma" : userName}
+                      {isDoctorRoute ? "Dr. Anya Sharma" : userName}
                     </span>
                     <span className="rounded-full bg-[#F9FBF9] dark:bg-[#132D26] border border-[#064E3B]/20 dark:border-white/15 text-[#064E3B] dark:text-[#10B981] text-[10px] px-2 py-0.5 font-bold">
-                      {pathname.startsWith("/doctor") ? "Clinician" : "Patient"}
+                      {isDoctorRoute ? "Clinician" : "Patient"}
                     </span>
                   </div>
 
                   <div className="text-[11px] text-[#064E3B]/70 dark:text-[#A7F3D0]/70 truncate">
-                    {pathname.startsWith("/doctor")
+                    {isDoctorRoute
                       ? "dr.anya.sharma@apollohospitals.com"
                       : userEmail}
                   </div>
 
                   <div className="flex items-center justify-between text-[11px] text-[#064E3B]/60 dark:text-white/50 pt-1">
                     <span className="truncate font-mono">
-                      {pathname.startsWith("/doctor") ? "Reg: NMC-IND-94821" : `ID: ${userId.substring(0, 14)}...`}
+                      {isDoctorRoute ? "Reg: NMC-IND-94821" : `ID: ${userId.substring(0, 14)}...`}
                     </span>
                   </div>
                 </div>
@@ -215,14 +216,25 @@ export default function Header({
                     </span>
                   </button>
 
-                  <Link
-                    href="/doctor"
-                    onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-2.5 rounded-xl p-2.5 text-[#064E3B] dark:text-[#ECFDF5] hover:bg-[#F9FBF9] dark:hover:bg-[#132D26] transition-colors"
-                  >
-                    <Stethoscope className="w-4 h-4 text-emerald-600 dark:text-[#10B981]" />
-                    <span className="font-bold">Doctor Clinical Portal</span>
-                  </Link>
+                  {isDoctorRoute ? (
+                    <Link
+                      href="/doctor/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl p-2.5 text-[#064E3B] dark:text-[#ECFDF5] hover:bg-[#F9FBF9] dark:hover:bg-[#132D26] transition-colors"
+                    >
+                      <Award className="w-4 h-4 text-emerald-600 dark:text-[#10B981]" />
+                      <span className="font-bold">Doctor Profile & Credentials</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/doctors"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2.5 rounded-xl p-2.5 text-[#064E3B] dark:text-[#ECFDF5] hover:bg-[#F9FBF9] dark:hover:bg-[#132D26] transition-colors"
+                    >
+                      <Stethoscope className="w-4 h-4 text-emerald-600 dark:text-[#10B981]" />
+                      <span className="font-bold">My Doctor & Care Plan</span>
+                    </Link>
+                  )}
 
                   <Link
                     href="/settings"

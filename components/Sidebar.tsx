@@ -119,7 +119,7 @@ interface SidebarProps {
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname() || "";
-  const isDoctorRoute = pathname.startsWith("/doctor");
+  const isDoctorRoute = pathname === "/doctor" || pathname.startsWith("/doctor/");
   const { userName, userEmail, userPhoto, isGmailAuthenticated, signOutGmail } =
     useSettings();
 

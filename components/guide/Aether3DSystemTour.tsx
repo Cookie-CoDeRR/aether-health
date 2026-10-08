@@ -175,7 +175,8 @@ export default function Aether3DSystemTour({
   const step = TOUR_STEPS[currentStepIndex];
 
   useEffect(() => {
-    if (!isOpen || pathname.startsWith("/doctor")) return;
+    const isDoctorRoute = pathname === "/doctor" || pathname.startsWith("/doctor/");
+    if (!isOpen || isDoctorRoute) return;
     const targetRoute = TOUR_STEPS[currentStepIndex].route;
     if (pathname !== targetRoute) {
       router.push(targetRoute);
