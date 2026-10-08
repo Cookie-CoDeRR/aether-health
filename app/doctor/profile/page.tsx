@@ -86,7 +86,9 @@ export default function DoctorProfilePage() {
       consultingHours,
       certificates,
     });
-    setProfile(updated);
+    if (updated) {
+      setProfile(updated);
+    }
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 4000);
   };

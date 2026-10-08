@@ -15,12 +15,67 @@ export interface ABDMDoctor {
   availableSlots: string[];
 }
 
+export type ABDMVerificationStatus =
+  | "verified"
+  | "unverified"
+  | "unavailable"
+  | "invalid_format";
+
 export interface ABDMVerificationResult {
   isVerified: boolean;
+  status: ABDMVerificationStatus;
   hprId: string;
   doctor?: ABDMDoctor;
   message: string;
-  verifiedAt: Date;
+  verifiedAt?: Date;
+}
+
+export interface ABDMRegistryClient {
+  isAvailable(): Promise<boolean>;
+  queryRegistry(hprId: string): Promise<ABDMDoctor | null>;
+}
+
+export class DefaultABDMRegistryClient implements ABDMRegistryClient {
+  async isAvailable(): Promise<boolean> {
+    const clientId =
+      typeof process !== "undefined" ? process.env.ABDM_CLIENT_ID : undefined;
+    const clientSecret =
+      typeof process !== "undefined" ? process.env.ABDM_CLIENT_SECRET : undefined;
+    return Boolean(clientId && clientSecret);
+  }
+
+  async queryRegistry(hprId: string): Promise<ABDMDoctor | null> {
+    const available = await this.isAvailable();
+    if (!available) {
+      throw new Error(
+        "ABDM Registry integration is unavailable (credentials not configured)."
+      );
+    }
+    // Stub interface for live gateway lookup when credentials are provided
+    return null;
+  }
+}
+
+/**
+ * Checks ABDM Healthcare Professionals Registry gateway connectivity status.
+ */
+export async function checkAbdmRegistryStatus(): Promise<{
+  status: "available" | "unavailable";
+  message: string;
+}> {
+  const client = new DefaultABDMRegistryClient();
+  const available = await client.isAvailable();
+  if (!available) {
+    return {
+      status: "unavailable",
+      message:
+        "ABDM Registry integration unavailable: no live gateway credentials configured.",
+    };
+  }
+  return {
+    status: "available",
+    message: "ABDM Registry gateway connected.",
+  };
 }
 
 export const SEEDED_ABDM_DOCTORS: ABDMDoctor[] = [
@@ -140,53 +195,134 @@ export const SEEDED_ABDM_DOCTORS: ABDMDoctor[] = [
 
 /**
  * Verifies any given HPR ID string against the ABDM Healthcare Professionals Registry.
+ *
+ * Rules:
+ * - Format check alone must return status: "unverified", message: "unverified (format valid)".
+ * - Returns status: "verified" ONLY from a real registry response or explicit DEMO_MODE fixture match.
+ * - If no registry integration exists outside DEMO_MODE, returns "unverified (format valid)" or "unavailable".
+ * - Never invents credentials.
  */
-export async function verifyHprId(hprId: string): Promise<ABDMVerificationResult> {
-  await new Promise((res) => setTimeout(res, 120)); // Simulated network latency
+export async function verifyHprId(
+  hprId: string,
+  options?: { registryClient?: ABDMRegistryClient }
+): Promise<ABDMVerificationResult> {
+  await new Promise((res) => setTimeout(res, 40));
 
-  const normalized = hprId.trim().toLowerCase();
-  const match = SEEDED_ABDM_DOCTORS.find(
-    (doc) => doc.hprId.toLowerCase() === normalized || doc.registrationNumber.toLowerCase() === normalized
-  );
-
-  if (match) {
+  const normalized = (hprId || "").trim().toLowerCase();
+  if (!normalized) {
     return {
-      isVerified: true,
-      hprId: match.hprId,
-      doctor: match,
-      message: `Verified ABDM Healthcare Professional: ${match.fullName} (${match.councilName}, Reg: ${match.registrationNumber})`,
-      verifiedAt: new Date(),
+      isVerified: false,
+      status: "invalid_format",
+      hprId: "",
+      message: "HPR ID cannot be empty.",
     };
   }
 
-  // Check generic valid HPR format [name]@hpr
-  const hprFormatRegex = /^[a-z0-9._]+@hpr$/i;
-  if (hprFormatRegex.test(normalized)) {
+  // Check valid HPR handle format (e.g. dr_name@hpr or dr_name@hpr.abdm)
+  const hprFormatRegex = /^[a-z0-9._]+@(hpr|hpr\.abdm)$/i;
+  const isFormatValid = hprFormatRegex.test(normalized);
+
+  if (!isFormatValid) {
     return {
-      isVerified: true,
+      isVerified: false,
+      status: "invalid_format",
       hprId: normalized,
-      message: `HPR ID '${normalized}' is valid and active on National Health Authority (NHA) ABDM Gateway.`,
-      verifiedAt: new Date(),
+      message: `Invalid HPR ID format '${hprId}'. Expected format: name@hpr or name@hpr.abdm`,
     };
   }
 
+  const isDemo =
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true");
+
+  // In DEMO_MODE, seeded fixtures simulate registry responses for verified sample doctors
+  if (isDemo) {
+    const fixtureMatch = SEEDED_ABDM_DOCTORS.find(
+      (doc) =>
+        doc.hprId.toLowerCase() === normalized ||
+        doc.registrationNumber.toLowerCase() === normalized
+    );
+    if (fixtureMatch) {
+      return {
+        isVerified: true,
+        status: "verified",
+        hprId: fixtureMatch.hprId,
+        doctor: fixtureMatch,
+        message: `[DEMO] Verified ABDM Healthcare Professional: ${fixtureMatch.fullName} (${fixtureMatch.councilName}, Reg: ${fixtureMatch.registrationNumber})`,
+        verifiedAt: new Date(),
+      };
+    }
+  }
+
+  // If a custom registry client is injected, use it to query the real registry
+  if (options?.registryClient) {
+    try {
+      const isAvail = await options.registryClient.isAvailable();
+      if (!isAvail) {
+        return {
+          isVerified: false,
+          status: "unavailable",
+          hprId: normalized,
+          message: "Registry integration unavailable.",
+        };
+      }
+      const doc = await options.registryClient.queryRegistry(normalized);
+      if (doc) {
+        return {
+          isVerified: true,
+          status: "verified",
+          hprId: normalized,
+          doctor: doc,
+          message: `Verified ABDM Healthcare Professional: ${doc.fullName} (${doc.councilName})`,
+          verifiedAt: new Date(),
+        };
+      } else {
+        return {
+          isVerified: false,
+          status: "unverified",
+          hprId: normalized,
+          message: "unverified (not found in registry)",
+        };
+      }
+    } catch {
+      return {
+        isVerified: false,
+        status: "unavailable",
+        hprId: normalized,
+        message: "Registry integration unavailable.",
+      };
+    }
+  }
+
+  // Without a real registry integration, format check alone returns "unverified (format valid)"
   return {
     isVerified: false,
+    status: "unverified",
     hprId: normalized,
-    message: `HPR ID '${hprId}' could not be verified in ABDM Registry. Please check registration number or format (e.g. dr_name@hpr).`,
-    verifiedAt: new Date(),
+    message: "unverified (format valid)",
   };
 }
 
 /**
  * Returns ABDM registered doctors filtered by query, specialty, or verification status.
+ * Fixtures stay only behind explicit DEMO_MODE. Outside demo mode, returns empty array if no live ABDM directory is connected.
  */
 export async function getAbdmDoctors(
   query?: string,
   specialty?: string,
   abdmOnly: boolean = false
 ): Promise<ABDMDoctor[]> {
-  await new Promise((res) => setTimeout(res, 80));
+  await new Promise((res) => setTimeout(res, 40));
+
+  const isDemo =
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true");
+
+  if (!isDemo) {
+    return [];
+  }
 
   let results = [...SEEDED_ABDM_DOCTORS];
 

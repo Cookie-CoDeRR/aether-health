@@ -175,8 +175,32 @@ export function verifyPatientConsentPin(inputPin: string): boolean {
   return inputPin.trim() === actualPin.trim();
 }
 
+export function isDemoModeActive(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true")
+  );
+}
+
+export const isDemoMode =
+  typeof process !== "undefined" &&
+  (process.env.DEMO_MODE === "true" ||
+    process.env.NEXT_PUBLIC_DEMO_MODE === "true");
+
+/**
+ * Retrieves list of verified doctor presets. Fixtures stay only behind explicit DEMO_MODE.
+ */
+export function getVerifiedDoctors(): DoctorProfile[] {
+  if (!isDemoModeActive()) {
+    return [];
+  }
+  return VERIFIED_DOCTORS_REGISTRY;
+}
+
 /**
  * Initiates Gmail / Google OAuth popup login flow via Firebase Auth for Patients.
+ * A failed check is a failed sign-in — never creates fallback "Google Verified" patient.
  */
 export async function signInWithGoogle(): Promise<UserProfile> {
   try {
@@ -201,32 +225,115 @@ export async function signInWithGoogle(): Promise<UserProfile> {
 
     return profile;
   } catch (error: any) {
-    console.warn("Firebase Gmail Sign-In Notice:", error);
+    console.warn("Firebase Google Sign-In Error:", error);
+    // Real identity: A failed check is a failed sign-in. Do not return fake fallback profile.
+    throw new Error(
+      error.message || "Failed to sign in with Google. Authentication failed."
+    );
+  }
+}
 
-    if (error?.code === "auth/unauthorized-domain" || String(error).includes("unauthorized-domain")) {
-      const fallbackProfile: UserProfile = {
-        uid: "gmail_user_aether_live",
-        email: "alex.rivers.aether@gmail.com",
-        displayName: "Alex Rivers (Google Verified)",
-        photoURL: null,
-        isGmailAuthenticated: true,
-        role: "patient",
-      };
-      if (typeof window !== "undefined") {
-        localStorage.setItem("aether_auth_active", "true");
-        localStorage.setItem("aether_user_role", "patient");
-        localStorage.setItem("aether_user_profile", JSON.stringify(fallbackProfile));
-        localStorage.setItem("aether_user_name", fallbackProfile.displayName || "Patient");
+export interface ServerVerificationResult {
+  success: boolean;
+  uid?: string;
+  email?: string;
+  error?: string;
+}
+
+/**
+ * Verifies doctor Firebase ID token against server / Firebase verification service.
+ * Does not add secrets to repo; uses process.env or server route.
+ */
+export async function verifyDoctorServerIdentity(
+  idToken: string
+): Promise<ServerVerificationResult> {
+  if (!idToken || typeof idToken !== "string" || idToken.trim().length === 0) {
+    return {
+      success: false,
+      error: "Missing or invalid Firebase ID token.",
+    };
+  }
+
+  if (typeof window !== "undefined") {
+    try {
+      const response = await fetch("/api/auth/verify-doctor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        return {
+          success: false,
+          error: data.error || `Server verification returned status ${response.status}`,
+        };
       }
-      return fallbackProfile;
+      const data = await response.json();
+      return {
+        success: true,
+        uid: data.uid,
+        email: data.email,
+      };
+    } catch (err: any) {
+      return {
+        success: false,
+        error: err.message || "Failed to reach server verification endpoint.",
+      };
     }
+  }
 
-    throw new Error(error.message || "Failed to sign in with Gmail. Please check popup permissions.");
+  const apiKey =
+    process.env.FIREBASE_API_KEY ||
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+
+  if (!apiKey) {
+    return {
+      success: false,
+      error: "Server Firebase configuration missing (API key not set).",
+    };
+  }
+
+  try {
+    const res = await fetch(
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      }
+    );
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        error: errData?.error?.message || "Invalid or expired Firebase ID token.",
+      };
+    }
+    const data = await res.json();
+    const user = data.users?.[0];
+    if (!user) {
+      return {
+        success: false,
+        error: "User identity not found in token.",
+      };
+    }
+    return {
+      success: true,
+      uid: user.localId,
+      email: user.email,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err.message || "Server verification error.",
+    };
   }
 }
 
 /**
- * Authenticates a Doctor with Medical Council credentials and Hospital verification.
+ * Authenticates a Doctor.
+ * Outside explicit DEMO_MODE, doctor sign-in must fail unless a server-verified identity exists.
+ * Typed doctor credentials alone never yield isVerified=true.
  */
 export async function signInAsDoctor(details: {
   name: string;
@@ -237,41 +344,68 @@ export async function signInAsDoctor(details: {
   qualifications?: string;
   college?: string;
   bio?: string;
+  idToken?: string;
 }): Promise<UserProfile> {
-  const isPreset = VERIFIED_DOCTORS_REGISTRY.find(
-    (d) =>
-      d.registrationNumber.toLowerCase() === details.registrationNumber.toLowerCase() ||
-      d.email.toLowerCase() === details.email.toLowerCase()
-  );
+  const currentDemo =
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true");
 
+  // Outside DEMO_MODE: Doctor sign-in must fail unless a server-verified identity exists
+  if (!currentDemo) {
+    if (!details.idToken) {
+      throw new Error(
+        "Doctor sign-in failed: Server-verified identity (Firebase verifyIdToken) is required outside DEMO_MODE."
+      );
+    }
+    const verification = await verifyDoctorServerIdentity(details.idToken);
+    if (!verification.success) {
+      throw new Error(
+        `Doctor sign-in failed: ${verification.error || "Server identity verification failed."}`
+      );
+    }
+  }
+
+  // In DEMO_MODE: Check if credentials match a predefined verified fixture preset
+  const isPreset = currentDemo
+    ? VERIFIED_DOCTORS_REGISTRY.find(
+        (d) =>
+          d.registrationNumber.toLowerCase() ===
+            details.registrationNumber.toLowerCase() ||
+          d.email.toLowerCase() === details.email.toLowerCase()
+      )
+    : undefined;
+
+  // A typed doctor name / new details NEVER yield isVerified: true automatically.
   const docProfile: DoctorProfile = isPreset
-    ? { ...isPreset, ...details }
+    ? { ...isPreset, ...details, isVerified: true }
     : {
         doctorId: `doc_${Date.now()}`,
         name: details.name.startsWith("Dr.") ? details.name : `Dr. ${details.name}`,
         salutation: "Dr.",
         email: details.email,
         registrationNumber: details.registrationNumber.toUpperCase(),
-        medicalCouncil: "National Medical Commission (Verified)",
-        hospitalAffiliation: details.hospitalAffiliation || "Apollo Specialty Hospital",
-        specialization: details.specialization || "Cardiology & Internal Medicine",
-        qualifications: details.qualifications || "MBBS, MD",
-        college: details.college || "All India Institute of Medical Sciences (AIIMS)",
-        bio: details.bio || "Verified clinician on Aether Telemetry Platform.",
-        rating: 4.9,
-        reviewCount: 48,
-        experienceYears: 10,
-        clinicAddress: "Consultation Suite, Main Hospital Wing",
-        consultingHours: "Mon-Sat: 09:00 AM - 05:00 PM",
-        isVerified: true,
-        verificationDate: "Active Council Registry",
+        medicalCouncil: "National Medical Commission (Unverified)",
+        hospitalAffiliation:
+          details.hospitalAffiliation || "Hospital Affiliation Pending",
+        specialization: details.specialization || "General Practice",
+        qualifications: details.qualifications || "MBBS",
+        college: details.college || "Medical College",
+        bio: details.bio || "Clinician on Aether Telemetry Platform.",
+        rating: 0,
+        reviewCount: 0,
+        experienceYears: 0,
+        clinicAddress: "Consultation Suite",
+        consultingHours: "By Appointment",
+        isVerified: false, // Typed doctor name NEVER yields verified
+        verificationDate: "Pending Verification",
         certificates: [
           {
-            id: "cert-reg",
-            name: `NMC Registration Certificate (${details.registrationNumber})`,
-            issuer: "National Medical Commission",
-            issuedDate: "2019",
-            verified: true,
+            id: `cert-${Date.now()}`,
+            name: `Registration Certificate (${details.registrationNumber})`,
+            issuer: "Medical Council",
+            issuedDate: "Pending",
+            verified: false,
           },
         ],
       };
@@ -308,28 +442,42 @@ export function getActiveUserRole(): UserRole {
 
 /**
  * Retrieves the currently signed in doctor's profile.
+ * Outside DEMO_MODE, returns null if no session profile exists.
  */
 export function getActiveDoctorProfile(): DoctorProfile | null {
-  if (typeof window === "undefined") return VERIFIED_DOCTORS_REGISTRY[0];
-  const raw = localStorage.getItem("aether_doctor_profile");
-  if (!raw) return VERIFIED_DOCTORS_REGISTRY[0];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return VERIFIED_DOCTORS_REGISTRY[0];
+  if (typeof window !== "undefined") {
+    const raw = localStorage.getItem("aether_doctor_profile");
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        // ignore parse error
+      }
+    }
   }
+  return isDemoModeActive() ? VERIFIED_DOCTORS_REGISTRY[0] : null;
 }
 
 /**
  * Updates doctor's profile with college, certificates, photos, bio.
  */
-export function updateDoctorProfile(updated: Partial<DoctorProfile>): DoctorProfile {
-  const current = getActiveDoctorProfile() || VERIFIED_DOCTORS_REGISTRY[0];
-  const merged: DoctorProfile = { ...current, ...updated };
+export function updateDoctorProfile(
+  updated: Partial<DoctorProfile>
+): DoctorProfile | null {
+  const current = getActiveDoctorProfile();
+  if (!current) {
+    if (!isDemoModeActive()) return null;
+  }
+  const base = current || VERIFIED_DOCTORS_REGISTRY[0];
+  const merged: DoctorProfile = { ...base, ...updated };
   if (typeof window !== "undefined") {
     localStorage.setItem("aether_doctor_profile", JSON.stringify(merged));
     localStorage.setItem("aether_user_name", merged.name);
-    window.dispatchEvent(new CustomEvent("aether-doctor-profile-updated", { detail: { profile: merged } }));
+    window.dispatchEvent(
+      new CustomEvent("aether-doctor-profile-updated", {
+        detail: { profile: merged },
+      })
+    );
   }
   return merged;
 }

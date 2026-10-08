@@ -88,16 +88,7 @@ export default function AuthModal({
       onClose();
       router.push("/triage");
     } catch (err: any) {
-      if (err.message && err.message.includes("unauthorized-domain")) {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("aether_auth_active", "true");
-          localStorage.setItem("aether_user_role", "patient");
-        }
-        onClose();
-        router.push("/triage");
-      } else {
-        setAuthError(err.message || "Failed to sign in with Google. Please check permissions.");
-      }
+      setAuthError(err.message || "Failed to sign in with Google. Please check permissions.");
     } finally {
       setIsGoogleSubmitting(false);
     }
@@ -140,17 +131,14 @@ export default function AuthModal({
     setIsGoogleSubmitting(true);
     try {
       await signInWithGmail();
-      const storedEmail = typeof window !== "undefined" ? localStorage.getItem("aether_user_email") || "dr.anya.sharma@apollohospitals.com" : "dr.anya.sharma@apollohospitals.com";
-      const storedName = typeof window !== "undefined" ? localStorage.getItem("aether_user_name") || "Dr. Anya Sharma" : "Dr. Anya Sharma";
+      const storedEmail = typeof window !== "undefined" ? localStorage.getItem("aether_user_email") : null;
+      const storedName = typeof window !== "undefined" ? localStorage.getItem("aether_user_name") : null;
 
-      setDoctorEmail(storedEmail);
-      setDoctorName(storedName.startsWith("Dr.") ? storedName : `Dr. ${storedName}`);
+      if (storedEmail) setDoctorEmail(storedEmail);
+      if (storedName) setDoctorName(storedName.startsWith("Dr.") ? storedName : `Dr. ${storedName}`);
       setIsGoogleConnected(true);
     } catch (err: any) {
-      // Graceful fallback for demo environment
-      setDoctorEmail("dr.anya.sharma@apollohospitals.com");
-      setDoctorName("Dr. Anya Sharma");
-      setIsGoogleConnected(true);
+      setAuthError(err.message || "Failed to authenticate doctor with Google account.");
     } finally {
       setIsGoogleSubmitting(false);
     }
@@ -160,31 +148,45 @@ export default function AuthModal({
     e.preventDefault();
     setAuthError(null);
 
-    const nameToUse = doctorName.trim() || "Dr. Anya Sharma";
-    const regToUse = regNumber.trim() || "NMC-IND-94821";
-    const emailToUse = doctorEmail.trim() || "dr.anya.sharma@apollohospitals.com";
+    const nameToUse = doctorName.trim();
+    const regToUse = regNumber.trim();
+    const emailToUse = doctorEmail.trim();
+
+    if (!nameToUse || !regToUse || !emailToUse) {
+      setAuthError("Please fill in all doctor identity fields.");
+      return;
+    }
 
     setIsSubmitting(true);
     await new Promise((r) => setTimeout(r, 450));
 
-    signInAsDoctor({
-      name: nameToUse,
-      email: emailToUse,
-      registrationNumber: regToUse,
-      hospitalAffiliation,
-      specialization,
-      qualifications,
-    });
+    try {
+      await signInAsDoctor({
+        name: nameToUse,
+        email: emailToUse,
+        registrationNumber: regToUse,
+        hospitalAffiliation,
+        specialization,
+        qualifications,
+      });
 
-    setIsSubmitting(false);
-    onClose();
-    router.push("/doctor");
+      setIsSubmitting(false);
+      onClose();
+      router.push("/doctor");
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setAuthError(err.message || "Failed to authenticate doctor credentials.");
+    }
   };
 
-  const handleGuestDoctorEnter = () => {
-    signInAsDoctor(VERIFIED_DOCTORS_REGISTRY[0]);
-    onClose();
-    router.push("/doctor");
+  const handleGuestDoctorEnter = async () => {
+    try {
+      await signInAsDoctor(VERIFIED_DOCTORS_REGISTRY[0]);
+      onClose();
+      router.push("/doctor");
+    } catch (err: any) {
+      setAuthError(err.message || "Demo doctor login unavailable outside DEMO_MODE.");
+    }
   };
 
   const handleGuestPatientEnter = () => {
