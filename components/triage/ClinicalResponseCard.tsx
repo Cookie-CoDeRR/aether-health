@@ -17,24 +17,43 @@ import {
 
 interface ClinicalResponseCardProps {
   text: string;
-  urgencyLevel?: UrgencyLevel;
+  intent?: string;
+  urgencyLevel?: UrgencyLevel | null;
   patientRecordContext?: string[];
   onOpenManageRecords?: () => void;
 }
 
 export default function ClinicalResponseCard({
   text,
-  urgencyLevel = "low",
+  intent,
+  urgencyLevel = null,
   patientRecordContext,
   onOpenManageRecords,
 }: ClinicalResponseCardProps) {
   const [showDetailed, setShowDetailed] = useState(false);
 
-  // Clean raw markdown headers
+  // Clean raw markdown headers and double asterisks
   const cleaned = text
     .replace(/^###\s+Clinical Consultant Assessment.*$/gm, "")
     .replace(/^###\s+/gm, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1") // Strip double asterisks
     .trim();
+
+  // If this is a non-clinical intent (greeting, app question, general health, unclear, off_topic) or no triage level assigned:
+  // Render a clean, non-clinical conversational card without triage badges or Care Advice header.
+  const isConversational =
+    !urgencyLevel ||
+    (intent && intent !== "symptom_report" && intent !== "emergency");
+
+  if (isConversational) {
+    return (
+      <div className="space-y-2.5 text-sm leading-relaxed text-[#064E3B] dark:text-[#ECFDF5]">
+        <div className="whitespace-pre-wrap font-normal leading-relaxed">
+          {cleaned}
+        </div>
+      </div>
+    );
+  }
 
   // Separate simple overview paragraphs from deep clinical breakdown sections
   const rawParagraphs = cleaned
@@ -98,28 +117,30 @@ export default function ClinicalResponseCard({
           </div>
         </div>
 
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs border ${
-            urgencyLevel === "high_critical"
-              ? "bg-rose-50 dark:bg-rose-950/40 border-rose-500/30 text-rose-700 dark:text-rose-300"
-              : urgencyLevel === "moderate"
-              ? "bg-amber-50 dark:bg-amber-950/40 border-amber-500/30 text-amber-800 dark:text-amber-300"
-              : "bg-[#F9FBF9] dark:bg-[#0F241E] border-[#064E3B]/20 dark:border-white/15 text-[#064E3B] dark:text-[#10B981]"
-          }`}
-        >
-          {urgencyLevel === "high_critical" ? (
-            <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
-          ) : (
-            <CheckCircle2 className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
-          )}
-          <span>
-            {urgencyLevel === "high_critical"
-              ? "Urgent Care Recommended"
-              : urgencyLevel === "moderate"
-              ? "Doctor Check Recommended"
-              : "Routine / Home Care"}
+        {urgencyLevel && (
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs border ${
+              urgencyLevel === "high_critical"
+                ? "bg-rose-50 dark:bg-rose-950/40 border-rose-500/30 text-rose-700 dark:text-rose-300"
+                : urgencyLevel === "moderate"
+                ? "bg-amber-50 dark:bg-amber-950/40 border-amber-500/30 text-amber-800 dark:text-amber-300"
+                : "bg-[#F9FBF9] dark:bg-[#0F241E] border-[#064E3B]/20 dark:border-white/15 text-[#064E3B] dark:text-[#10B981]"
+            }`}
+          >
+            {urgencyLevel === "high_critical" ? (
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+            ) : (
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
+            )}
+            <span>
+              {urgencyLevel === "high_critical"
+                ? "Urgent Care Recommended"
+                : urgencyLevel === "moderate"
+                ? "Doctor Check Recommended"
+                : "Routine / Home Care"}
+            </span>
           </span>
-        </span>
+        )}
       </div>
 
       {/* Primary Simple & Friendly Assessment */}
@@ -162,74 +183,74 @@ export default function ClinicalResponseCard({
       </div>
 
       {/* Bottom Toggle Option for Detailed Clinical Breakdown */}
-      <div className="pt-2 border-t border-[#064E3B]/10 dark:border-white/10">
-        <button
-          type="button"
-          onClick={() => setShowDetailed(!showDetailed)}
-          className="w-full flex items-center justify-between gap-2 rounded-xl bg-[#F9FBF9] dark:bg-[#0F241E] hover:bg-[#064E3B]/5 dark:hover:bg-white/5 border border-[#064E3B]/20 dark:border-white/10 px-3.5 py-2.5 text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] transition-all cursor-pointer shadow-2xs"
-        >
-          <div className="flex items-center gap-2">
-            <Info className="w-4 h-4 text-[#064E3B] dark:text-[#10B981]" />
-            <span>
-              {showDetailed
-                ? "Hide Detailed Clinical Breakdown"
-                : "Show Detailed Clinical Breakdown & Lab History"}
-            </span>
-          </div>
+      {detailedSections.length > 0 && (
+        <div className="pt-2 border-t border-[#064E3B]/10 dark:border-white/10">
+          <button
+            type="button"
+            onClick={() => setShowDetailed(!showDetailed)}
+            className="w-full flex items-center justify-between gap-2 rounded-xl bg-[#F9FBF9] dark:bg-[#0F241E] hover:bg-[#064E3B]/5 dark:hover:bg-white/5 border border-[#064E3B]/20 dark:border-white/10 px-3.5 py-2.5 text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] transition-all cursor-pointer shadow-2xs"
+          >
+            <div className="flex items-center gap-2">
+              <Info className="w-4 h-4 text-[#064E3B] dark:text-[#10B981]" />
+              <span>
+                {showDetailed
+                  ? "Hide Detailed Clinical Breakdown"
+                  : "Show Detailed Clinical Breakdown & Lab History"}
+              </span>
+            </div>
 
-          <ChevronDown
-            className={`w-4 h-4 transition-transform duration-200 ${
-              showDetailed ? "rotate-180" : ""
-            }`}
-          />
-        </button>
+            <ChevronDown
+              className={`w-4 h-4 transition-transform duration-200 ${
+                showDetailed ? "rotate-180" : ""
+              }`}
+            />
+          </button>
 
-        {/* Expandable In-Depth Report & Medical History Details */}
-        <AnimatePresence>
-          {showDetailed && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              className="overflow-hidden space-y-3 pt-3"
-            >
-              {/* Patient Records Context */}
-              {patientRecordContext && patientRecordContext.length > 0 && (
-                <div className="rounded-2xl border border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-3.5 space-y-2 text-xs">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 font-bold text-[#064E3B] dark:text-[#ECFDF5]">
-                      <FileText className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
-                      <span>Cross-Referenced Medical History ({patientRecordContext.length})</span>
+          {/* Expandable In-Depth Report & Medical History Details */}
+          <AnimatePresence>
+            {showDetailed && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25, ease: "easeInOut" }}
+                className="overflow-hidden space-y-3 pt-3"
+              >
+                {/* Patient Records Context */}
+                {patientRecordContext && patientRecordContext.length > 0 && (
+                  <div className="rounded-2xl border border-[#064E3B]/20 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-3.5 space-y-2 text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 font-bold text-[#064E3B] dark:text-[#ECFDF5]">
+                        <FileText className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
+                        <span>Cross-Referenced Medical History ({patientRecordContext.length})</span>
+                      </div>
+
+                      {onOpenManageRecords && (
+                        <button
+                          type="button"
+                          onClick={onOpenManageRecords}
+                          className="rounded-lg bg-white dark:bg-[#132D26] border border-[#064E3B]/25 dark:border-white/15 hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] text-[#064E3B] dark:text-[#ECFDF5] font-bold px-2 py-0.5 text-[10.5px] transition-all shadow-2xs cursor-pointer"
+                        >
+                          Manage History
+                        </button>
+                      )}
                     </div>
 
-                    {onOpenManageRecords && (
-                      <button
-                        type="button"
-                        onClick={onOpenManageRecords}
-                        className="rounded-lg bg-white dark:bg-[#132D26] border border-[#064E3B]/25 dark:border-white/15 hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] text-[#064E3B] dark:text-[#ECFDF5] font-bold px-2 py-0.5 text-[10.5px] transition-all shadow-2xs cursor-pointer"
-                      >
-                        Manage History
-                      </button>
-                    )}
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
+                      {patientRecordContext.map((item, idx) => (
+                        <span
+                          key={idx}
+                          className="rounded-full border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#132D26] px-2.5 py-0.5 text-[11px] text-[#064E3B] dark:text-[#A7F3D0] font-semibold"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
                   </div>
+                )}
 
-                  <div className="flex flex-wrap gap-1.5 pt-0.5">
-                    {patientRecordContext.map((item, idx) => (
-                      <span
-                        key={idx}
-                        className="rounded-full border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#132D26] px-2.5 py-0.5 text-[11px] text-[#064E3B] dark:text-[#A7F3D0] font-semibold"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Detailed Sections */}
-              {detailedSections.length > 0 ? (
-                detailedSections.map((sec, idx) => (
+                {/* Detailed Sections */}
+                {detailedSections.map((sec, idx) => (
                   <div
                     key={idx}
                     className="rounded-2xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-4 space-y-2 text-xs"
@@ -242,18 +263,12 @@ export default function ClinicalResponseCard({
                       {sec.body}
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] p-3.5 text-xs text-[#064E3B]/80 dark:text-[#ECFDF5]/80">
-                  <p>
-                    All key clinical recommendations and safety reminders are summarized above. If you experience any worsening signs, consult a licensed healthcare professional promptly.
-                  </p>
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }

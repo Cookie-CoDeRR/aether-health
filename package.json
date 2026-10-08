@@ -9,8 +9,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "lint": "next lint",
-    "test": "npx tsx scripts/test-release-gate.ts",
-    "test:all": "npx tsx scripts/test-release-gate.ts && npx tsx scripts/test-pr4-integration-auth.ts"
+    "test": "npx tsx scripts/test-release-gate.ts && npx tsx scripts/test-triage-intent.ts",
+    "test:intent": "npx tsx scripts/test-triage-intent.ts",
+    "test:all": "npx tsx scripts/test-release-gate.ts && npx tsx scripts/test-triage-intent.ts && npx tsx scripts/test-pr4-integration-auth.ts"
   },
   "dependencies": {
     "@google/genai": "^2.16.0",

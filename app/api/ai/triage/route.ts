@@ -3,7 +3,15 @@ import { GoogleGenAI } from "@google/genai";
 import { z } from "zod";
 import { validateAiSession, checkAiRateLimit } from "@/lib/serverAiRateLimit";
 import { processSafetyMiddleware } from "@/middleware/safetyMiddleware";
-import { triageOutputZodSchema } from "@/lib/aiValidationSchemas";
+import {
+  triageOutputZodSchema,
+  triageAiResponseZodSchema,
+} from "@/lib/aiValidationSchemas";
+import {
+  classifyUserIntent,
+  checkEmergencyRedFlags,
+  sanitizeClinicalReplyText,
+} from "@/services/domain/intentClassification";
 
 const triageRequestZodSchema = z.object({
   symptoms: z.string().min(1, "symptoms text is required"),
@@ -83,79 +91,159 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // -------------------------------------------------------------------------
+    // STEP 1: DETERMINISTIC RED-FLAG & INTENT CLASSIFICATION (Runs First)
+    // -------------------------------------------------------------------------
+    const deterministic = classifyUserIntent(symptoms);
     let rawAiResult: any = null;
 
-    // 4. Server-Side Call to Gemini with Structured Output
-    if (rawApiKey && rawApiKey !== "AIzaSyDummyKeyForVercelBuildBuild12345") {
+    // A red flag ALWAYS overrides every other class and model output
+    if (deterministic.isEmergency) {
+      rawAiResult = {
+        status: "ok",
+        intent: "emergency",
+        red_flags: deterministic.redFlags,
+        isEmergency: true,
+        needsMoreInfo: false,
+        reply: deterministic.deterministicReply,
+        message: deterministic.deterministicReply,
+        follow_up_questions: deterministic.followUpQuestions,
+        suggestedFollowUps: deterministic.followUpQuestions,
+        triage_level: "high_critical",
+        urgencyLevel: "high_critical",
+        summary: "Emergency red flag condition detected requiring immediate clinical intervention.",
+      };
+    } else if (rawApiKey && rawApiKey !== "AIzaSyDummyKeyForVercelBuildBuild12345") {
+      // -----------------------------------------------------------------------
+      // STEP 2: SERVER-SIDE GEMINI INTENT-AWARE TRIAGE (Structured Output)
+      // -----------------------------------------------------------------------
       try {
         const response = await ai.models.generateContent({
           model: "gemini-2.5-flash",
-          contents: `You are Aether Clinical AI. Analyze the patient's symptoms and return structured JSON.
-Patient Symptoms: "${symptoms}"
+          contents: `You are Aether Health Assistant. Classify the user query into one of:
+- "greeting": Friendly greeting / small talk
+- "app_question": Questions about Aether app features
+- "general_health_question": General health concept questions (e.g. hydration, vitamins, sleep)
+- "symptom_report": Report of physical symptoms/pain
+- "emergency": Life-threatening red flag
+- "unclear": Gibberish, too short, or off-topic
+
+RULES:
+1. For greeting/app_question/general_health_question/unclear/off_topic: triage_level MUST be null. Never diagnose.
+2. For symptom_report: If duration/severity is missing, ask 2-3 follow-up questions and set triage_level to null. If detailed, set triage_level to "low" or "moderate".
+3. Do NOT use markdown bold asterisks (**) in reply.
+4. Never echo the user's raw text inside template sentences.
+
+User Query: "${symptoms}"
 Known Patient EHR Context: ${JSON.stringify(patientRecordContext || [])}
 
 Required JSON format:
 {
-  "status": "ok",
-  "urgencyLevel": "low" | "moderate" | "high_critical",
-  "summary": "Brief summary",
-  "message": "Detailed clinical guidance and actionable next steps",
-  "suggestedFollowUps": ["Question 1", "Question 2"],
-  "patientRecordContext": []
+  "intent": "greeting" | "app_question" | "general_health_question" | "symptom_report" | "emergency" | "unclear" | "off_topic",
+  "red_flags": [],
+  "reply": "Clear, friendly text without asterisks",
+  "follow_up_questions": ["Question 1", "Question 2"],
+  "triage_level": "low" | "moderate" | "high_critical" | null
 }`,
           config: {
             responseMimeType: "application/json",
-            temperature: 0.2,
+            temperature: 0.15,
           },
         });
 
         const text = typeof response.text === "function" ? (response.text as any)() : response.text;
         if (text) {
-          rawAiResult = JSON.parse(text);
+          const parsed = JSON.parse(text);
+          const aiValidation = triageAiResponseZodSchema.safeParse(parsed);
+          if (aiValidation.success) {
+            const cleanReply = sanitizeClinicalReplyText(aiValidation.data.reply);
+            rawAiResult = {
+              status: "ok",
+              intent: aiValidation.data.intent,
+              red_flags: aiValidation.data.red_flags,
+              reply: cleanReply,
+              message: cleanReply,
+              follow_up_questions: aiValidation.data.follow_up_questions,
+              suggestedFollowUps: aiValidation.data.follow_up_questions,
+              triage_level: aiValidation.data.triage_level,
+              urgencyLevel: aiValidation.data.triage_level,
+              isEmergency: aiValidation.data.intent === "emergency",
+              needsMoreInfo: aiValidation.data.intent === "symptom_report" && aiValidation.data.triage_level === null,
+              summary: `${aiValidation.data.intent.replace("_", " ")} response`,
+            };
+          }
         }
       } catch (geminiErr) {
-        console.warn("[Server AI Triage] Gemini API call fallback:", geminiErr);
+        console.warn("[Server AI Triage] Gemini API call fallback to deterministic engine:", geminiErr);
       }
     }
 
-    // Fallback if API key absent or offline
+    // -------------------------------------------------------------------------
+    // STEP 3: DETERMINISTIC ENGINE FALLBACK (If AI Offline or Failed)
+    // -------------------------------------------------------------------------
     if (!rawAiResult) {
+      const cleanReply = sanitizeClinicalReplyText(
+        deterministic.deterministicReply ||
+          (deterministic.intent === "symptom_report"
+            ? `Based on the symptoms you shared, this appears to be a manageable condition. Ensure adequate rest, maintain steady hydration, and monitor your symptoms over the next 24 to 48 hours. If symptoms persist, consult a qualified physician.`
+            : "I am ready to assist with your health questions, symptom triage, or lab reports. Please describe how you are feeling.")
+      );
+
       rawAiResult = {
         status: "ok",
-        urgencyLevel: symptoms.toLowerCase().includes("chest pain") || symptoms.toLowerCase().includes("faint")
-          ? "high_critical"
-          : symptoms.toLowerCase().includes("fever") || symptoms.toLowerCase().includes("vomit")
-          ? "moderate"
-          : "low",
-        summary: `Clinical assessment for reported symptoms: ${symptoms.substring(0, 60)}`,
-        message: `Evaluation of reported symptoms (**${symptoms}**). Hydration, rest, and standard clinical observation are recommended. Consult a physician if symptoms persist or escalate.`,
+        intent: deterministic.intent,
+        red_flags: deterministic.redFlags,
+        isEmergency: deterministic.isEmergency,
+        needsMoreInfo: deterministic.needsMoreInfo,
+        reply: cleanReply,
+        message: cleanReply,
+        follow_up_questions: deterministic.followUpQuestions,
+        suggestedFollowUps: deterministic.followUpQuestions,
+        triage_level: deterministic.triageLevel,
+        urgencyLevel: deterministic.triageLevel,
         patientRecordContext: patientRecordContext || [],
-        suggestedFollowUps: [
-          "What immediate self-care steps can I take?",
-          "When should I visit an urgent care clinic?",
-        ],
+        summary: `${deterministic.intent.replace("_", " ")} evaluation`,
       };
     }
 
-    // 5. Validate AI Output with Zod Schema before returning anything
+    // Final safety check: Red flag always wins
+    if (deterministic.isEmergency && rawAiResult.intent !== "emergency") {
+      rawAiResult.intent = "emergency";
+      rawAiResult.triage_level = "high_critical";
+      rawAiResult.urgencyLevel = "high_critical";
+      rawAiResult.isEmergency = true;
+      rawAiResult.reply = deterministic.deterministicReply;
+      rawAiResult.message = deterministic.deterministicReply;
+    }
+
+    // Sanitize any remaining asterisks
+    if (rawAiResult.message) {
+      rawAiResult.message = sanitizeClinicalReplyText(rawAiResult.message);
+    }
+    if (rawAiResult.reply) {
+      rawAiResult.reply = sanitizeClinicalReplyText(rawAiResult.reply);
+    }
+
+    // 4. Validate output with schema before returning
     const validation = triageOutputZodSchema.safeParse(rawAiResult);
     if (!validation.success) {
       return NextResponse.json(
         {
           error: "Invalid AI Output",
-          message: "AI model returned a malformed response schema.",
+          message: "I couldn't process that. Please try describing your symptoms again.",
           details: validation.error.issues,
         },
         { status: 502 }
       );
     }
 
-    // Wrap in Safety Middleware
+    // 5. Wrap in Safety Middleware
+    const urgency = (validation.data.triage_level || validation.data.urgencyLevel || "low") as any;
     const safetyWrapped = processSafetyMiddleware({
       rawResponseData: validation.data as any,
       promptText: symptoms,
       userId,
-      urgencyLevel: validation.data.urgencyLevel as any,
+      urgencyLevel: urgency,
     });
 
     return NextResponse.json(safetyWrapped, {
@@ -169,7 +257,7 @@ Required JSON format:
     return NextResponse.json(
       {
         error: "Internal Server Error",
-        message: error.message || "Failed to execute server-side AI triage.",
+        message: "I couldn't process that. Please try describing your symptoms again.",
       },
       { status: 500 }
     );

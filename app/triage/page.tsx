@@ -36,7 +36,8 @@ interface ChatMessage {
   sender: "user" | "ai";
   text: string;
   timestamp: string;
-  urgencyLevel?: UrgencyLevel;
+  intent?: string;
+  urgencyLevel?: UrgencyLevel | null;
   disclaimer?: string;
   emergencyGuidance?: SafetyWrappedResponse<TriageOutput>["emergencyGuidance"];
   specialties?: SpecialtySuggestion[];
@@ -51,7 +52,7 @@ const QUICK_PROMPTS = [
   { label: "Safe Painkillers", query: "What over-the-counter pain relievers are safe for me given my Penicillin allergy?" },
   { label: "Fever & Chills", query: "I have a moderate fever and body chills since last night." },
   { label: "CBC Blood Check", query: "Is my mild stomach pain related to my recent elevated WBC count (11.2 K/µL)?" },
-  { label: "Stomach Ache", query: "I have mild cramps and discomfort after meals." },
+  { label: "Stomach Ache", query: "I have mild cramps and discomfort after meals for the past 2 days." },
   { label: "Specialist Care", query: "Which specialist should I consult for persistent morning dizziness?" },
 ];
 
@@ -134,28 +135,36 @@ function TriageContent() {
       }
 
       if (response.data) {
+        const isClinical =
+          response.data.intent === "symptom_report" ||
+          response.data.intent === "emergency" ||
+          response.data.urgencyLevel === "high_critical";
+
         const aiMsg: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: "ai",
-          text: response.data.message,
+          text: response.data.message || response.data.reply || "",
           timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          intent: response.data.intent,
           urgencyLevel: response.data.urgencyLevel,
-          disclaimer: response.disclaimer,
+          disclaimer: isClinical ? response.disclaimer : undefined,
           emergencyGuidance: response.emergencyGuidance,
-          specialties: response.data.specialties,
+          specialties: isClinical ? response.data.specialties : undefined,
           patientRecordContext: response.data.patientRecordContext,
-          suggestedFollowUps: response.data.suggestedFollowUps,
+          suggestedFollowUps: response.data.suggestedFollowUps || response.data.follow_up_questions,
           acknowledged: false,
         };
         const updatedChat = [...messages, userMsg, aiMsg];
         setMessages((prev) => [...prev, aiMsg]);
 
-        // Automatically compress chat and generate SBAR Handover for doctor
-        syncPatientTriageToDoctorQueue(
-          activePatientId,
-          userName || "Patient",
-          updatedChat
-        );
+        // Automatically compress chat and generate SBAR Handover for doctor if clinical
+        if (isClinical) {
+          syncPatientTriageToDoctorQueue(
+            activePatientId,
+            userName || "Patient",
+            updatedChat
+          );
+        }
       }
     } catch (err) {
       setErrorMessage("Unable to connect to Aether health assistant. Please try again.");
@@ -293,6 +302,7 @@ function TriageContent() {
                       ) : (
                         <ClinicalResponseCard
                           text={msg.text}
+                          intent={msg.intent}
                           urgencyLevel={msg.urgencyLevel}
                           patientRecordContext={msg.patientRecordContext}
                           onOpenManageRecords={() => setIsRecordsModalOpen(true)}

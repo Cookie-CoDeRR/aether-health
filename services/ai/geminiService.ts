@@ -12,6 +12,11 @@ import {
   getPatientHistoryContextItems,
 } from "../domain/vectorHistoryService";
 
+import {
+  classifyUserIntent,
+  sanitizeClinicalReplyText,
+} from "../domain/intentClassification";
+
 function isDemoModeActive(): boolean {
   return (
     typeof process !== "undefined" &&
@@ -25,115 +30,97 @@ function isDemoModeActive(): boolean {
  * Integrates baseline patient medical records (allergies, lab reports, history) into clinical reasoning.
  */
 function generateFallbackTriageOutput(symptoms: string, userId: string): TriageOutput {
-  const lower = symptoms.toLowerCase();
+  const deterministic = classifyUserIntent(symptoms);
   const patientContext = getPatientHistoryContextItems(userId);
 
-  // High / Critical Emergency Trigger
-  if (
-    lower.includes("chest pain") ||
-    lower.includes("shortness of breath") ||
-    lower.includes("fainting") ||
-    lower.includes("severe bleeding") ||
-    lower.includes("numbness on one side")
-  ) {
+  // 1. Emergency Red Flag Trigger
+  if (deterministic.isEmergency) {
+    const emergencyMsg = sanitizeClinicalReplyText(
+      deterministic.deterministicReply ||
+        "Urgent medical attention is recommended. Please contact national emergency services immediately (112 or 108 in India) or go to the nearest emergency department."
+    );
+
     return {
       status: "ok",
+      intent: "emergency",
+      red_flags: deterministic.redFlags,
       urgencyLevel: "high_critical",
+      triage_level: "high_critical",
       summary: "High-critical symptoms identified: acute emergency protocols indicated.",
-      message: `Your reported symptoms (**${symptoms}**) could indicate a serious cardiovascular or respiratory emergency that needs **immediate medical attention**.
-
-#### Immediate Recommended Actions
-- **Do not drive yourself.** Call local emergency services (108 / 112 / 911) or have someone take you to the nearest Emergency Room right away.
-- Sit upright in a comfortable position and take slow, calm breaths while awaiting emergency help.
-
-#### Clinical Breakdown & Lab History
-- **Primary Clinical Concern**: Sudden onset chest discomfort, breathing difficulties, or acute weakness require immediate evaluation to rule out acute cardiac or pulmonary events.
-- **Cross-Referenced Patient Context**: ${
-  patientContext.length > 0
-    ? `Medical history reviewed (${patientContext[0]}). Urgent physician evaluation is strongly advised.`
-    : "No prior records logged. Urgent physician evaluation is strongly advised."
-}`,
+      message: emergencyMsg,
+      reply: emergencyMsg,
       patientRecordContext: patientContext.slice(0, 2),
-      suggestedFollowUps: [
-        "Should I call emergency services (108/911) or go directly to the nearest ER?",
-        "What position should I sit in while waiting for emergency assistance?",
-        "Show nearby hospitals with 24/7 ICU & Emergency services",
-      ],
+      suggestedFollowUps: deterministic.followUpQuestions,
+      follow_up_questions: deterministic.followUpQuestions,
     };
   }
 
-  // Moderate / Persistent Symptoms
-  if (
-    lower.includes("stomach") ||
-    lower.includes("abdominal") ||
-    lower.includes("belly") ||
-    lower.includes("fever") ||
-    lower.includes("vomiting") ||
-    lower.includes("cough") ||
-    lower.includes("nausea")
-  ) {
-    const isStomach =
-      lower.includes("stomach") ||
-      lower.includes("abdominal") ||
-      lower.includes("belly") ||
-      lower.includes("nausea");
+  // 2. Non-symptom intents: greeting, app_question, general_health_question, unclear, off_topic
+  if (deterministic.intent !== "symptom_report") {
+    const replyText = sanitizeClinicalReplyText(deterministic.deterministicReply || "How can I help you today?");
 
     return {
       status: "ok",
-      urgencyLevel: "moderate",
-      summary: isStomach
-        ? "Moderate abdominal discomfort evaluated against patient baseline profile."
-        : "Moderate systemic/respiratory symptoms logged requiring clinical evaluation.",
-      message: `It sounds like you're experiencing uncomfortable **${symptoms}**. This is commonly related to ${
-        isStomach
-          ? "stomach irritation, indigestion, or a mild digestive upset."
-          : "a common viral infection or upper respiratory inflammation."
-      } While usually manageable, having a doctor examine you within the next 24 to 48 hours is recommended.
-
-#### Immediate Recommended Actions
-- **Stay well-hydrated**: Sip warm water, clear broths, or oral hydration fluids throughout the day.
-- **Gentle diet**: Stick to light, non-greasy foods (bananas, rice, toast) and avoid caffeine or spicy items.
-- **Rest**: Give your body adequate rest and monitor how your symptoms develop over the next 24 hours.
-
-#### Clinical Breakdown & Lab History
-- **Diagnostic Considerations**: Gastric inflammation or mild viral syndrome.
-- **Cross-Referenced Patient Context**: ${
-  patientContext.length > 0
-    ? `Patient history reviewed (${patientContext[0]}).`
-    : "No conflicting baseline records logged."
-}`,
-      patientRecordContext: patientContext.slice(0, 2),
-      suggestedFollowUps: [
-        "What dietary adjustments can help reduce these symptoms?",
-        "What over-the-counter medications are safe for me?",
-        "What red flags mean I should go to urgent care?",
-      ],
+      intent: deterministic.intent,
+      red_flags: [],
+      urgencyLevel: null,
+      triage_level: null,
+      summary: `${deterministic.intent.replace("_", " ")} response`,
+      message: replyText,
+      reply: replyText,
+      patientRecordContext: [],
+      suggestedFollowUps: deterministic.followUpQuestions,
+      follow_up_questions: deterministic.followUpQuestions,
     };
   }
 
-  // Routine / Mild Symptoms
+  // 3. Symptom report with missing details
+  if (deterministic.needsMoreInfo) {
+    const replyText = sanitizeClinicalReplyText(deterministic.deterministicReply || "Could you share how long you've had this symptom?");
+
+    return {
+      status: "ok",
+      intent: "symptom_report",
+      red_flags: [],
+      urgencyLevel: null,
+      triage_level: null,
+      needsMoreInfo: true,
+      summary: "Symptom clarification",
+      message: replyText,
+      reply: replyText,
+      patientRecordContext: [],
+      suggestedFollowUps: deterministic.followUpQuestions,
+      follow_up_questions: deterministic.followUpQuestions,
+    };
+  }
+
+  // 4. Detailed Symptom Report (Moderate / Routine)
+  const lower = symptoms.toLowerCase();
+  const isModerate =
+    lower.includes("fever") ||
+    lower.includes("vomit") ||
+    lower.includes("stomach") ||
+    lower.includes("severe") ||
+    lower.includes("cramp");
+
+  const message = isModerate
+    ? `Based on the symptoms you reported, this appears to be a moderate condition that warrants medical evaluation within the next 24 to 48 hours if it does not improve. Stay hydrated, eat light foods, and rest.`
+    : `Thank you for sharing your symptoms. Based on your description, this appears to be a routine, mild concern that is often manageable with rest, adequate hydration, and standard home observation. If symptoms worsen, consult a healthcare professional.`;
+
   return {
     status: "ok",
-    urgencyLevel: "low",
-    summary: `Routine symptom evaluation for: ${symptoms.substring(0, 50)}`,
-    message: `Thank you for sharing your symptoms (**${symptoms}**). Based on what you've described, this appears to be a routine, mild concern that is often manageable with rest and home care.
-
-#### Immediate Recommended Actions
-- **Adequate Rest**: Ensure you get 7-8 hours of sleep and avoid strenuous activities.
-- **Hydration**: Drink plenty of fluids throughout the day.
-- **Observation**: Keep note of any changes in your symptoms over the next 48 to 72 hours.
-
-#### Clinical Breakdown & Lab History
-- **Cross-Referenced Patient Context**: ${
-  patientContext.length > 0
-    ? `Reviewed patient profile (${patientContext[0]}).`
-    : "No prior records logged."
-}`,
+    intent: "symptom_report",
+    red_flags: [],
+    urgencyLevel: isModerate ? "moderate" : "low",
+    triage_level: isModerate ? "moderate" : "low",
+    summary: `Symptom evaluation for reported condition`,
+    message: sanitizeClinicalReplyText(message),
+    reply: sanitizeClinicalReplyText(message),
     patientRecordContext: patientContext.slice(0, 2),
     suggestedFollowUps: [
-      "Could hydration or sleep quality be causing these symptoms?",
-      "Which over-the-counter fever or pain relievers are safe for me?",
+      "What home care steps can help relieve these symptoms?",
       "When should I follow up with a primary care doctor?",
+      "Show nearby verified clinics and doctors",
     ],
   };
 }
@@ -174,7 +161,7 @@ export async function runGeminiTriageChat(
     return processSafetyMiddleware({
       userId: input.userId,
       promptText: input.symptoms,
-      urgencyLevel: rawOutput.urgencyLevel,
+      urgencyLevel: (rawOutput.urgencyLevel || "low") as any,
       rawResponseData: rawOutput,
     });
   } catch (err) {

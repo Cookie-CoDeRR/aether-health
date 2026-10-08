@@ -1,15 +1,50 @@
 import { z } from "zod";
 
+export const triageAiResponseZodSchema = z.object({
+  intent: z.enum([
+    "emergency",
+    "greeting",
+    "app_question",
+    "general_health_question",
+    "symptom_report",
+    "unclear",
+    "off_topic",
+  ]),
+  red_flags: z.array(z.string()).default([]),
+  reply: z.string().min(1),
+  follow_up_questions: z.array(z.string()).default([]),
+  triage_level: z.enum(["low", "moderate", "high_critical"]).nullable(),
+});
+
+export type ValidatedTriageAiResponse = z.infer<typeof triageAiResponseZodSchema>;
+
 export const triageOutputZodSchema = z.object({
   status: z.enum(["ok", "low_confidence", "failed"]).optional().default("ok"),
-  urgencyLevel: z.enum(["low", "moderate", "high_critical", "emergency"]),
+  intent: z.enum([
+    "emergency",
+    "greeting",
+    "app_question",
+    "general_health_question",
+    "symptom_report",
+    "unclear",
+    "off_topic",
+  ]).optional(),
+  urgencyLevel: z.enum(["low", "moderate", "high_critical", "emergency"]).nullable().optional(),
+  triage_level: z.enum(["low", "moderate", "high_critical"]).nullable().optional(),
+  red_flags: z.array(z.string()).optional().default([]),
+  isEmergency: z.boolean().optional(),
+  needsMoreInfo: z.boolean().optional(),
   summary: z.string().optional(),
   message: z.string().min(1),
+  reply: z.string().optional(),
   specialties: z
     .array(
       z.object({
-        name: z.string(),
-        reason: z.string(),
+        name: z.string().optional(),
+        specialty: z.string().optional(),
+        reason: z.string().optional(),
+        reasoning: z.string().optional(),
+        confidenceScore: z.number().optional(),
         urgency: z.string().optional(),
       })
     )
@@ -25,6 +60,7 @@ export const triageOutputZodSchema = z.object({
     )
     .optional(),
   suggestedFollowUps: z.array(z.string()).optional().default([]),
+  follow_up_questions: z.array(z.string()).optional().default([]),
   patientRecordContext: z.array(z.string()).optional().default([]),
 });
 
