@@ -43,6 +43,18 @@ async function runPR3IsolationTests() {
   delete process.env.DEMO_MODE;
   delete process.env.NEXT_PUBLIC_DEMO_MODE;
 
+  // Mock supabase vector insert for isolated offline unit testing
+  const { supabase } = await import("../lib/supabase");
+  const origFrom = supabase.from.bind(supabase);
+  supabase.from = ((table: string) => {
+    if (table === "medical_vector_embeddings") {
+      return {
+        insert: async () => ({ data: null, error: null }),
+      } as any;
+    }
+    return origFrom(table);
+  }) as any;
+
   // Alice adds a clinical vector summary
   await storeVectorMedicalRecord(
     patientAlice,

@@ -56,17 +56,18 @@ export async function storeVectorMedicalRecord(
     isResolved: false,
   };
 
-  try {
-    await supabase.from("medical_vector_embeddings").insert([
-      {
-        user_id: userId,
-        category,
-        content,
-        created_at: newRecord.createdAt,
-      },
-    ]);
-  } catch (err) {
-    console.warn("Supabase vector store fallback:", err);
+  const { error } = await supabase.from("medical_vector_embeddings").insert([
+    {
+      user_id: userId,
+      category,
+      content,
+      created_at: newRecord.createdAt,
+    },
+  ]);
+
+  if (error) {
+    console.error("[Supabase Vector Store] Insert error:", error.message);
+    throw new Error(`Failed to persist vector medical record: ${error.message}`);
   }
 
   INITIAL_PATIENT_VECTOR_MEMORIES.push(newRecord);

@@ -35,13 +35,13 @@ import {
   getDoctorPatientQueue,
   prescribeMultipleMedications,
   INITIAL_PATIENT_QUEUE,
+  hasClinicianAccess,
+  logClinicianAccessEvent,
 } from "@/services/clinicalHandoverService";
 import {
   getActiveDoctorProfile,
   DoctorProfile,
   VERIFIED_DOCTORS_REGISTRY,
-  getPatientConsentPin,
-  verifyPatientConsentPin,
 } from "@/services/authService";
 
 interface MultiRxItem {
@@ -74,12 +74,9 @@ export default function DoctorPortalPage() {
   const [activeTab, setActiveTab] = useState<"copilot" | "dispenser" | "handover" | "labs" | "timeline">("copilot");
   const [isChatExpanded, setIsChatExpanded] = useState(false);
 
-  // Patient Consent PIN Gate State
-  const [unlockedPatients, setUnlockedPatients] = useState<Record<string, boolean>>({
-    "AETH-PT-9842": false,
-  });
-  const [pinInput, setPinInput] = useState("");
-  const [pinError, setPinError] = useState<string | null>(null);
+  // Patient Consent Gate State (ABDM Record Verification)
+  const [unlockedPatients, setUnlockedPatients] = useState<Record<string, boolean>>({});
+  const [consentNotice, setConsentNotice] = useState<string | null>(null);
 
   // Doctor AI Copilot interactive chat state
   const [copilotQuery, setCopilotQuery] = useState("");
@@ -167,6 +164,22 @@ export default function DoctorPortalPage() {
   const isCurrentPatientUnlocked = unlockedPatients[activePatient.patientId] === true;
   const isEmergencyCase = activePatient.urgencyLevel === "high_critical";
 
+  // Check consent status on active patient change
+  useEffect(() => {
+    if (activePatient && doctorProfile) {
+      const hasAccess = hasClinicianAccess(doctorProfile.doctorId, activePatient.patientId);
+      if (hasAccess) {
+        setUnlockedPatients((prev) => ({ ...prev, [activePatient.patientId]: true }));
+        logClinicianAccessEvent({
+          patientId: activePatient.patientId,
+          clinicianIdentifier: doctorProfile.doctorId,
+          accessType: "view_records",
+          granted: true,
+        });
+      }
+    }
+  }, [selectedPatientId, doctorProfile]);
+
   // Helper for masking personal information when locked (unless High Critical Emergency)
   const getPatientDisplay = (patient: PatientRecord) => {
     const isUnlocked = unlockedPatients[patient.patientId] === true;
@@ -188,9 +201,9 @@ export default function DoctorPortalPage() {
     return {
       name: `Protected Patient (${patient.patientId})`,
       initials: "PT",
-      complaint: "🔒 Consent Protected: Enter 4-digit PIN to access clinical dialogue",
-      abha: "ABDM: PIN Encrypted",
-      demographics: "Personal Info Protected • Awaiting Patient PIN",
+      complaint: "🔒 Consent Protected: Awaiting active ABDM consent record grant",
+      abha: "ABDM: Access Restricted",
+      demographics: "Personal Info Protected • Awaiting Patient Consent Grant",
       allergies: "Protected under Sovereign Privacy",
       isMasked: true,
       isEmergencyBypass: false,
@@ -210,16 +223,20 @@ export default function DoctorPortalPage() {
     return matchesSearch && matchesUrgency;
   });
 
-  // Handle Unlocking Patient Consent PIN
-  const handleVerifyPin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPinError(null);
-    const valid = verifyPatientConsentPin(pinInput);
-    if (valid) {
+  // Handle Unlocking via ABDM Consent Verification
+  const handleVerifyConsent = () => {
+    const hasAccess = hasClinicianAccess(doctorProfile.doctorId, activePatient.patientId);
+    logClinicianAccessEvent({
+      patientId: activePatient.patientId,
+      clinicianIdentifier: doctorProfile.doctorId,
+      accessType: "consent_verification",
+      granted: hasAccess,
+    });
+    if (hasAccess) {
       setUnlockedPatients((prev) => ({ ...prev, [activePatient.patientId]: true }));
-      setPinInput("");
+      setConsentNotice(null);
     } else {
-      setPinError(`⚠️ Invalid PIN. Please request the current 4-digit Consent PIN from ${activePatient.name} (Default Demo PIN: ${getPatientConsentPin()}).`);
+      setConsentNotice(`⚠️ No active consent grant found for Dr. ${doctorProfile.name} on record ${activePatient.patientId}. Please ask the patient to grant access via their My Doctor portal.`);
     }
   };
 
@@ -538,7 +555,7 @@ export default function DoctorPortalPage() {
               {isCurrentPatientUnlocked ? (
                 <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-100 dark:bg-emerald-950 border border-emerald-500/30 px-2.5 py-1 text-[11px] font-bold text-emerald-800 dark:text-emerald-300">
                   <Unlock className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>PIN Verified</span>
+                  <span>Consent Active</span>
                 </span>
               ) : isEmergencyCase ? (
                 <span className="inline-flex items-center gap-1 rounded-xl bg-rose-100 dark:bg-rose-950 border border-rose-500/30 px-2.5 py-1 text-[11px] font-bold text-rose-800 dark:text-rose-300">
@@ -548,7 +565,7 @@ export default function DoctorPortalPage() {
               ) : (
                 <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-50 dark:bg-[#132D26] border border-emerald-600/30 px-2.5 py-1 text-[11px] font-bold text-emerald-900 dark:text-emerald-200">
                   <Lock className="w-3.5 h-3.5 text-emerald-700 dark:text-[#10B981]" />
-                  <span>PIN Protected</span>
+                  <span>Consent Required</span>
                 </span>
               )}
             </div>
@@ -625,49 +642,40 @@ export default function DoctorPortalPage() {
           {/* Tab Viewport */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {/* ===============================================================
-                CONSENT PIN GATE (Strict Aether Theme)
+                ABDM CONSENT RECORD GATE
                 =============================================================== */}
             {!isCurrentPatientUnlocked && !isEmergencyCase ? (
               <div className="max-w-xl mx-auto my-6 rounded-3xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-8 shadow-sm space-y-5 text-center">
                 <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-[#10B981] mx-auto">
-                  <KeyRound className="w-7 h-7" />
+                  <ShieldCheck className="w-7 h-7" />
                 </div>
                 <div>
                   <h3 className="font-serif text-xl font-bold text-[#064E3B] dark:text-[#ECFDF5]">
                     Patient Telemetry Consent Gate
                   </h3>
                   <p className="text-xs text-[#064E3B]/75 dark:text-white/70 mt-1.5 max-w-md mx-auto leading-relaxed">
-                    Under ABDM Sovereign Health Regulations, access to <strong>{activePatient.name}</strong>&apos;s live AI triage chat, SBAR clinical handover, and biomarker data requires the patient&apos;s 4-digit Consent PIN.
+                    Under ABDM Sovereign Health Regulations, access to <strong>{activePatient.name}</strong>&apos;s live AI triage chat, SBAR clinical handover, and biomarker records requires an active, unexpired patient consent grant for Dr. {doctorProfile.name}.
                   </p>
                 </div>
 
-                <form onSubmit={handleVerifyPin} className="max-w-xs mx-auto space-y-3 pt-2">
-                  <input
-                    type="password"
-                    maxLength={6}
-                    required
-                    value={pinInput}
-                    onChange={(e) => setPinInput(e.target.value)}
-                    placeholder="Enter 4-digit PIN (Demo: 4892)"
-                    className="w-full h-11 text-center font-mono text-lg tracking-widest rounded-2xl border border-[#064E3B]/20 dark:border-white/20 bg-[#F9FBF9] dark:bg-[#0F241E] text-[#064E3B] dark:text-[#ECFDF5] focus:outline-none focus:border-[#064E3B] dark:focus:border-[#10B981]"
-                  />
-
-                  {pinError && (
-                    <p className="text-xs text-rose-700 dark:text-rose-400 font-bold">
-                      {pinError}
+                <div className="max-w-xs mx-auto space-y-3 pt-2">
+                  {consentNotice && (
+                    <p className="text-xs text-rose-700 dark:text-rose-400 font-bold bg-rose-50 dark:bg-rose-950/40 p-2.5 rounded-xl border border-rose-200 dark:border-rose-900/50">
+                      {consentNotice}
                     </p>
                   )}
 
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={handleVerifyConsent}
                     className="w-full h-11 rounded-2xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] text-white dark:text-[#042F24] text-xs font-bold shadow-md hover:scale-102 transition-transform cursor-pointer"
                   >
-                    Verify & Unlock Patient Records
+                    Verify ABDM Consent Grant
                   </button>
-                </form>
+                </div>
 
-                <p className="text-[10.5px] text-[#064E3B]/60 dark:text-white/50 font-mono">
-                  Default Demo Patient PIN: <strong>{getPatientConsentPin()}</strong> (Viewable on Patient&apos;s &quot;My Doctor&quot; page)
+                <p className="text-[10.5px] text-[#064E3B]/60 dark:text-white/50">
+                  Patients can grant or revoke 24h/7d telemetry access anytime via their <strong>My Doctor & Care Plan</strong> portal.
                 </p>
               </div>
             ) : (

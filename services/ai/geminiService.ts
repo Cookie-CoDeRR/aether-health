@@ -1,7 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
 import { processSafetyMiddleware } from "../../middleware/safetyMiddleware";
 import { SafetyWrappedResponse } from "../../types/disclaimers";
-import { UrgencyLevel } from "../../types/symptomLog";
 import {
   TriageInput,
   TriageOutput,
@@ -14,10 +12,13 @@ import {
   getPatientHistoryContextItems,
 } from "../domain/vectorHistoryService";
 
-const rawApiKey = process.env.GEMINI_API_KEY || process.env.VERTEX_AI_API_KEY || "";
-
-// Initialize Google AI Studio SDK safely (pass dummy key for build time if absent)
-const ai = new GoogleGenAI({ apiKey: rawApiKey || "AIzaSyDummyKeyForVercelBuildBuild12345" });
+function isDemoModeActive(): boolean {
+  return (
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true")
+  );
+}
 
 /**
  * Enhanced Clinical Consultant Fallback Generator when API key is offline or throttled.
@@ -26,12 +27,6 @@ const ai = new GoogleGenAI({ apiKey: rawApiKey || "AIzaSyDummyKeyForVercelBuildB
 function generateFallbackTriageOutput(symptoms: string, userId: string): TriageOutput {
   const lower = symptoms.toLowerCase();
   const patientContext = getPatientHistoryContextItems(userId);
-  const allergyNotes = patientContext.filter((c) =>
-    c.toLowerCase().includes("allergy") || c.toLowerCase().includes("penicillin")
-  );
-  const labNotes = patientContext.filter((c) =>
-    c.toLowerCase().includes("cbc") || c.toLowerCase().includes("lab") || c.toLowerCase().includes("wbc")
-  );
 
   // High / Critical Emergency Trigger
   if (
@@ -67,7 +62,7 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
     };
   }
 
-  // Moderate / Persistent Symptoms (e.g. Stomach Pain, Fever, Persistent Cough, Vomiting)
+  // Moderate / Persistent Symptoms
   if (
     lower.includes("stomach") ||
     lower.includes("abdominal") ||
@@ -77,7 +72,11 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
     lower.includes("cough") ||
     lower.includes("nausea")
   ) {
-    const isStomach = lower.includes("stomach") || lower.includes("abdominal") || lower.includes("belly") || lower.includes("nausea");
+    const isStomach =
+      lower.includes("stomach") ||
+      lower.includes("abdominal") ||
+      lower.includes("belly") ||
+      lower.includes("nausea");
 
     return {
       status: "ok",
@@ -97,57 +96,39 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
 - **Rest**: Give your body adequate rest and monitor how your symptoms develop over the next 24 hours.
 
 #### Clinical Breakdown & Lab History
-- **Diagnostic Considerations**: ${
-        isStomach
-          ? "Symptoms are consistent with acute gastritis, gastroesophageal reflux, or localized bowel irritation."
-          : "Fever and cough indicate typical viral upper airway response."
-      }
-- **Patient Context Cross-Reference**:
-  ${
-    allergyNotes.length > 0
-      ? `- ⚠️ **Allergy Reminder**: Documented allergy (${allergyNotes[0]}). Avoid contraindicating medications.`
-      : "- 🛡️ **Allergy Status**: No known drug allergies reported on file."
-  }
-  ${
-    labNotes.length > 0
-      ? `- 🩸 **Lab Baseline**: Prior panel noted (${labNotes[0]}).`
-      : ""
-  }
-- **Red Flag Signs**: Seek prompt urgent care if pain becomes localized to the lower right abdomen, fever rises above 38.5°C, or you experience persistent vomiting.`,
+- **Diagnostic Considerations**: Gastric inflammation or mild viral syndrome.
+- **Cross-Referenced Patient Context**: ${
+  patientContext.length > 0
+    ? `Patient history reviewed (${patientContext[0]}).`
+    : "No conflicting baseline records logged."
+}`,
       patientRecordContext: patientContext.slice(0, 2),
       suggestedFollowUps: [
-        "What safe over-the-counter pain or digestive aids can I take?",
-        "What red flag symptoms mean I should go to urgent care immediately?",
-        "When should I follow up with a primary care doctor?",
+        "What dietary adjustments can help reduce these symptoms?",
+        "What over-the-counter medications are safe for me?",
+        "What red flags mean I should go to urgent care?",
       ],
     };
   }
 
-  // Low / Mild Symptoms (Headache, Mild Fatigue, Muscle Soreness)
+  // Routine / Mild Symptoms
   return {
     status: "ok",
     urgencyLevel: "low",
-    summary: "Mild non-acute symptoms logged with routine supportive advice.",
-    message: `Your reported symptoms (**"${symptoms}"**) appear mild and can generally be managed safely with home care and rest.
+    summary: `Routine symptom evaluation for: ${symptoms.substring(0, 50)}`,
+    message: `Thank you for sharing your symptoms (**${symptoms}**). Based on what you've described, this appears to be a routine, mild concern that is often manageable with rest and home care.
 
 #### Immediate Recommended Actions
-- **Hydrate & Rest**: Drink plenty of water (around 2 to 2.5 liters daily) and get a solid night of rest.
-- **Take brief breaks**: If working on screens or feeling fatigue, take 10-minute relaxation breaks in a quiet space.
-- **Observe**: If symptoms persist for more than 3 consecutive days, check in with a general doctor.
+- **Adequate Rest**: Ensure you get 7-8 hours of sleep and avoid strenuous activities.
+- **Hydration**: Drink plenty of fluids throughout the day.
+- **Observation**: Keep note of any changes in your symptoms over the next 48 to 72 hours.
 
 #### Clinical Breakdown & Lab History
-- **Clinical Impression**: Mild tension, temporary fatigue, or environmental strain.
-- **Patient Context Reminders**:
-  ${
-    allergyNotes.length > 0
-      ? `- ⚠️ **Allergy Alert**: Always remember your recorded allergy (${allergyNotes[0]}) when selecting OTC medications.`
-      : "- 🛡️ **Allergy Status**: No active contraindications logged on file."
-  }
-  ${
-    labNotes.length > 0
-      ? `- 🩸 **Baseline Markers**: Reference (${labNotes[0]}).`
-      : ""
-  }`,
+- **Cross-Referenced Patient Context**: ${
+  patientContext.length > 0
+    ? `Reviewed patient profile (${patientContext[0]}).`
+    : "No prior records logged."
+}`,
     patientRecordContext: patientContext.slice(0, 2),
     suggestedFollowUps: [
       "Could hydration or sleep quality be causing these symptoms?",
@@ -158,73 +139,38 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
 }
 
 /**
- * Executes AI Symptom Triage via Google AI Studio (Gemini 1.5 Flash) with Personalized Vector Context Preprompt
+ * Executes AI Symptom Triage via Server-Side API endpoint (/api/ai/triage)
+ * Enforces server session authentication, rate limits, structured output, and zod validation.
  */
 export async function runGeminiTriageChat(
   input: TriageInput
 ): Promise<SafetyWrappedResponse<TriageOutput>> {
   try {
-    let rawOutput: TriageOutput;
+    const patientContext = getPatientHistoryContextItems(input.userId);
 
-    // Fetch relevant patient vector history context
-    const vectorContext = await queryVectorMedicalContext(input.userId, input.symptoms);
+    // Call server AI route when in browser environment
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/ai/triage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": input.userId,
+        },
+        body: JSON.stringify({
+          symptoms: input.symptoms,
+          userId: input.userId,
+          patientRecordContext: patientContext,
+        }),
+      });
 
-    if (rawApiKey && !rawApiKey.includes("your") && !rawApiKey.includes("Dummy")) {
-      try {
-        const preprompt = `System: You are AETHER Health Triage AI, a warm, reassuring, and expert clinical consultant assistant.
-Patient ID: ${input.userId}
-Patient Semantic Vector Memory History:
-${vectorContext}
-
-Instruction: Analyze the patient's current reported symptoms considering their baseline background history above.
-IMPORTANT TONE & STRUCTURE INSTRUCTION:
-- Keep the primary advice warm, direct, empathetic, and easy to read so the user is NOT overwhelmed by complex medical jargon.
-- Format the response as a JSON object with:
-"message": A simple, friendly assessment in 2-3 short conversational sentences explaining what might be happening simply, followed by "#### Immediate Recommended Actions" with 2-3 clear bullet points. Afterwards, include a section "#### Clinical Breakdown & Lab History" containing deeper diagnostic thoughts, medical rationale, and patient history reminders (like Penicillin allergy or lab values) for users who choose to expand the detailed view.
-"urgencyLevel": ("low" | "moderate" | "high_critical"),
-"summary": (concise 1-sentence plain-language summary),
-"patientRecordContext": [array of 2-3 short strings describing which past patient records/allergies/lab reports were referenced],
-"suggestedFollowUps": [array of 3 specific follow-up questions the patient can click to ask based on their previous medical records and current symptoms].
-
-Current Reported Symptoms: ${input.symptoms}`;
-
-        const response = await ai.models.generateContent({
-          model: "gemini-1.5-flash",
-          contents: preprompt,
-        });
-
-        const text = response.text || "";
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          rawOutput = {
-            status: "ok",
-            message: parsed.message || text,
-            urgencyLevel: parsed.urgencyLevel || "low",
-            summary: parsed.summary || "Symptoms evaluated by Gemini 1.5 Flash.",
-            patientRecordContext: Array.isArray(parsed.patientRecordContext)
-              ? parsed.patientRecordContext
-              : getPatientHistoryContextItems(input.userId).slice(0, 2),
-            suggestedFollowUps: Array.isArray(parsed.suggestedFollowUps)
-              ? parsed.suggestedFollowUps
-              : [
-                  "Is this symptom connected to my previous medical history?",
-                  "What medication precautions apply given my Penicillin allergy?",
-                  "What signs mean I should consult a doctor sooner?",
-                ],
-          };
-        } else {
-          rawOutput = generateFallbackTriageOutput(input.symptoms, input.userId);
-          if (text) rawOutput.message = text;
-        }
-      } catch (genAiError) {
-        console.warn("Gemini API call warning, using consultant fallback logic:", genAiError);
-        rawOutput = generateFallbackTriageOutput(input.symptoms, input.userId);
+      if (res.ok) {
+        const data = await res.json();
+        return data;
       }
-    } else {
-      rawOutput = generateFallbackTriageOutput(input.symptoms, input.userId);
     }
 
+    // Direct server-side / SSR fallback
+    const rawOutput = generateFallbackTriageOutput(input.symptoms, input.userId);
     return processSafetyMiddleware({
       userId: input.userId,
       promptText: input.symptoms,
@@ -251,108 +197,39 @@ Current Reported Symptoms: ${input.symptoms}`;
 }
 
 /**
- * Parses medical report/document via Google AI Studio (Gemini 1.5 Flash).
+ * Parses medical report/document via Server-Side API endpoint (/api/ai/analyze-report)
  * When real extraction is unavailable, sample data is only provided if DEMO_MODE is explicitly enabled.
  * Without DEMO_MODE, returns 'Could not read this report' with no fabricated values.
  */
 export async function parseGeminiReport(
   input: ReportParseInput
 ): Promise<SafetyWrappedResponse<ReportParseOutput>> {
-  const isDemoMode =
-    process.env.DEMO_MODE === "true" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const isDemoMode = isDemoModeActive();
 
   try {
-    let parsedMetrics: ReportMetric[] = [];
-    let plainSummary = "";
-    let rawOcrText = "";
-    let extractionSuccessful = false;
+    // Call server AI route when in browser environment
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/ai/analyze-report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": input.userId,
+        },
+        body: JSON.stringify({
+          fileName: input.fileName,
+          fileBase64: input.fileBase64,
+          mimeType: input.mimeType,
+          userId: input.userId,
+        }),
+      });
 
-    // Real Gemini OCR extraction if API key and file data (base64 or buffer) are available
-    if (
-      rawApiKey &&
-      !rawApiKey.includes("Dummy") &&
-      !rawApiKey.includes("your") &&
-      (input.fileBase64 || input.fileBuffer)
-    ) {
-      try {
-        const base64Data =
-          input.fileBase64 ||
-          (input.fileBuffer ? input.fileBuffer.toString("base64") : "");
-        const mimeType = input.mimeType || "application/pdf";
-
-        const prompt = `System: You are an expert clinical laboratory document parser.
-Analyze the provided medical report file (${input.fileName}).
-Extract all explicit lab test metrics, standard reference ranges, units, and out-of-range flags.
-Return a JSON object:
-{
-  "parsedMetrics": [
-    {
-      "name": string (metric name, e.g. "Hemoglobin"),
-      "value": number or string (extracted value),
-      "referenceRange": string (reference range),
-      "unit": string (e.g. "g/dL"),
-      "isOutOfRange": boolean
-    }
-  ],
-  "plainSummary": string (concise plain-language clinical summary of the findings),
-  "rawOcrText": string (text extracted directly from the document)
-}`;
-
-        const response = await ai.models.generateContent({
-          model: "gemini-1.5-flash",
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { text: prompt },
-                {
-                  inlineData: {
-                    mimeType,
-                    data: base64Data,
-                  },
-                },
-              ],
-            },
-          ],
-        });
-
-        const text = response.text || "";
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          const parsed = JSON.parse(jsonMatch[0]);
-          if (Array.isArray(parsed.parsedMetrics) && parsed.parsedMetrics.length > 0) {
-            parsedMetrics = parsed.parsedMetrics;
-            plainSummary =
-              parsed.plainSummary ||
-              `Extracted ${parsedMetrics.length} lab markers from ${input.fileName}.`;
-            rawOcrText = parsed.rawOcrText || text;
-            extractionSuccessful = true;
-          }
-        }
-      } catch (ocrErr) {
-        console.warn("Real document OCR execution error:", ocrErr);
+      if (res.ok) {
+        const data = await res.json();
+        return data;
       }
     }
 
-    if (extractionSuccessful) {
-      const realOutput: ReportParseOutput = {
-        status: "ok",
-        parseStatus: "ok",
-        parsedMetrics,
-        plainSummary,
-        rawOcrText,
-      };
-
-      return processSafetyMiddleware({
-        userId: input.userId,
-        promptText: `Parse medical report file: ${input.fileName}`,
-        urgencyLevel: "low",
-        rawResponseData: realOutput,
-      });
-    }
-
-    // If no real extraction ran:
-    // Only return sample data if explicit DEMO_MODE is on
+    // SSR / direct fallback
     if (isDemoMode) {
       const sampleOutput: ReportParseOutput = {
         status: "ok",
@@ -375,7 +252,6 @@ Return a JSON object:
       });
     }
 
-    // Default when DEMO_MODE is OFF and no extraction ran: Never return any fabricated values
     const unreadOutput: ReportParseOutput = {
       status: "failed",
       parseStatus: "failed",

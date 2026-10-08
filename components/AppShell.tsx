@@ -50,11 +50,10 @@ export default function AppShell({ children }: AppShellProps) {
         })
       );
     } else {
-      if (initialQuery) {
-        router.push(`/triage?q=${encodeURIComponent(initialQuery)}`);
-      } else {
-        router.push("/triage");
+      if (initialQuery && typeof window !== "undefined") {
+        sessionStorage.setItem("aether_pending_triage_prompt", initialQuery);
       }
+      router.push("/triage");
     }
   };
 

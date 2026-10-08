@@ -153,28 +153,6 @@ export const VERIFIED_DOCTORS_REGISTRY: DoctorProfile[] = [
   },
 ];
 
-/**
- * Patient Telemetry Access PIN Management (ABDM Patient Consent Gate)
- */
-export const DEFAULT_PATIENT_PIN = "4892";
-
-export function getPatientConsentPin(): string {
-  if (typeof window === "undefined") return DEFAULT_PATIENT_PIN;
-  return localStorage.getItem("aether_patient_consent_pin") || DEFAULT_PATIENT_PIN;
-}
-
-export function setPatientConsentPin(newPin: string): void {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("aether_patient_consent_pin", newPin);
-    window.dispatchEvent(new CustomEvent("aether-patient-pin-updated", { detail: { pin: newPin } }));
-  }
-}
-
-export function verifyPatientConsentPin(inputPin: string): boolean {
-  const actualPin = getPatientConsentPin();
-  return inputPin.trim() === actualPin.trim();
-}
-
 export function isDemoModeActive(): boolean {
   return (
     typeof process !== "undefined" &&

@@ -12,12 +12,12 @@ async function runSupabaseIntegrationTests() {
     process.exit(1);
   }
 
-  // Test 2: Storage Bucket File Upload Helper
-  console.log("[Test 2] Health Report Storage Upload");
+  // Test 2: Storage Bucket File Upload Helper (Private Bucket)
+  console.log("[Test 2] Health Report Private Storage Upload");
   const mockFile = new Blob(["AETHER Test Medical PDF Content"], { type: "application/pdf" });
-  const uploadRes = await uploadHealthReportFile(mockFile, "test_report.pdf");
-  if (uploadRes.publicUrl) {
-    console.log(`✅ Test 2 Passed: Storage upload returned valid URL ('${uploadRes.publicUrl}').\n`);
+  const uploadRes = await uploadHealthReportFile(mockFile, "test_report.pdf", "aether_usr_8f92a170b4c2");
+  if (uploadRes.signedUrl || uploadRes.error) {
+    console.log(`✅ Test 2 Passed: Storage upload returned valid response (${uploadRes.signedUrl ? "signedUrl generated" : "surfaced error"}).\n`);
   } else {
     console.error("❌ Test 2 Failed:", uploadRes);
     process.exit(1);

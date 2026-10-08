@@ -32,14 +32,16 @@ import {
   DoctorProfile,
   VERIFIED_DOCTORS_REGISTRY,
   getActiveDoctorProfile,
-  getPatientConsentPin,
-  setPatientConsentPin,
 } from "@/services/authService";
 import { useSettings } from "@/context/SettingsContext";
 import {
   PrescribedMedication,
   INITIAL_PATIENT_QUEUE,
   getPatientPrescribedMedications,
+  PatientConsentRecord,
+  getPatientConsentRecords,
+  grantClinicianPatientAccess,
+  revokeClinicianPatientAccess,
 } from "@/services/clinicalHandoverService";
 
 export default function MyDoctorPage() {
@@ -50,11 +52,9 @@ export default function MyDoctorPage() {
   const [attendingDoctor, setAttendingDoctor] = useState<DoctorProfile>(VERIFIED_DOCTORS_REGISTRY[0]);
   const [isDoctorSelectOpen, setIsDoctorSelectOpen] = useState(false);
 
-  // Patient Consent PIN State
-  const [patientPin, setPatientPin] = useState("4892");
-  const [isEditingPin, setIsEditingPin] = useState(false);
-  const [newPinInput, setNewPinInput] = useState("");
-  const [copiedPin, setCopiedPin] = useState(false);
+  // Patient Consent Records State (ABDM Compliant)
+  const [consentRecords, setConsentRecords] = useState<PatientConsentRecord[]>([]);
+  const [consentSuccessMsg, setConsentSuccessMsg] = useState<string | null>(null);
 
   // Active prescriptions given by doctor
   const [prescriptions, setPrescriptions] = useState<PrescribedMedication[]>([]);
@@ -95,9 +95,6 @@ export default function MyDoctorPage() {
   // Load state on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Load PIN
-      setPatientPin(getPatientConsentPin());
-
       // Load saved attending doctor
       const savedDocId = localStorage.getItem("aether_selected_doctor_id");
       if (savedDocId) {
@@ -106,6 +103,12 @@ export default function MyDoctorPage() {
       } else {
         const activeDoc = getActiveDoctorProfile();
         if (activeDoc) setAttendingDoctor(activeDoc);
+      }
+
+      // Load patient consent records
+      if (userId) {
+        const records = getPatientConsentRecords(userId);
+        setConsentRecords(records);
       }
 
       // Load medications prescribed for active patient
@@ -143,20 +146,27 @@ export default function MyDoctorPage() {
     }
   };
 
-  const handleCopyPin = () => {
-    navigator.clipboard.writeText(patientPin);
-    setCopiedPin(true);
-    setTimeout(() => setCopiedPin(false), 2000);
+  const handleGrantConsent = (validHours: number) => {
+    if (!userId) return;
+    const newRecord = grantClinicianPatientAccess(
+      userId,
+      attendingDoctor.doctorId,
+      ["telemetry", "triage", "prescriptions"],
+      validHours
+    );
+    const updated = getPatientConsentRecords(userId);
+    setConsentRecords(updated);
+    setConsentSuccessMsg(`✓ Granted ${validHours}h telemetry and clinical record access to ${attendingDoctor.name}.`);
+    setTimeout(() => setConsentSuccessMsg(null), 4000);
   };
 
-  const handleSaveNewPin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newPinInput.length >= 4) {
-      setPatientConsentPin(newPinInput.trim());
-      setPatientPin(newPinInput.trim());
-      setIsEditingPin(false);
-      setNewPinInput("");
-    }
+  const handleRevokeConsent = () => {
+    if (!userId) return;
+    revokeClinicianPatientAccess(userId, attendingDoctor.doctorId);
+    const updated = getPatientConsentRecords(userId);
+    setConsentRecords(updated);
+    setConsentSuccessMsg(`✓ Revoked telemetry access from ${attendingDoctor.name}.`);
+    setTimeout(() => setConsentSuccessMsg(null), 4000);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -291,81 +301,116 @@ export default function MyDoctorPage() {
         </div>
 
         {/* =========================================================================
-            PATIENT TELEMETRY ACCESS PIN BANNER (Consent Security)
+            PATIENT TELEMETRY ACCESS CONSENT (ABDM Compliant)
             ========================================================================= */}
-        <div className="rounded-3xl border border-emerald-600/30 dark:border-[#10B981]/30 bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/40 dark:from-[#0B1D17] dark:via-[#0F241E] dark:to-[#0B1D17] p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-[#10B981] shrink-0 mt-0.5">
-              <KeyRound className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-serif text-base font-bold text-[#064E3B] dark:text-[#ECFDF5]">
-                  Your Telemetry Consent PIN
-                </h3>
-                <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[9.5px] font-bold text-emerald-800 dark:text-emerald-300">
-                  ABDM Privacy Guard
-                </span>
+        <div className="rounded-3xl border border-emerald-600/30 dark:border-[#10B981]/30 bg-gradient-to-br from-emerald-50/80 via-white to-emerald-50/40 dark:from-[#0B1D17] dark:via-[#0F241E] dark:to-[#0B1D17] p-5 sm:p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600/15 dark:bg-emerald-500/20 text-emerald-700 dark:text-[#10B981] shrink-0 mt-0.5">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-              <p className="text-xs text-[#064E3B]/75 dark:text-white/70 mt-1 max-w-xl leading-relaxed">
-                Provide this 4-digit Consent PIN to your doctor during consultations to grant them access to your live AI triage chat and biomarker records.
-              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-serif text-base font-bold text-[#064E3B] dark:text-[#ECFDF5]">
+                    Telemetry Consent Record Gateway
+                  </h3>
+                  <span className="rounded-full bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[9.5px] font-bold text-emerald-800 dark:text-emerald-300">
+                    ABDM Consent Manager
+                  </span>
+                </div>
+                <p className="text-xs text-[#064E3B]/75 dark:text-white/70 mt-1 max-w-xl leading-relaxed">
+                  Explicitly grant or revoke access to your live AI triage logs, biomarker data, and prescriptions for Dr. {attendingDoctor.name}. No static PINs are stored.
+                </p>
+              </div>
+            </div>
+
+            {/* Grant / Revoke Controls */}
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              {consentRecords.some(
+                (r) =>
+                  r.clinicianIdentifier === attendingDoctor.doctorId &&
+                  r.status === "active" &&
+                  new Date(r.expiresAt).getTime() > Date.now()
+              ) ? (
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-xl bg-emerald-100 dark:bg-emerald-950 border border-emerald-500/30 px-3 py-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Access Active</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleRevokeConsent}
+                    className="rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 px-3 py-1.5 text-xs font-bold cursor-pointer transition-colors"
+                  >
+                    Revoke Grant
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleGrantConsent(24)}
+                    className="rounded-xl bg-[#064E3B] dark:bg-[#10B981] hover:bg-[#043327] dark:hover:bg-[#059669] text-white dark:text-[#042F24] px-3.5 py-1.5 text-xs font-bold shadow-2xs transition-all cursor-pointer"
+                  >
+                    Grant 24h Access
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleGrantConsent(168)}
+                    className="rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0F241E] hover:bg-[#064E3B]/5 text-[#064E3B] dark:text-[#ECFDF5] px-3 py-1.5 text-xs font-bold shadow-2xs transition-all cursor-pointer"
+                  >
+                    Grant 7 Days
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* PIN Display & Actions */}
-          <div className="flex items-center gap-2 self-start sm:self-auto bg-white dark:bg-[#081511] p-2 rounded-2xl border border-[#064E3B]/15 dark:border-white/10 shadow-2xs">
-            {isEditingPin ? (
-              <form onSubmit={handleSaveNewPin} className="flex items-center gap-1.5">
-                <input
-                  type="text"
-                  maxLength={6}
-                  required
-                  value={newPinInput}
-                  onChange={(e) => setNewPinInput(e.target.value)}
-                  placeholder="New PIN"
-                  className="w-20 h-8 text-center font-mono font-bold text-xs rounded-xl border border-emerald-600 px-1 text-[#064E3B] dark:text-[#ECFDF5]"
-                />
-                <button
-                  type="submit"
-                  className="h-8 px-2.5 rounded-xl bg-[#064E3B] text-white text-[11px] font-bold"
-                >
-                  Save
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingPin(false)}
-                  className="h-8 px-2 text-[11px] text-[#064E3B]/60"
-                >
-                  Cancel
-                </button>
-              </form>
-            ) : (
-              <>
-                <div className="px-3 font-mono font-black text-lg tracking-widest text-[#064E3B] dark:text-[#10B981]">
-                  {patientPin}
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCopyPin}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-[#132D26] hover:bg-emerald-100 text-emerald-800 dark:text-emerald-300 text-xs font-bold transition-colors cursor-pointer"
-                >
-                  {copiedPin ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedPin ? "Copied" : "Copy"}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setNewPinInput(patientPin);
-                    setIsEditingPin(true);
-                  }}
-                  className="text-[11px] text-[#064E3B]/60 hover:text-[#064E3B] px-1.5 font-bold"
-                >
-                  Change
-                </button>
-              </>
-            )}
-          </div>
+          {consentSuccessMsg && (
+            <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100/70 dark:bg-emerald-950/60 p-2.5 rounded-xl">
+              {consentSuccessMsg}
+            </p>
+          )}
+
+          {/* Active Consent Records Table / List */}
+          {consentRecords.length > 0 && (
+            <div className="pt-2 border-t border-[#064E3B]/10 dark:border-white/10 space-y-2">
+              <div className="text-[11px] font-bold text-[#064E3B]/70 dark:text-white/60">
+                Active & Recent Grants:
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {consentRecords.slice(0, 4).map((rec) => {
+                  const isExpired = new Date(rec.expiresAt).getTime() <= Date.now();
+                  const isActive = rec.status === "active" && !isExpired;
+                  return (
+                    <div
+                      key={rec.consentId}
+                      className="rounded-xl border border-[#064E3B]/10 dark:border-white/10 bg-white/60 dark:bg-[#0F241E]/60 p-2.5 text-[11px] space-y-1"
+                    >
+                      <div className="flex items-center justify-between font-bold">
+                        <span>Clinician: {rec.clinicianIdentifier}</span>
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] ${
+                            isActive
+                              ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300"
+                              : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                          }`}
+                        >
+                          {isActive ? "Active" : isExpired ? "Expired" : "Revoked"}
+                        </span>
+                      </div>
+                      <div className="text-[#064E3B]/60 dark:text-white/50 text-[10px]">
+                        Scope: {Array.isArray(rec.scope) ? rec.scope.join(", ") : rec.scope}
+                      </div>
+                      <div className="text-[#064E3B]/60 dark:text-white/50 text-[10px]">
+                        Expires: {new Date(rec.expiresAt).toLocaleString()}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* =========================================================================

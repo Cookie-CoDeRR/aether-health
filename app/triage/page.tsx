@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useSettings } from "@/context/SettingsContext";
 import { sendTriageMessage } from "@/services/domain/triageService";
 import { syncPatientTriageToDoctorQueue } from "@/services/clinicalHandoverService";
@@ -57,7 +56,6 @@ const QUICK_PROMPTS = [
 ];
 
 function TriageContent() {
-  const searchParams = useSearchParams();
   const { userId, userName } = useSettings();
   const activePatientId = userId;
 
@@ -72,6 +70,17 @@ function TriageContent() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  // Check for pending session prompt on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pendingPrompt = sessionStorage.getItem("aether_pending_triage_prompt");
+      if (pendingPrompt) {
+        sessionStorage.removeItem("aether_pending_triage_prompt");
+        handleSend(pendingPrompt);
+      }
+    }
+  }, []);
 
   // Listen for prompt events dispatched from floating dock
   useEffect(() => {

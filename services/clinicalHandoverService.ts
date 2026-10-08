@@ -1,5 +1,3 @@
-import { GoogleGenAI } from "@google/genai";
-
 export interface PrescribedMedication {
   id: string;
   brandName: string;
@@ -61,9 +59,6 @@ export interface PatientRecord {
     facility: string;
   }[];
 }
-
-const rawApiKey = process.env.GEMINI_API_KEY || process.env.VERTEX_AI_API_KEY || "";
-const ai = new GoogleGenAI({ apiKey: rawApiKey || "AIzaSyDummyKeyForVercelBuildBuild12345" });
 
 // Default active patient database
 export const INITIAL_PATIENT_QUEUE: PatientRecord[] = [
@@ -249,49 +244,27 @@ export async function generateSBARHandover(
   const compressed = compressChatTranscript(messages);
 
   try {
-    if (rawApiKey) {
-      const prompt = `You are a clinical triage AI assistant for Aether Health.
-Convert the following patient triage dialogue into a concise, professional SBAR (Situation, Background, Assessment, Recommendation) Clinical Handover Brief.
-Highlight any sensitive, confidential, or embarrassing details the patient disclosed to the AI so the doctor can approach the consultation empathetically without forcing the patient to awkwardly repeat themselves.
-
-Patient: ${patientName} (ID: ${patientId})
-Transcript:
-${compressed}
-
-Respond with valid JSON containing exactly these fields:
-{
-  "situation": "Concise 1-2 sentence chief complaint and presentation",
-  "background": "Relevant EHR history, penicillin/drug allergies, lab correlations",
-  "assessment": "Clinical AI evaluation and diagnostic considerations",
-  "sensitiveDisclosures": ["List of sensitive or embarrassing topics disclosed by patient"],
-  "doctorRecommendations": ["3 bulleted actionable doctor clinical interventions/orders"],
-  "triageRisk": "routine" | "moderate" | "high_critical"
-}`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: { responseMimeType: "application/json" },
+    if (typeof window !== "undefined") {
+      const res = await fetch("/api/ai/sbar-handover", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-user-id": patientId,
+        },
+        body: JSON.stringify({
+          patientId,
+          patientName,
+          messages,
+        }),
       });
 
-      if (response && response.text) {
-        const parsed = JSON.parse(response.text);
-        return {
-          situation: parsed.situation || "Patient presenting for clinical evaluation.",
-          background: parsed.background || "Cross-referenced against personal EHR profile.",
-          assessment: parsed.assessment || "Clinical assessment generated from triage dialogue.",
-          sensitiveDisclosures: parsed.sensitiveDisclosures || [],
-          doctorRecommendations: parsed.doctorRecommendations || [
-            "Perform physical examination.",
-            "Review medication history and contraindications.",
-          ],
-          generatedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-          triageRisk: parsed.triageRisk || "moderate",
-        };
+      if (res.ok) {
+        const parsed = await res.json();
+        return parsed;
       }
     }
   } catch (err) {
-    console.warn("Gemini SBAR Handover generation fallback:", err);
+    console.warn("Server AI SBAR Handover generation fallback:", err);
   }
 
   // Fallback synthesis
@@ -454,96 +427,299 @@ function isDemoModeActive(): boolean {
   );
 }
 
-// In-memory clinician access grant registry
-export interface ClinicianPatientGrant {
-  clinicianIdentifier: string; // e.g. "dr.anya.sharma@apollohospitals.com" or "doc_anya_sharma"
+// Patient Consent Record Model (ABDM Patient-Directed Consent Architecture)
+export interface PatientConsentRecord {
+  consentId: string;
   patientId: string;
+  clinicianIdentifier: string; // e.g. "dr.anya.sharma@apollohospitals.com" or "doc_anya_sharma"
+  scope: string;
   grantedAt: string;
+  expiresAt: string; // ISO string
+  status: "active" | "expired" | "revoked";
 }
 
-let CLINICIAN_PATIENT_GRANTS: ClinicianPatientGrant[] = [
-  // Demo baseline grants for demo doctor and demo patients
+export interface AccessAuditLogEvent {
+  id: string;
+  timestamp: string;
+  clinicianId: string;
+  patientId: string;
+  accessType: string; // e.g. "VIEW_TRIAGE_SUMMARY", "VIEW_PATIENT_RECORDS", "PRESCRIBE_MEDICATION"
+  success: boolean;
+  reason?: string;
+  // STRICTLY NO PII
+}
+
+// In-memory access audit logs (NO PII in logs)
+const CLINICAL_ACCESS_AUDIT_LOGS: AccessAuditLogEvent[] = [];
+
+export function logClinicianAccessEvent(params: {
+  clinicianId?: string;
+  clinicianIdentifier?: string;
+  patientId: string;
+  accessType: string;
+  success?: boolean;
+  granted?: boolean;
+  reason?: string;
+}): AccessAuditLogEvent {
+  const auditEvent: AccessAuditLogEvent = {
+    id: `audit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    timestamp: new Date().toISOString(),
+    clinicianId: params.clinicianId || params.clinicianIdentifier || "unknown",
+    patientId: params.patientId,
+    accessType: params.accessType,
+    success:
+      params.success !== undefined
+        ? params.success
+        : params.granted !== undefined
+        ? params.granted
+        : true,
+    reason: params.reason,
+  };
+
+  CLINICAL_ACCESS_AUDIT_LOGS.unshift(auditEvent);
+  return auditEvent;
+}
+
+export function getAccessAuditLogs(patientId?: string): AccessAuditLogEvent[] {
+  if (patientId) {
+    return CLINICAL_ACCESS_AUDIT_LOGS.filter((l) => l.patientId === patientId);
+  }
+  return [...CLINICAL_ACCESS_AUDIT_LOGS];
+}
+
+export function getPatientConsentRecords(patientId: string): PatientConsentRecord[] {
+  return PATIENT_CONSENT_REGISTRY.filter(
+    (c) => c.patientId.toLowerCase() === patientId.toLowerCase()
+  );
+}
+
+// Active Consent Records registry (Initialized with baseline demo grants)
+let PATIENT_CONSENT_REGISTRY: PatientConsentRecord[] = [
   {
+    consentId: "csnt_demo_01",
     clinicianIdentifier: "doc_anya_sharma",
     patientId: "AETH-PT-9842",
+    scope: "full_triage_and_biomarkers",
     grantedAt: "2026-08-25T00:00:00Z",
+    expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+    status: "active",
   },
   {
+    consentId: "csnt_demo_02",
     clinicianIdentifier: "dr.anya.sharma@apollohospitals.com",
     patientId: "AETH-PT-9842",
+    scope: "full_triage_and_biomarkers",
     grantedAt: "2026-08-25T00:00:00Z",
+    expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+    status: "active",
   },
   {
+    consentId: "csnt_demo_03",
     clinicianIdentifier: "doc_anya_sharma",
     patientId: "aether_usr_8f92a170b4c2",
+    scope: "full_triage_and_biomarkers",
     grantedAt: "2026-08-25T00:00:00Z",
+    expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+    status: "active",
   },
   {
+    consentId: "csnt_demo_04",
     clinicianIdentifier: "dr.anya.sharma@apollohospitals.com",
     patientId: "aether_usr_8f92a170b4c2",
+    scope: "full_triage_and_biomarkers",
     grantedAt: "2026-08-25T00:00:00Z",
+    expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+    status: "active",
   },
   {
+    consentId: "csnt_demo_05",
     clinicianIdentifier: "doc_anya_sharma",
     patientId: "AETH-PT-3104",
+    scope: "full_triage_and_biomarkers",
     grantedAt: "2026-08-25T00:00:00Z",
+    expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+    status: "active",
   },
   {
+    consentId: "csnt_demo_06",
     clinicianIdentifier: "doc_anya_sharma",
     patientId: "AETH-PT-5519",
+    scope: "full_triage_and_biomarkers",
     grantedAt: "2026-08-25T00:00:00Z",
+    expiresAt: new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString(),
+    status: "active",
   },
 ];
 
 export function grantClinicianPatientAccess(
-  clinicianIdentifier: string,
-  patientId: string
-): void {
-  if (!clinicianIdentifier || !patientId) return;
-  const exists = CLINICIAN_PATIENT_GRANTS.some(
-    (g) =>
-      g.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() &&
-      g.patientId.toLowerCase() === patientId.toLowerCase()
-  );
-  if (!exists) {
-    CLINICIAN_PATIENT_GRANTS.push({
-      clinicianIdentifier,
-      patientId,
-      grantedAt: new Date().toISOString(),
-    });
+  param1: string,
+  param2: string,
+  param3?: string[] | number,
+  param4?: number | string[]
+): PatientConsentRecord {
+  let patientId = param1;
+  let clinicianIdentifier = param2;
+  let durationHours = 24;
+  let scope = "full_triage_and_biomarkers";
+
+  if (typeof param3 === "number") {
+    durationHours = param3;
+    if (typeof param4 === "string") scope = param4;
+    else if (Array.isArray(param4)) scope = param4.join(",");
+  } else if (Array.isArray(param3)) {
+    scope = param3.join(",");
+    if (typeof param4 === "number") durationHours = param4;
+  } else if (typeof param3 === "string") {
+    scope = param3;
+    if (typeof param4 === "number") durationHours = param4;
   }
+
+  if (param1.toLowerCase().includes("doc") && !param2.toLowerCase().includes("doc")) {
+    clinicianIdentifier = param1;
+    patientId = param2;
+  } else if (param2.toLowerCase().includes("doc") && !param1.toLowerCase().includes("doc")) {
+    patientId = param1;
+    clinicianIdentifier = param2;
+  }
+
+  const now = new Date();
+  const expires = new Date(now.getTime() + durationHours * 3600 * 1000);
+
+  const existingIdx = PATIENT_CONSENT_REGISTRY.findIndex(
+    (c) =>
+      c.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() &&
+      c.patientId.toLowerCase() === patientId.toLowerCase()
+  );
+
+  const consentRecord: PatientConsentRecord = {
+    consentId: `csnt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    clinicianIdentifier,
+    patientId,
+    scope,
+    grantedAt: now.toISOString(),
+    expiresAt: expires.toISOString(),
+    status: "active",
+  };
+
+  if (existingIdx >= 0) {
+    PATIENT_CONSENT_REGISTRY[existingIdx] = consentRecord;
+  } else {
+    PATIENT_CONSENT_REGISTRY.push(consentRecord);
+  }
+
+  logClinicianAccessEvent({
+    clinicianId: clinicianIdentifier,
+    patientId,
+    accessType: "GRANT_CONSENT_RECORD",
+    success: true,
+  });
+
+  return consentRecord;
 }
 
 export function revokeClinicianPatientAccess(
-  clinicianIdentifier: string,
-  patientId: string
-): void {
-  CLINICIAN_PATIENT_GRANTS = CLINICIAN_PATIENT_GRANTS.filter(
-    (g) =>
-      !(
-        g.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() &&
-        g.patientId.toLowerCase() === patientId.toLowerCase()
-      )
-  );
+  param1: string,
+  param2: string
+): boolean {
+  let patientId = param1;
+  let clinicianIdentifier = param2;
+  if (param1.toLowerCase().includes("doc") && !param2.toLowerCase().includes("doc")) {
+    clinicianIdentifier = param1;
+    patientId = param2;
+  } else if (param2.toLowerCase().includes("doc") && !param1.toLowerCase().includes("doc")) {
+    patientId = param1;
+    clinicianIdentifier = param2;
+  }
+
+  let modified = false;
+  PATIENT_CONSENT_REGISTRY.forEach((c) => {
+    if (
+      (c.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() ||
+        c.patientId.toLowerCase() === clinicianIdentifier.toLowerCase()) &&
+      (c.patientId.toLowerCase() === patientId.toLowerCase() ||
+        c.clinicianIdentifier.toLowerCase() === patientId.toLowerCase())
+    ) {
+      c.status = "revoked";
+      modified = true;
+    }
+  });
+
+  logClinicianAccessEvent({
+    clinicianId: clinicianIdentifier,
+    patientId,
+    accessType: "REVOKE_CONSENT_RECORD",
+    success: true,
+  });
+
+  return modified;
 }
 
 export function hasClinicianAccess(
-  clinicianIdentifier: string,
-  patientId: string
+  param1: string,
+  param2: string
 ): boolean {
-  if (!clinicianIdentifier || !patientId) return false;
-  return CLINICIAN_PATIENT_GRANTS.some(
-    (g) =>
-      (g.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() ||
-        g.clinicianIdentifier.toLowerCase() ===
+  if (!param1 || !param2) return false;
+
+  let clinicianIdentifier = param1;
+  let patientId = param2;
+  if (param1.toLowerCase().includes("doc") && !param2.toLowerCase().includes("doc")) {
+    clinicianIdentifier = param1;
+    patientId = param2;
+  } else if (param2.toLowerCase().includes("doc") && !param1.toLowerCase().includes("doc")) {
+    patientId = param1;
+    clinicianIdentifier = param2;
+  }
+
+  const activeRecord = PATIENT_CONSENT_REGISTRY.find(
+    (c) =>
+      ((c.clinicianIdentifier.toLowerCase() === clinicianIdentifier.toLowerCase() ||
+        c.clinicianIdentifier.toLowerCase() ===
           clinicianIdentifier.replace("doctor_", "").toLowerCase()) &&
-      g.patientId.toLowerCase() === patientId.toLowerCase()
+        c.patientId.toLowerCase() === patientId.toLowerCase()) ||
+      (c.patientId.toLowerCase() === clinicianIdentifier.toLowerCase() &&
+        c.clinicianIdentifier.toLowerCase() === patientId.toLowerCase())
   );
+
+  if (!activeRecord || activeRecord.status !== "active") {
+    logClinicianAccessEvent({
+      clinicianId: clinicianIdentifier,
+      patientId,
+      accessType: "VERIFY_CONSENT_ACCESS",
+      success: false,
+      reason: "No active consent grant record found",
+    });
+    return false;
+  }
+
+  // Expiry check: Check if consent has expired
+  const isExpired = new Date(activeRecord.expiresAt).getTime() <= Date.now();
+  if (isExpired) {
+    activeRecord.status = "expired";
+    logClinicianAccessEvent({
+      clinicianId: clinicianIdentifier,
+      patientId,
+      accessType: "VERIFY_CONSENT_ACCESS",
+      success: false,
+      reason: "Consent record has expired",
+    });
+    return false;
+  }
+
+  logClinicianAccessEvent({
+    clinicianId: clinicianIdentifier,
+    patientId,
+    accessType: "VERIFY_CONSENT_ACCESS",
+    success: true,
+  });
+
+  return true;
 }
+
+
 
 /**
  * Retrieves the live patient queue for the doctor portal.
- * If clinicianIdentifier is supplied, returns only patients who have granted access.
+ * If clinicianIdentifier is supplied, returns only patients who have granted active consent.
  */
 export function getDoctorPatientQueue(clinicianIdentifier?: string): PatientRecord[] {
   if (typeof window === "undefined") {
