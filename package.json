@@ -11,7 +11,8 @@
     "lint": "next lint",
     "test": "npx tsx scripts/test-release-gate.ts && npx tsx scripts/test-triage-intent.ts",
     "test:intent": "npx tsx scripts/test-triage-intent.ts",
-    "test:all": "npx tsx scripts/test-release-gate.ts && npx tsx scripts/test-triage-intent.ts && npx tsx scripts/test-pr4-integration-auth.ts"
+    "test:pr2": "npx tsx scripts/test-pr2-identity.ts",
+    "test:all": "npx tsx scripts/test-release-gate.ts && npx tsx scripts/test-triage-intent.ts && npx tsx scripts/test-pr2-identity.ts && npx tsx scripts/test-pr4-integration-auth.ts"
   },
   "dependencies": {
     "@google/genai": "^2.16.0",

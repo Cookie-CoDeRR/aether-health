@@ -202,6 +202,24 @@ export const SEEDED_ABDM_DOCTORS: ABDMDoctor[] = [
  * - If no registry integration exists outside DEMO_MODE, returns "unverified (format valid)" or "unavailable".
  * - Never invents credentials.
  */
+function isDemoModeActive(): boolean {
+  if (
+    typeof process !== "undefined" &&
+    (process.env.DEMO_MODE === "true" ||
+      process.env.NEXT_PUBLIC_DEMO_MODE === "true")
+  ) {
+    return true;
+  }
+  if (typeof window !== "undefined") {
+    try {
+      return localStorage.getItem("aether_demo_mode") === "true";
+    } catch {
+      return false;
+    }
+  }
+  return false;
+}
+
 export async function verifyHprId(
   hprId: string,
   options?: { registryClient?: ABDMRegistryClient }
@@ -231,10 +249,7 @@ export async function verifyHprId(
     };
   }
 
-  const isDemo =
-    typeof process !== "undefined" &&
-    (process.env.DEMO_MODE === "true" ||
-      process.env.NEXT_PUBLIC_DEMO_MODE === "true");
+  const isDemo = isDemoModeActive();
 
   // In DEMO_MODE, seeded fixtures simulate registry responses for verified sample doctors
   if (isDemo) {
@@ -315,10 +330,7 @@ export async function getAbdmDoctors(
 ): Promise<ABDMDoctor[]> {
   await new Promise((res) => setTimeout(res, 40));
 
-  const isDemo =
-    typeof process !== "undefined" &&
-    (process.env.DEMO_MODE === "true" ||
-      process.env.NEXT_PUBLIC_DEMO_MODE === "true");
+  const isDemo = isDemoModeActive();
 
   if (!isDemo) {
     return [];

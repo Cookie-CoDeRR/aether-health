@@ -181,6 +181,11 @@ export default function AuthModal({
 
   const handleGuestDoctorEnter = async () => {
     try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("aether_demo_mode", "true");
+        localStorage.setItem("aether_auth_active", "true");
+        localStorage.setItem("aether_user_role", "doctor");
+      }
       await signInAsDoctor(VERIFIED_DOCTORS_REGISTRY[0]);
       onClose();
       router.push("/doctor");
@@ -191,6 +196,7 @@ export default function AuthModal({
 
   const handleGuestPatientEnter = () => {
     if (typeof window !== "undefined") {
+      localStorage.setItem("aether_demo_mode", "true");
       localStorage.setItem("aether_auth_active", "true");
       localStorage.setItem("aether_user_role", "patient");
     }

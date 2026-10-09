@@ -154,11 +154,21 @@ export const VERIFIED_DOCTORS_REGISTRY: DoctorProfile[] = [
 ];
 
 export function isDemoModeActive(): boolean {
-  return (
+  if (
     typeof process !== "undefined" &&
     (process.env.DEMO_MODE === "true" ||
       process.env.NEXT_PUBLIC_DEMO_MODE === "true")
-  );
+  ) {
+    return true;
+  }
+  if (typeof window !== "undefined") {
+    try {
+      return localStorage.getItem("aether_demo_mode") === "true";
+    } catch {
+      return false;
+    }
+  }
+  return false;
 }
 
 export const isDemoMode =
@@ -324,10 +334,7 @@ export async function signInAsDoctor(details: {
   bio?: string;
   idToken?: string;
 }): Promise<UserProfile> {
-  const currentDemo =
-    typeof process !== "undefined" &&
-    (process.env.DEMO_MODE === "true" ||
-      process.env.NEXT_PUBLIC_DEMO_MODE === "true");
+  const currentDemo = isDemoModeActive();
 
   // Outside DEMO_MODE: Doctor sign-in must fail unless a server-verified identity exists
   if (!currentDemo) {

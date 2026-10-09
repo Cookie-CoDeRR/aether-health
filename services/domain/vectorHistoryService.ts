@@ -75,11 +75,21 @@ export async function storeVectorMedicalRecord(
 }
 
 function isDemoModeActive(): boolean {
-  return (
+  if (
     typeof process !== "undefined" &&
     (process.env.DEMO_MODE === "true" ||
       process.env.NEXT_PUBLIC_DEMO_MODE === "true")
-  );
+  ) {
+    return true;
+  }
+  if (typeof window !== "undefined") {
+    try {
+      return localStorage.getItem("aether_demo_mode") === "true";
+    } catch {
+      return false;
+    }
+  }
+  return false;
 }
 
 /**
