@@ -15,6 +15,7 @@ import {
 import {
   classifyUserIntent,
   sanitizeClinicalReplyText,
+  getRandomModelFailureReply,
 } from "../domain/intentClassification";
 
 function isDemoModeActive(): boolean {
@@ -104,33 +105,27 @@ function generateFallbackTriageOutput(symptoms: string, userId: string): TriageO
     };
   }
 
-  // 4. Detailed Symptom Report (Moderate / Routine)
-  const lower = symptoms.toLowerCase();
-  const isModerate =
-    lower.includes("fever") ||
-    lower.includes("vomit") ||
-    lower.includes("stomach") ||
-    lower.includes("severe") ||
-    lower.includes("cramp");
-
-  const message = isModerate
-    ? `Based on the symptoms you reported, this appears to be a moderate condition that warrants medical evaluation within the next 24 to 48 hours if it does not improve. Stay hydrated, eat light foods, and rest.`
-    : `Thank you for sharing your symptoms. Based on your description, this appears to be a routine, mild concern that is often manageable with rest, adequate hydration, and standard home observation. If symptoms worsen, consult a healthcare professional.`;
+  // 4. Detailed Symptom Report: Model Fallback (When API is offline/unavailable)
+  // Outside active model response, show safe honest fallback without triage badge or canned medical advice
+  const failureReply = getRandomModelFailureReply();
 
   return {
     status: "ok",
     intent: "symptom_report",
     red_flags: [],
-    urgencyLevel: isModerate ? "moderate" : "low",
-    triage_level: isModerate ? "moderate" : "low",
-    summary: `Symptom evaluation for reported condition`,
-    message: sanitizeClinicalReplyText(message),
-    reply: sanitizeClinicalReplyText(message),
+    urgencyLevel: null,
+    triage_level: null,
+    summary: "Service fallback",
+    message: sanitizeClinicalReplyText(failureReply),
+    reply: sanitizeClinicalReplyText(failureReply),
     patientRecordContext: patientContext.slice(0, 2),
     suggestedFollowUps: [
-      "What home care steps can help relieve these symptoms?",
-      "When should I follow up with a primary care doctor?",
-      "Show nearby verified clinics and doctors",
+      "Consult a primary care doctor",
+      "Find nearby clinics",
+    ],
+    follow_up_questions: [
+      "Consult a primary care doctor",
+      "Find nearby clinics",
     ],
   };
 }

@@ -18,11 +18,25 @@ export interface SpecialtySuggestion {
   reasoning: string;
 }
 
+export interface StructuredCareAdvice {
+  acknowledgement?: string;
+  whats_worth_noticing?: string[];
+  self_care?: string[];
+  watch_for?: string[];
+  when_to_see_a_doctor?: string;
+}
+
 export interface TriageOutput {
   status: "ok" | "failed";
   intent?: "emergency" | "greeting" | "app_question" | "general_health_question" | "symptom_report" | "unclear" | "off_topic";
   message: string;
   reply?: string;
+  acknowledgement?: string;
+  whats_worth_noticing?: string[];
+  self_care?: string[];
+  watch_for?: string[];
+  when_to_see_a_doctor?: string;
+  structured_advice?: StructuredCareAdvice;
   urgencyLevel?: UrgencyLevel | null;
   triage_level?: "low" | "moderate" | "high_critical" | null;
   red_flags?: string[];

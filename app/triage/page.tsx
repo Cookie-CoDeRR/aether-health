@@ -23,6 +23,7 @@ import {
   Activity,
   HeartPulse,
   RotateCcw,
+  MapPin,
 } from "lucide-react";
 
 import {
@@ -311,26 +312,45 @@ function TriageContent() {
                     </div>
                   </div>
 
-                  {/* Suggested Follow-up Questions */}
+                  {/* Suggested Clinician Follow-up Questions */}
                   {msg.sender === "ai" &&
                     msg.suggestedFollowUps &&
                     msg.suggestedFollowUps.length > 0 && (
-                      <div className="max-w-[96%] sm:max-w-[88%] rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-4 space-y-2.5 shadow-xs">
+                      <div className="max-w-[96%] sm:max-w-[88%] rounded-2xl border border-[#064E3B]/20 dark:border-white/15 bg-white dark:bg-[#0B1D17] p-4 space-y-3 shadow-xs">
                         <div className="text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
                           <span>Helpful follow-up questions:</span>
                         </div>
                         <div className="flex flex-col gap-1.5">
-                          {msg.suggestedFollowUps.map((promptText, idx) => (
-                            <button
-                              key={idx}
-                              onClick={() => handleSend(promptText)}
-                              className="text-left rounded-xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] p-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] font-semibold transition-all"
-                            >
-                              👉 {promptText}
-                            </button>
-                          ))}
+                          {msg.suggestedFollowUps
+                            .filter((q) => !/nearby\s+clinics|find\s+clinics/i.test(q))
+                            .map((promptText, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => handleSend(promptText)}
+                                className="text-left rounded-xl border border-[#064E3B]/15 dark:border-white/10 bg-[#F9FBF9] dark:bg-[#0F241E] hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] p-3 text-xs text-[#064E3B] dark:text-[#ECFDF5] font-semibold transition-all cursor-pointer"
+                              >
+                                👉 {promptText}
+                              </button>
+                            ))}
                         </div>
+
+                        {/* Separate Action Button for Finding Verified Clinics */}
+                        {(msg.intent === "symptom_report" ||
+                          msg.suggestedFollowUps.some((q) => /nearby\s+clinics|find\s+clinics/i.test(q))) && (
+                          <div className="pt-1 border-t border-[#064E3B]/10 dark:border-white/10">
+                            <Link
+                              href="/discovery"
+                              className="w-full inline-flex items-center justify-between gap-2 rounded-xl border border-[#064E3B]/20 dark:border-white/15 bg-[#F9FBF9] dark:bg-[#0F241E] hover:bg-[#064E3B] dark:hover:bg-[#10B981] hover:text-white dark:hover:text-[#042F24] px-3.5 py-2.5 text-xs font-bold text-[#064E3B] dark:text-[#ECFDF5] transition-all shadow-2xs cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-3.5 h-3.5 text-[#064E3B] dark:text-[#10B981]" />
+                                <span>Find Nearby Verified Clinics & Emergency Facilities</span>
+                              </div>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        )}
                       </div>
                     )}
 

@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+export const structuredCareAdviceZodSchema = z.object({
+  acknowledgement: z.string().optional().default(""),
+  whats_worth_noticing: z.array(z.string()).optional().default([]),
+  self_care: z.array(z.string()).optional().default([]),
+  watch_for: z.array(z.string()).optional().default([]),
+  when_to_see_a_doctor: z.string().optional().default(""),
+});
+
 export const triageAiResponseZodSchema = z.object({
   intent: z.enum([
     "emergency",
@@ -11,7 +19,12 @@ export const triageAiResponseZodSchema = z.object({
     "off_topic",
   ]),
   red_flags: z.array(z.string()).default([]),
-  reply: z.string().min(1),
+  reply: z.string().optional(),
+  acknowledgement: z.string().optional(),
+  whats_worth_noticing: z.array(z.string()).optional().default([]),
+  self_care: z.array(z.string()).optional().default([]),
+  watch_for: z.array(z.string()).optional().default([]),
+  when_to_see_a_doctor: z.string().optional(),
   follow_up_questions: z.array(z.string()).default([]),
   triage_level: z.enum(["low", "moderate", "high_critical"]).nullable(),
 });
@@ -37,6 +50,12 @@ export const triageOutputZodSchema = z.object({
   summary: z.string().optional(),
   message: z.string().min(1),
   reply: z.string().optional(),
+  acknowledgement: z.string().optional(),
+  whats_worth_noticing: z.array(z.string()).optional().default([]),
+  self_care: z.array(z.string()).optional().default([]),
+  watch_for: z.array(z.string()).optional().default([]),
+  when_to_see_a_doctor: z.string().optional(),
+  structured_advice: structuredCareAdviceZodSchema.optional(),
   specialties: z
     .array(
       z.object({

@@ -345,17 +345,32 @@ export function classifyUserIntent(text: string): IntentClassificationResult {
       lower.includes("intense") ||
       lower.includes("cramp");
 
+    const tailoredQuestions: string[] = [];
+    if (lower.includes("headache") || lower.includes("fatigue")) {
+      tailoredQuestions.push("Have you had any fever, nausea, or light sensitivity?");
+      tailoredQuestions.push("How has your recent sleep and water intake been?");
+      tailoredQuestions.push("Are you noticing any changes in your vision or neck stiffness?");
+    } else if (lower.includes("throat") || lower.includes("cough")) {
+      tailoredQuestions.push("Is it painful to swallow liquids or food?");
+      tailoredQuestions.push("Are you experiencing any shortness of breath or wheezing?");
+      tailoredQuestions.push("Have you measured your body temperature?");
+    } else if (lower.includes("stomach") || lower.includes("digest") || lower.includes("nausea")) {
+      tailoredQuestions.push("Are you able to keep liquids down?");
+      tailoredQuestions.push("Have you noticed any sharp localized abdominal pain?");
+      tailoredQuestions.push("When did your last meal occur?");
+    } else {
+      tailoredQuestions.push("Has this symptom been constant or coming and going?");
+      tailoredQuestions.push("Are you experiencing any other accompanying sensations?");
+      tailoredQuestions.push("Have you had similar symptoms in the past?");
+    }
+
     return {
       intent: "symptom_report",
       redFlags: [],
       isEmergency: false,
       needsMoreInfo: false,
       triageLevel: isModerate ? "moderate" : "low",
-      followUpQuestions: [
-        "What home care self-steps can I take?",
-        "When should I follow up with a primary care doctor?",
-        "Show nearby clinics and doctors",
-      ],
+      followUpQuestions: tailoredQuestions,
     };
   }
 
@@ -381,22 +396,80 @@ export function classifyUserIntent(text: string): IntentClassificationResult {
  */
 function getGeneralHealthEducationalAnswer(lower: string): string {
   if (lower.includes("water") || lower.includes("hydrate")) {
-    return "Healthy adults generally require approximately 2 to 3 liters (8 to 12 cups) of fluids per day, varying based on activity level, climate, and overall health. Maintaining steady hydration supports kidney function, energy levels, and digestive health.\n\n(Note: This is general educational information, not personalized medical advice.)";
+    return "Healthy adults generally require approximately 2 to 3 liters (8 to 12 cups) of fluids per day, varying based on activity level, climate, and overall health. Maintaining steady hydration supports kidney function, energy levels, and digestive health.\n\nThis is general guidance, not a diagnosis.";
   }
   if (lower.includes("sleep")) {
-    return "Adults typically need 7 to 9 hours of quality sleep per night for optimal immune function, cognitive clarity, and cardiovascular recovery. Keeping a consistent sleep schedule and limiting screens before bed can improve sleep quality.\n\n(Note: This is general educational information, not a medical diagnosis.)";
+    return "Adults typically need 7 to 9 hours of quality sleep per night for optimal immune function, cognitive clarity, and cardiovascular recovery. Keeping a consistent sleep schedule and limiting screens before bed can improve sleep quality.\n\nThis is general guidance, not a diagnosis.";
   }
   if (lower.includes("blood pressure")) {
-    return "For most adults, a normal resting blood pressure is generally defined as below 120/80 mmHg. Consistently elevated readings (130/80 mmHg or higher) should be evaluated by a healthcare professional.\n\n(Note: This is educational information, not a clinical diagnosis.)";
+    return "For most adults, a normal resting blood pressure is generally defined as below 120/80 mmHg. Consistently elevated readings (130/80 mmHg or higher) should be evaluated by a healthcare professional.\n\nThis is general guidance, not a diagnosis.";
   }
   if (lower.includes("paracetamol") || lower.includes("empty stomach")) {
-    return "Paracetamol (acetaminophen) can generally be taken with or without food. However, taking medication with water and a light snack may help avoid mild stomach discomfort. Always adhere to packaging instructions and consult a pharmacist or doctor regarding personal safety.\n\n(Note: Educational health guidance only; not a prescription.)";
+    return "Paracetamol (acetaminophen) can generally be taken with or without food. However, taking medication with water and a light snack may help avoid mild stomach discomfort. Always adhere to packaging instructions and consult a pharmacist or doctor regarding personal safety.\n\nThis is general guidance, not a diagnosis.";
   }
-  return "General wellness recommendations emphasize balanced nutrition, daily physical activity, adequate hydration (2-3L/day), and 7-9 hours of sleep. For personalized assessments or chronic concerns, consult a licensed physician.\n\n(Note: This is educational information, not a diagnosis.)";
+  return "General wellness recommendations emphasize balanced nutrition, daily physical activity, adequate hydration (2-3L/day), and 7-9 hours of sleep. For personalized assessments or chronic concerns, consult a licensed physician.\n\nThis is general guidance, not a diagnosis.";
 }
 
 /**
- * Strips raw markdown double asterisks (**) and trailing raw headers from plain text
+ * 4 Safe Fallback Replies when Model Call Fails (randomly picked, zero diagnosis, no triage level)
+ */
+export const SAFE_MODEL_FAILURE_REPLIES = [
+  "I couldn't generate personalised guidance right now. If your symptoms feel concerning, change suddenly, or get worse, please consult a qualified healthcare professional or visit a local clinic.",
+  "I couldn't generate personalised guidance right now. Please consider checking with a doctor or primary care clinician for tailored medical advice regarding what you are experiencing.",
+  "I couldn't generate personalised guidance right now. For your safety, if you feel unwell or have any questions about these symptoms, please reach out to a healthcare provider.",
+  "I couldn't generate personalised guidance right now. Please monitor how you feel closely and speak with a licensed clinician if your discomfort persists or causes worry.",
+];
+
+export function getRandomModelFailureReply(): string {
+  const index = Math.floor(Math.random() * SAFE_MODEL_FAILURE_REPLIES.length);
+  return SAFE_MODEL_FAILURE_REPLIES[index] || SAFE_MODEL_FAILURE_REPLIES[0];
+}
+
+export interface StructuredSymptomReplyInput {
+  acknowledgement?: string;
+  whats_worth_noticing?: string[];
+  self_care?: string[];
+  watch_for?: string[];
+  when_to_see_a_doctor?: string;
+}
+
+/**
+ * Compiles structured fields into clean markdown/text with short sections and non-diagnosis note
+ */
+export function compileStructuredSymptomReply(input: StructuredSymptomReplyInput): string {
+  const parts: string[] = [];
+
+  if (input.acknowledgement && input.acknowledgement.trim()) {
+    parts.push(sanitizeClinicalReplyText(input.acknowledgement.trim()));
+  }
+
+  if (input.whats_worth_noticing && input.whats_worth_noticing.length > 0) {
+    const items = input.whats_worth_noticing.map((i) => `• ${sanitizeClinicalReplyText(i)}`).join("\n");
+    parts.push(`What's worth noticing:\n${items}`);
+  }
+
+  if (input.self_care && input.self_care.length > 0) {
+    const items = input.self_care.map((i) => `• ${sanitizeClinicalReplyText(i)}`).join("\n");
+    parts.push(`Self-care steps:\n${items}`);
+  }
+
+  if (input.watch_for && input.watch_for.length > 0) {
+    const items = input.watch_for.map((i) => `• ${sanitizeClinicalReplyText(i)}`).join("\n");
+    parts.push(`Watch for:\n${items}\nSeek prompt medical attention if any of these develop.`);
+  }
+
+  if (input.when_to_see_a_doctor && input.when_to_see_a_doctor.trim()) {
+    parts.push(`When to see a doctor:\n${sanitizeClinicalReplyText(input.when_to_see_a_doctor.trim())}`);
+  }
+
+  parts.push("This is general guidance, not a diagnosis.");
+
+  return sanitizeClinicalReplyText(parts.join("\n\n"));
+}
+
+/**
+ * Strips raw markdown double asterisks (**) and trailing raw headers from plain text.
+ * Also cleans forbidden canned diagnosis phrases.
  */
 export function sanitizeClinicalReplyText(text: string): string {
   if (!text) return "";
@@ -404,5 +477,7 @@ export function sanitizeClinicalReplyText(text: string): string {
     .replace(/\*\*(.*?)\*\*/g, "$1") // Strip bold asterisks
     .replace(/^###\s+/gm, "")
     .replace(/^####\s+/gm, "")
+    .replace(/\bthis appears to be a manageable condition\b/gi, "this is worth watching and managing carefully")
+    .replace(/\bappears to be a manageable condition\b/gi, "is worth watching and managing carefully")
     .trim();
 }
