@@ -136,7 +136,7 @@ const CARTO_API_KEY =
   "cb1_2dhp_1_9403bbcac732699b29121f7e";
 
 const CARTO_VOYAGER_URL = CARTO_API_KEY
-  ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?api_key=${CARTO_API_KEY}`
+  ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_API_KEY}`
   : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
 export default function HospitalMapCanvas({
