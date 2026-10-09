@@ -51,7 +51,7 @@ function DiscoveryContent() {
     lng: DEFAULT_LNG,
   });
   const [locationStatus, setLocationStatus] = useState<"detecting" | "acquired" | "default" | "error">("default");
-  const [radiusKm, setRadiusKm] = useState<number>(5);
+  const [radiusKm, setRadiusKm] = useState<number>(10);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -209,11 +209,11 @@ function DiscoveryContent() {
   };
 
   return (
-    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-6 animate-fade-in p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto text-[#064E3B] dark:text-[#ECFDF5] w-full pb-44 sm:pb-52 transition-colors">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto space-y-5 animate-fade-in p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto text-[#064E3B] dark:text-[#ECFDF5] w-full pb-44 sm:pb-52 transition-colors pt-4 sm:pt-6">
       {/* Top Header & Patient Context */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#064E3B]/15 dark:border-white/10 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#064E3B]/15 dark:border-white/10 pb-3">
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/70 dark:text-[#10B981] mb-1 flex items-center gap-2">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[#064E3B]/70 dark:text-[#10B981] mb-0.5 flex items-center gap-2">
             <span>Verified Care Network</span>
             <span>•</span>
             <span className="text-[#064E3B]/60 dark:text-white/50">Emergency Routing & Specialist Roster</span>

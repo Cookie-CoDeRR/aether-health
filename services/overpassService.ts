@@ -1,7 +1,11 @@
 import { Hospital, EmergencyCapability } from "@/types/hospital";
 import { calculateDistanceKm } from "@/lib/geoUtils";
 
-const OVERPASS_API_URL = "https://overpass-api.de/api/interpreter";
+const OVERPASS_ENDPOINTS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+];
 
 interface OverpassElement {
   type: "node" | "way" | "relation";
@@ -35,6 +39,13 @@ export async function fetchNearbyHospitals(
   radiusMeters: number = 5000
 ): Promise<Hospital[]> {
   const result = await fetchNearbyHospitalsWithStatus(lat, lng, radiusMeters);
+  
+  // If 0 hospitals found in small radius, auto-retry with expanded 12km radius
+  if (result.hospitals.length === 0 && radiusMeters < 12000) {
+    const expandedResult = await fetchNearbyHospitalsWithStatus(lat, lng, 12000);
+    return expandedResult.hospitals;
+  }
+  
   return result.hospitals;
 }
 
@@ -54,45 +65,48 @@ export async function fetchNearbyHospitalsWithStatus(
 );
 out center body;`;
 
-  try {
-    const response = await fetch(OVERPASS_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-      },
-      body: `data=${encodeURIComponent(overpassQuery)}`,
-    });
+  let lastError: string | undefined;
 
-    if (!response.ok) {
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      const url = `${endpoint}?data=${encodeURIComponent(overpassQuery)}`;
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        lastError = `Overpass endpoint ${endpoint} status: ${response.statusText}`;
+        continue;
+      }
+
+      const data: OverpassResponse = await response.json();
+      const parsedHospitals = mapOverpassElementsToHospitals(data.elements || [], lat, lng);
+
+      if (parsedHospitals.length === 0) {
+        return {
+          hospitals: [],
+          status: "empty",
+        };
+      }
+
+      const sorted = parsedHospitals.sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
       return {
-        hospitals: [],
-        status: "unavailable",
-        error: `Overpass API response error: ${response.statusText}`,
+        hospitals: sorted,
+        status: "ok",
       };
+    } catch (error: any) {
+      lastError = error?.message || "Overpass query failed or timed out";
     }
-
-    const data: OverpassResponse = await response.json();
-    const parsedHospitals = mapOverpassElementsToHospitals(data.elements || [], lat, lng);
-
-    if (parsedHospitals.length === 0) {
-      return {
-        hospitals: [],
-        status: "empty",
-      };
-    }
-
-    const sorted = parsedHospitals.sort((a, b) => (a.distanceKm || 0) - (b.distanceKm || 0));
-    return {
-      hospitals: sorted,
-      status: "ok",
-    };
-  } catch (error: any) {
-    return {
-      hospitals: [],
-      status: "unavailable",
-      error: error?.message || "Overpass query failed or timed out",
-    };
   }
+
+  return {
+    hospitals: [],
+    status: "unavailable",
+    error: lastError || "All Overpass API mirrors failed to respond",
+  };
 }
 
 export function mapOverpassElementsToHospitals(
