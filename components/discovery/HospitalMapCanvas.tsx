@@ -130,6 +130,15 @@ function createHospitalIcon(isEmergency: boolean, isSelected: boolean) {
   });
 }
 
+const CARTO_API_KEY =
+  process.env.NEXT_PUBLIC_CARTO_API_KEY ||
+  process.env.CARTO_API_KEY ||
+  "cb1_2dhp_1_9403bbcac732699b29121f7e";
+
+const CARTO_VOYAGER_URL = CARTO_API_KEY
+  ? `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?api_key=${CARTO_API_KEY}`
+  : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+
 export default function HospitalMapCanvas({
   userLocation,
   hospitals,
@@ -180,7 +189,9 @@ export default function HospitalMapCanvas({
         {/* Soft pastel map tiles via CartoDB Voyager */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+          url={CARTO_VOYAGER_URL}
+          subdomains="abcd"
+          maxZoom={20}
         />
 
         {/* User Location Marker */}
